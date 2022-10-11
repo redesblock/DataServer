@@ -259,7 +259,7 @@ func GetFileDownloadHandler(db *dataservice.DataService, nodeFunc func() string)
 		proxy.ModifyResponse = func(response *http.Response) error {
 			time := time.Now().Format("2006-01-02")
 			var item2 *dataservice.UsedTraffic
-			if ret := db.Model(&dataservice.UsedStorage{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
+			if ret := db.Model(&dataservice.UsedTraffic{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
 				return ret.Error
 			} else if ret.RowsAffected == 0 {
 				item2 = &dataservice.UsedTraffic{
