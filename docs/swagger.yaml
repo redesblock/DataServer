@@ -1,0 +1,721 @@
+basePath: /api/v1
+definitions:
+  dataservice.BillStorage:
+    properties:
+      amount:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      hash:
+        description: Email       string    `json:"email" gorm:"index"`
+        type: string
+      size:
+        type: integer
+      size_str:
+        type: string
+    type: object
+  dataservice.BillTraffic:
+    properties:
+      amount:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      hash:
+        description: Email       string    `json:"email" gorm:"index"`
+        type: string
+      size:
+        type: integer
+      size_str:
+        type: string
+    type: object
+  dataservice.Bucket:
+    properties:
+      access:
+        type: boolean
+      area:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        description: Email     string    `json:"email" gorm:"index"`
+        type: string
+      network:
+        type: string
+      total_num:
+        type: integer
+      total_size:
+        type: integer
+      total_size_str:
+        type: string
+    type: object
+  dataservice.BucketObject:
+    properties:
+      asset_id:
+        type: string
+      cid:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_folder:
+        type: boolean
+      name:
+        type: string
+      size:
+        type: integer
+      size_str:
+        type: string
+      status:
+        type: string
+      total_num:
+        type: integer
+      total_size:
+        type: integer
+      total_size_str:
+        type: string
+      traffic:
+        type: integer
+      updated_at:
+        type: string
+      url:
+        type: string
+    type: object
+  dataservice.UsedStorage:
+    properties:
+      num:
+        type: integer
+      timestamp:
+        type: string
+    type: object
+  dataservice.UsedTraffic:
+    properties:
+      num:
+        type: integer
+      timestamp:
+        type: string
+    type: object
+  dataservice.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dataservice.UserAction:
+    properties:
+      action:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      ip:
+        type: string
+    type: object
+  routers.AddBucketReq:
+    properties:
+      fid:
+        type: integer
+    type: object
+  routers.Bucket:
+    properties:
+      access:
+        type: boolean
+      area:
+        type: string
+      name:
+        type: string
+      network:
+        type: string
+    type: object
+  routers.LoginReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  routers.OverView:
+    properties:
+      buckets:
+        type: integer
+      objects:
+        type: integer
+      total_storage:
+        type: integer
+      total_storage_str:
+        type: string
+      used_storage:
+        type: integer
+      used_storage_str:
+        type: string
+    type: object
+  routers.UserReq:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      new_password:
+        type: string
+      password:
+        type: string
+    type: object
+host: 127.0.0.1:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server DataServer server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: DataServer Swagger API
+  version: "1.0"
+paths:
+  /asset/{id}:
+    get:
+      consumes:
+      - application/json
+      description: asset
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: folder id
+        in: query
+        name: fid
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: asset
+      tags:
+      - bucket object
+  /bills/storage:
+    get:
+      consumes:
+      - application/json
+      description: pagination query storage bills
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.BillStorage'
+      security:
+      - ApiKeyAuth: []
+      summary: list storage bills
+      tags:
+      - bills
+    post:
+      consumes:
+      - application/json
+      description: add storage bill
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.BillStorage'
+      security:
+      - ApiKeyAuth: []
+      summary: add storage bill
+      tags:
+      - bills
+  /bills/traffic:
+    get:
+      consumes:
+      - application/json
+      description: pagination query traffic bills
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.BillTraffic'
+      summary: list traffic bills
+      tags:
+      - bills
+    post:
+      consumes:
+      - application/json
+      description: add traffic bill
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.BillTraffic'
+      summary: add traffic bill
+      tags:
+      - bills
+  /buckets:
+    get:
+      consumes:
+      - application/json
+      description: pagination list buckets
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.Bucket'
+      security:
+      - ApiKeyAuth: []
+      summary: list buckets
+      tags:
+      - bucket
+    post:
+      consumes:
+      - application/json
+      description: add bucket
+      parameters:
+      - description: bucket info
+        in: body
+        name: bucket
+        required: true
+        schema:
+          $ref: '#/definitions/routers.Bucket'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.Bucket'
+      security:
+      - ApiKeyAuth: []
+      summary: add bucket
+      tags:
+      - bucket
+  /buckets/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: remove bucket
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.Bucket'
+      security:
+      - ApiKeyAuth: []
+      summary: remove bucket
+      tags:
+      - bucket
+    get:
+      consumes:
+      - application/json
+      description: bucket info
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.Bucket'
+      security:
+      - ApiKeyAuth: []
+      summary: bucket info
+      tags:
+      - bucket
+  /buckets/{id}/objects:
+    get:
+      consumes:
+      - application/json
+      description: pagination query bucket objects
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: folder id
+        in: query
+        name: fid
+        type: integer
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.BucketObject'
+      security:
+      - ApiKeyAuth: []
+      summary: list bucket objects
+      tags:
+      - bucket object
+  /buckets/{id}/objects/{fid}:
+    delete:
+      consumes:
+      - application/json
+      description: remove bucket object
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: folder id
+        in: path
+        name: fid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.BucketObject'
+      security:
+      - ApiKeyAuth: []
+      summary: remove bucket object
+      tags:
+      - bucket object
+    get:
+      consumes:
+      - application/json
+      description: bucket object info
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: folder id
+        in: path
+        name: fid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.BucketObject'
+      security:
+      - ApiKeyAuth: []
+      summary: bucket object info
+      tags:
+      - bucket object
+  /buckets/{id}/objects/{name}:
+    post:
+      consumes:
+      - application/json
+      description: add bucket folder
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: folder id
+        in: path
+        name: fid
+        type: integer
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: cid
+        in: path
+        name: cid
+        type: string
+      - description: object info
+        in: body
+        name: object
+        schema:
+          $ref: '#/definitions/routers.AddBucketReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.BucketObject'
+      security:
+      - ApiKeyAuth: []
+      summary: add bucket object
+      tags:
+      - bucket object
+  /buy/storage:
+    get:
+      consumes:
+      - application/json
+      description: traffic price
+      parameters:
+      - description: buy size
+        in: query
+        name: size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: traffic price
+      tags:
+      - bills
+  /buy/traffic:
+    get:
+      consumes:
+      - application/json
+      description: traffic price
+      parameters:
+      - description: buy size
+        in: query
+        name: size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: traffic price
+      tags:
+      - bills
+  /download/{cid}/{path}:
+    get:
+      consumes:
+      - application/json
+      description: asset
+      parameters:
+      - description: cid
+        in: path
+        name: cid
+        required: true
+        type: integer
+      - description: path
+        in: query
+        name: path
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: asset
+      tags:
+      - bucket object
+  /finish/{asset_id}:
+    post:
+      consumes:
+      - application/json
+      description: asset finish
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: asset finish
+      tags:
+      - bucket object
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: user login
+      parameters:
+      - description: user info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/routers.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: user login
+      tags:
+      - login
+  /overview:
+    get:
+      consumes:
+      - application/json
+      description: used storage
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.UsedTraffic'
+      security:
+      - ApiKeyAuth: []
+      summary: used storage
+      tags:
+      - dashboard
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: user info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.User'
+      security:
+      - ApiKeyAuth: []
+      summary: user info
+      tags:
+      - setting
+    post:
+      consumes:
+      - application/json
+      description: update user info
+      parameters:
+      - description: user setting
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/routers.UserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.User'
+      security:
+      - ApiKeyAuth: []
+      summary: update user info
+      tags:
+      - setting
+  /user/actions:
+    get:
+      consumes:
+      - application/json
+      description: pagination query user actions
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.UserAction'
+      security:
+      - ApiKeyAuth: []
+      summary: list user actions
+      tags:
+      - dashboard
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
