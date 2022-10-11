@@ -127,6 +127,8 @@ definitions:
     type: object
   routers.AddBucketReq:
     properties:
+      cid:
+        type: string
       fid:
         type: integer
     type: object

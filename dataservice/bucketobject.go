@@ -48,7 +48,7 @@ type BucketObject struct {
 }
 
 func (u *BucketObject) AfterFind(tx *gorm.DB) (err error) {
-	if len(u.AssetID) == 0 {
+	if len(u.AssetID) == 0 && len(u.CID) == 0 {
 		u.IsFolder = true
 	} else {
 		u.StatusStr = Statuses[u.Status]

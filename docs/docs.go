@@ -1056,6 +1056,9 @@ var doc = `{
         "routers.AddBucketReq": {
             "type": "object",
             "properties": {
+                "cid": {
+                    "type": "string"
+                },
                 "fid": {
                     "type": "integer"
                 }

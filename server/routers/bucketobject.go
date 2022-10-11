@@ -125,7 +125,8 @@ func DeleteBucketObjectHandler(db *dataservice.DataService) func(c *gin.Context)
 }
 
 type AddBucketReq struct {
-	Parent uint `json:"fid"`
+	Parent uint   `json:"fid"`
+	CID    string `json:"cid"`
 }
 
 // @Summary add bucket object
@@ -157,7 +158,7 @@ func AddBucketObjectHandler(db *dataservice.DataService) func(c *gin.Context) {
 		fid := req.Parent
 
 		name := c.Param("name")
-		cid := c.Query("cid")
+		cid := req.CID
 
 		var t *dataservice.BucketObject
 		if ret := db.Model(&dataservice.BucketObject{}).Where("bucket_id = ?", id).Where("parent_id = ?", fid).Where("name = ?", name).Find(&t); ret.Error != nil {
@@ -171,9 +172,11 @@ func AddBucketObjectHandler(db *dataservice.DataService) func(c *gin.Context) {
 		var item = &dataservice.BucketObject{
 			Name:     name,
 			CID:      cid,
-			Status:   dataservice.STATUS_UPLOADED,
 			ParentID: uint(fid),
 			BucketID: uint(id),
+		}
+		if len(item.CID) > 0 {
+			item.Status = dataservice.STATUS_PINED
 		}
 		if err := db.Save(item).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
