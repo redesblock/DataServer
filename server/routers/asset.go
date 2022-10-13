@@ -44,9 +44,34 @@ func GetAssetHandler(db *dataservice.DataService) func(c *gin.Context) {
 			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid fid"))
 			return
 		}
+
+		userID, _ := c.Get("id")
+		var user dataservice.User
+		if err := db.Find(&user, "id = ?", userID); err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
+		}
+		if user.UsedStorage >= user.TotalStorage {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "storage usage has reached the maximum"))
+			return
+		}
+
 		os.Mkdir("assets", os.ModePerm)
-		uuid := uuid.New()
-		if err := os.Mkdir(filepath.Join("assets", uuid.String()), os.ModePerm); err != nil {
+
+		var assetID string
+		exists := true
+		for exists {
+			assetID = uuid.New().String()
+			_, err := os.Stat(filepath.Join("assets", assetID))
+			if err == nil {
+				continue
+			}
+			if os.IsNotExist(err) {
+				exists = false
+			}
+		}
+
+		if err := os.Mkdir(filepath.Join("assets", assetID), os.ModePerm); err != nil {
 			c.JSON(http.StatusOK, NewResponse(RequestCode, err))
 			return
 		}
@@ -55,15 +80,15 @@ func GetAssetHandler(db *dataservice.DataService) func(c *gin.Context) {
 			Name:     c.Query("name"),
 			BucketID: uint(id),
 			ParentID: uint(fid),
-			AssetID:  uuid.String(),
+			AssetID:  assetID,
 			Status:   dataservice.STATUS_WAIT,
 		}).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
 		data := map[string]interface{}{
-			"asset_id": uuid.String(),
-			"url":      "/upload/" + uuid.String(),
+			"asset_id": assetID,
+			"url":      "/upload/" + assetID,
 		}
 		c.JSON(http.StatusOK, NewResponse(OKCode, data))
 	}
@@ -247,15 +272,22 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 // @Router /download/{cid}/{path} [get]
 func GetFileDownloadHandler(db *dataservice.DataService, nodeFunc func() string) func(c *gin.Context) {
 	return func(c *gin.Context) {
+		userID, _ := c.Get("id")
+		var user dataservice.User
+		if err := db.Find(&user, "id = ?", userID); err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
+		}
+		if user.UsedTraffic >= user.TotalTraffic {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "storage usage has reached the maximum"))
+			return
+		}
+
 		cid := c.Param("cid")
 		path := c.Param("path")
-
-		userID, _ := c.Get("id")
-
 		u, _ := url.Parse(nodeFunc())
 		proxy := httputil.NewSingleHostReverseProxy(u)
 		c.Request.URL.Path = "hop/" + cid + "/" + path
-		fmt.Println(c.Request.URL.Path)
 		proxy.ModifyResponse = func(response *http.Response) error {
 			time := time.Now().Format("2006-01-02")
 			var item2 *dataservice.UsedTraffic

@@ -1031,7 +1031,31 @@ var doc = `{
                 "last_name": {
                     "type": "string"
                 },
+                "total_storage": {
+                    "type": "integer"
+                },
+                "total_storage_str": {
+                    "type": "string"
+                },
+                "total_traffic": {
+                    "type": "integer"
+                },
+                "total_traffic_str": {
+                    "type": "string"
+                },
                 "updated_at": {
+                    "type": "string"
+                },
+                "used_storage": {
+                    "type": "integer"
+                },
+                "used_storage_str": {
+                    "type": "string"
+                },
+                "used_traffic": {
+                    "type": "integer"
+                },
+                "used_traffic_str": {
                     "type": "string"
                 }
             }

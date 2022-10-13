@@ -100,6 +100,12 @@ func AddBillsStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 		}
 
 		userID, _ := c.Get("id")
+		var user dataservice.User
+		if err := db.Find(&user, "id = ?", userID); err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
+		}
+
 		item := &dataservice.BillStorage{
 			Hash:        req.Hash,
 			Amount:      req.Amount,
@@ -111,6 +117,8 @@ func AddBillsStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
+		user.TotalStorage += item.Size
+		db.Save(&user)
 
 		c.JSON(http.StatusOK, NewResponse(OKCode, item))
 	}
@@ -133,6 +141,12 @@ func AddBillsTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 		}
 
 		userID, _ := c.Get("id")
+		var user dataservice.User
+		if err := db.Find(&user, "id = ?", userID); err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
+		}
+
 		item := &dataservice.BillTraffic{
 			Hash:        req.Hash,
 			Amount:      req.Amount,
@@ -144,6 +158,8 @@ func AddBillsTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
+		user.TotalTraffic += item.Size
+		db.Save(&user)
 
 		c.JSON(http.StatusOK, NewResponse(OKCode, item))
 	}
