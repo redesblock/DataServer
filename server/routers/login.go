@@ -52,8 +52,8 @@ func LoginHandler(db *dataservice.DataService) func(c *gin.Context) {
 			item = &dataservice.User{
 				Email:        req.Email,
 				Password:     req.Password,
-				TotalStorage: math.MaxUint64,
-				TotalTraffic: math.MaxUint64,
+				TotalStorage: math.MaxInt32,
+				TotalTraffic: math.MaxInt32,
 			}
 			if err := db.Save(item).Error; err != nil {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))

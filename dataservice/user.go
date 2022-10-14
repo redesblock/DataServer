@@ -30,10 +30,10 @@ type User struct {
 func (u *User) AfterFind(tx *gorm.DB) (err error) {
 	u.Created = u.CreatedAt.Format(TIME_FORMAT)
 	u.Updated = u.UpdatedAt.Format(TIME_FORMAT)
-	u.TotalStorageStr = humanize.Bytes(u.TotalStorage)
-	u.UsedStorageStr = humanize.Bytes(u.UsedStorage)
-	u.TotalTrafficStr = humanize.Bytes(u.TotalTraffic)
-	u.UsedTrafficStr = humanize.Bytes(u.UsedTraffic)
+	u.TotalStorageStr = humanize.IBytes(u.TotalStorage)
+	u.UsedStorageStr = humanize.IBytes(u.UsedStorage)
+	u.TotalTrafficStr = humanize.IBytes(u.TotalTraffic)
+	u.UsedTrafficStr = humanize.IBytes(u.UsedTraffic)
 	return
 }
 

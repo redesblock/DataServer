@@ -6,13 +6,14 @@ import (
 
 type UsedStorage struct {
 	ID     uint   `json:"-" gorm:"primaryKey"`
-	Num    uint64 `json:"num"`
+	Num    uint64 `json:"-"`
 	Time   string `json:"timestamp"`
 	UserID uint   `json:"-"`
+	NumStr uint64 `json:"num" gorm:"-"`
 }
 
 func (u *UsedStorage) AfterFind(tx *gorm.DB) (err error) {
-	u.Num /= 1024 * 1024
+	u.NumStr = u.Num / 1024
 	return
 }
 
@@ -21,9 +22,11 @@ type UsedTraffic struct {
 	Num    uint64 `json:"num"`
 	Time   string `json:"timestamp"`
 	UserID uint   `json:"-"`
+
+	NumStr uint64 `json:"num" gorm:"-"`
 }
 
 func (u *UsedTraffic) AfterFind(tx *gorm.DB) (err error) {
-	u.Num /= 1024 * 1024
+	u.NumStr = u.Num / 1024
 	return
 }

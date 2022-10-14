@@ -251,6 +251,7 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 					UserID: userID.(uint),
 				}
 			}
+			fmt.Println(item2.Num, videoFileSize)
 			item2.Num += uint64(videoFileSize)
 			db.Save(&item2)
 		}
