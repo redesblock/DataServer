@@ -47,7 +47,7 @@ func GetAssetHandler(db *dataservice.DataService) func(c *gin.Context) {
 
 		userID, _ := c.Get("id")
 		var user dataservice.User
-		if err := db.Find(&user, "id = ?", userID); err != nil {
+		if err := db.Find(&user, "id = ?", userID).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
@@ -228,12 +228,12 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 
 		item.Name = strings.Split(resumableRelativePath[0], "/")[0]
 		item.Size += uint64(videoFileSize)
-		if uploaded {
-			// TODO
-			item.Status = dataservice.STATUS_UPLOADED
-		} else {
-			item.Status = dataservice.STATUS_UPLOAD
-		}
+		//if uploaded {
+		//	// TODO
+		//	item.Status = dataservice.STATUS_UPLOADED
+		//} else {
+		item.Status = dataservice.STATUS_UPLOAD
+		//}
 		if err := db.Save(item).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
@@ -274,7 +274,7 @@ func GetFileDownloadHandler(db *dataservice.DataService, nodeFunc func() string)
 	return func(c *gin.Context) {
 		userID, _ := c.Get("id")
 		var user dataservice.User
-		if err := db.Find(&user, "id = ?", userID); err != nil {
+		if err := db.Find(&user, "id = ?", userID).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}

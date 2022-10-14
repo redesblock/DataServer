@@ -101,7 +101,7 @@ func AddBillsStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 
 		userID, _ := c.Get("id")
 		var user dataservice.User
-		if err := db.Find(&user, "id = ?", userID); err != nil {
+		if err := db.Find(&user, "id = ?", userID).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
@@ -142,7 +142,7 @@ func AddBillsTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 
 		userID, _ := c.Get("id")
 		var user dataservice.User
-		if err := db.Find(&user, "id = ?", userID); err != nil {
+		if err := db.Find(&user, "id = ?", userID).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
