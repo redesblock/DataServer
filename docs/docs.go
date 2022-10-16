@@ -884,6 +884,9 @@ var doc = `{
                 },
                 "size_str": {
                     "type": "string"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         },
@@ -907,6 +910,9 @@ var doc = `{
                     "type": "integer"
                 },
                 "size_str": {
+                    "type": "string"
+                },
+                "url": {
                     "type": "string"
                 }
             }

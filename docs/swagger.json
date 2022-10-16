@@ -870,6 +870,9 @@
                 },
                 "size_str": {
                     "type": "string"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         },
@@ -893,6 +896,9 @@
                     "type": "integer"
                 },
                 "size_str": {
+                    "type": "string"
+                },
+                "url": {
                     "type": "string"
                 }
             }

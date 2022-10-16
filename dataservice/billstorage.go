@@ -14,6 +14,7 @@ type BillStorage struct {
 	Description string    `json:"description"`
 	CreatedAt   time.Time `json:"-"`
 	UserID      uint      `json:"-"`
+	URL         string    `json:"url"`
 
 	Created string `json:"created_at" gorm:"-"`
 	SizeStr string `json:"size_str" gorm:"-"`
@@ -22,6 +23,7 @@ type BillStorage struct {
 func (u *BillStorage) AfterFind(tx *gorm.DB) (err error) {
 	u.Created = u.CreatedAt.Format(TIME_FORMAT)
 	u.SizeStr = HumanateBytes(u.Size)
+	u.URL = "https://testnet.bscscan.com/tx/" + u.Hash
 	return
 }
 
