@@ -1,11 +1,13 @@
 package dataservice
 
 import (
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"math"
 	"os"
 	"path/filepath"
 )
@@ -51,4 +53,25 @@ func New(mode string, dsn string, opts ...gorm.Option) *DataService {
 	return &DataService{
 		DB: db,
 	}
+}
+
+func HumanateBytes(s uint64) string {
+	base := float64(1000)
+	sizes := []string{"B", "KB", "MB", "GB", "TB", "PB", "EB"}
+	if s < 10 {
+		return fmt.Sprintf("%d B", s)
+	}
+	e := math.Floor(logn(float64(s), base))
+	suffix := sizes[int(e)]
+	val := math.Floor(float64(s)/math.Pow(base, e)*10+0.5) / 10
+	f := "%.0f %s"
+	if val < 10 {
+		f = "%.1f %s"
+	}
+
+	return fmt.Sprintf(f, val, suffix)
+}
+
+func logn(n, b float64) float64 {
+	return math.Log(n) / math.Log(b)
 }

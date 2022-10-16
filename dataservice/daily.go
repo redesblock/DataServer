@@ -19,7 +19,7 @@ func (u *UsedStorage) AfterFind(tx *gorm.DB) (err error) {
 
 type UsedTraffic struct {
 	ID     uint   `json:"-" gorm:"primaryKey"`
-	Num    uint64 `json:"num"`
+	Num    uint64 `json:"-"`
 	Time   string `json:"timestamp"`
 	UserID uint   `json:"-"`
 

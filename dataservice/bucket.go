@@ -1,7 +1,6 @@
 package dataservice
 
 import (
-	"github.com/dustin/go-humanize"
 	"gorm.io/gorm"
 	"time"
 )
@@ -35,7 +34,7 @@ func (u *Bucket) AfterFind(tx *gorm.DB) (err error) {
 	}
 	u.TotalSize = ret.Total
 	u.TotalNum = ret.Count
-	u.TotalSizeStr = humanize.IBytes(u.TotalSize)
+	u.TotalSizeStr = HumanateBytes(u.TotalSize)
 	return
 }
 

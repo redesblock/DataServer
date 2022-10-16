@@ -1,7 +1,6 @@
 package dataservice
 
 import (
-	"github.com/dustin/go-humanize"
 	"gorm.io/gorm"
 	"os"
 	"time"
@@ -55,7 +54,7 @@ func (u *BucketObject) AfterFind(tx *gorm.DB) (err error) {
 	}
 	u.Created = u.CreatedAt.Format(TIME_FORMAT)
 	u.Updated = u.UpdatedAt.Format(TIME_FORMAT)
-	u.SizeStr = humanize.IBytes(u.Size)
+	u.SizeStr = HumanateBytes(u.Size)
 	if len(u.CID) > 0 {
 		gateway, ok := os.LookupEnv("DATA_SERVER_GATEWAY")
 		if !ok {
@@ -90,7 +89,7 @@ func (s *DataService) FindBucketObject(bucketID uint, fid uint) (item *BucketObj
 		s.Model(&BucketObject{}).Where("bucket_id = ?", bucketID).Where("parent_id = ?", fid).Where("c_id != ''").Select("COALESCE(SUM(size),0) AS total, COUNT(id) AS count").Scan(&rt)
 		item.TotalNum = rt.Count
 		item.TotalSize = rt.Total
-		item.TotalSizeStr = humanize.IBytes(item.TotalSize)
+		item.TotalSizeStr = HumanateBytes(item.TotalSize)
 	}
 	return
 }

@@ -1,7 +1,6 @@
 package routers
 
 import (
-	"github.com/dustin/go-humanize"
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/dataservice"
 	"net/http"
@@ -55,8 +54,8 @@ func OverViewHandler(db *dataservice.DataService) func(c *gin.Context) {
 			Objects:         rtBucketObject.Count,
 			TotalStorage:    rtBucket.Total,
 			UsedStorage:     rtBucketObject.Total,
-			TotalStorageStr: humanize.IBytes(rtBucket.Total),
-			UsedStorageStr:  humanize.IBytes(rtBucketObject.Total),
+			TotalStorageStr: dataservice.HumanateBytes(rtBucket.Total),
+			UsedStorageStr:  dataservice.HumanateBytes(rtBucketObject.Total),
 		}))
 	}
 }

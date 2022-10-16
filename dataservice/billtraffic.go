@@ -1,7 +1,6 @@
 package dataservice
 
 import (
-	"github.com/dustin/go-humanize"
 	"gorm.io/gorm"
 	"time"
 )
@@ -22,7 +21,7 @@ type BillTraffic struct {
 
 func (u *BillTraffic) AfterFind(tx *gorm.DB) (err error) {
 	u.Created = u.CreatedAt.Format(TIME_FORMAT)
-	u.SizeStr = humanize.IBytes(u.Size)
+	u.SizeStr = HumanateBytes(u.Size)
 	return
 }
 
