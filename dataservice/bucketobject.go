@@ -12,6 +12,7 @@ const (
 	STATUS_UPLOAD
 	STATUS_UPLOADED
 	STATUS_PINED
+	STATUS_FAIL_PINED
 )
 
 var Statuses = []string{
@@ -20,6 +21,7 @@ var Statuses = []string{
 	"Uploading",
 	"Pinning",
 	"Pined",
+	"Unpin",
 }
 
 type BucketObject struct {

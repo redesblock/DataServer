@@ -77,7 +77,7 @@ func DailyStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 		date := time.Now()
 		for i := 0; i < 7; i++ {
 			var item *dataservice.UsedStorage
-			if ret := db.Debug().Where("user_id = ?", userID).Where("time = ?", date.Format("2006-01-02")).Find(&item); ret.Error != nil {
+			if ret := db.Where("user_id = ?", userID).Where("time = ?", date.Format("2006-01-02")).Find(&item); ret.Error != nil {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
 				return
 			} else if ret.RowsAffected == 0 {
