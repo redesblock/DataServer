@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/dataservice"
 	"net/http"
+	"time"
 )
 
 type OverView struct {
@@ -72,14 +73,32 @@ func OverViewHandler(db *dataservice.DataService) func(c *gin.Context) {
 func DailyStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("id")
-
-		offset := 0
-		limit := 10
 		var items []*dataservice.UsedStorage
-		if err := db.Model(&dataservice.UsedStorage{}).Order("id DESC").Where("user_id = ?", userID).Where("num > 0").Offset(int(offset)).Limit(int(limit)).Find(&items).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
+		date := time.Now()
+		for i := 0; i < 7; i++ {
+			var item *dataservice.UsedStorage
+			if ret := db.Debug().Where("user_id = ?", userID).Where("time = ?", date.Format("2006-01-02")).Find(&item); ret.Error != nil {
+				c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
+				return
+			} else if ret.RowsAffected == 0 {
+				item = &dataservice.UsedStorage{
+					UserID: userID.(uint),
+					Time:   date.Format("2006-01-02"),
+				}
+			}
+			items = append(items, item)
+			date = date.Add(-time.Hour * 24)
 		}
+
+		//offset := 0
+		//limit := 10
+		//
+		//before := time.Now().Add(-time.Hour * 24 * 7).Format("2006-01-02")
+		//var items []*dataservice.UsedStorage
+		//if err := db.Model(&dataservice.UsedStorage{}).Order("id DESC").Where("user_id = ?", userID).Where("num > 0").Where("time > ?", before).Offset(int(offset)).Limit(int(limit)).Find(&items).Error; err != nil {
+		//	c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+		//	return
+		//}
 		c.JSON(http.StatusOK, NewResponse(OKCode, items))
 	}
 }
@@ -97,13 +116,32 @@ func DailyTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("id")
 
-		offset := 0
-		limit := 10
 		var items []*dataservice.UsedTraffic
-		if err := db.Model(&dataservice.UsedTraffic{}).Order("id DESC").Where("user_id = ?", userID).Where("num > 0").Offset(int(offset)).Limit(int(limit)).Find(&items).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
+		date := time.Now()
+		for i := 0; i < 7; i++ {
+			var item *dataservice.UsedTraffic
+			if ret := db.Where("user_id = ?", userID).Where("time = ?", date.Format("2006-01-02")).Find(&item); ret.Error != nil {
+				c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
+				return
+			} else if ret.RowsAffected == 0 {
+				item = &dataservice.UsedTraffic{
+					UserID: userID.(uint),
+					Time:   date.Format("2006-01-02"),
+				}
+			}
+			items = append(items, item)
+			date = date.Add(-time.Hour * 24)
 		}
+
+		//offset := 0
+		//limit := 10
+		//
+		//before := time.Now().Add(-time.Hour * 24 * 7).Format("2006-01-02")
+		//var items []*dataservice.UsedTraffic
+		//if err := db.Model(&dataservice.UsedTraffic{}).Order("id DESC").Where("user_id = ?", userID).Where("num > 0").Where("time > ?", before).Offset(int(offset)).Limit(int(limit)).Find(&items).Error; err != nil {
+		//	c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+		//	return
+		//}
 		c.JSON(http.StatusOK, NewResponse(OKCode, items))
 	}
 }

@@ -14,10 +14,10 @@ type BillStorage struct {
 	Description string    `json:"description"`
 	CreatedAt   time.Time `json:"-"`
 	UserID      uint      `json:"-"`
-	URL         string    `json:"url"`
 
 	Created string `json:"created_at" gorm:"-"`
 	SizeStr string `json:"size_str" gorm:"-"`
+	URL     string `json:"url" gorm:"-"`
 }
 
 func (u *BillStorage) AfterFind(tx *gorm.DB) (err error) {
