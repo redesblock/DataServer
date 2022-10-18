@@ -56,7 +56,7 @@ func New(mode string, dsn string, opts ...gorm.Option) *DataService {
 }
 
 func HumanateBytes(s uint64) string {
-	base := float64(1000)
+	base := float64(1024)
 	sizes := []string{"B", "KB", "MB", "GB", "TB", "PB", "EB"}
 	if s < 10 {
 		return fmt.Sprintf("%d B", s)

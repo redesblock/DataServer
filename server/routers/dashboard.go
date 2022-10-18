@@ -75,19 +75,19 @@ func DailyStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 		userID, _ := c.Get("id")
 		var items []*dataservice.UsedStorage
 		date := time.Now()
-		for i := 0; i < 7; i++ {
+		for i := 6; i >= 0; i-- {
+			d := date.Add(-time.Hour * 24 * time.Duration(i))
 			var item *dataservice.UsedStorage
-			if ret := db.Where("user_id = ?", userID).Where("time = ?", date.Format("2006-01-02")).Find(&item); ret.Error != nil {
+			if ret := db.Where("user_id = ?", userID).Where("time = ?", d.Format("2006-01-02")).Find(&item); ret.Error != nil {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
 				return
 			} else if ret.RowsAffected == 0 {
 				item = &dataservice.UsedStorage{
 					UserID: userID.(uint),
-					Time:   date.Format("2006-01-02"),
+					Time:   d.Format("2006-01-02"),
 				}
 			}
 			items = append(items, item)
-			date = date.Add(-time.Hour * 24)
 		}
 
 		//offset := 0
@@ -118,19 +118,19 @@ func DailyTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 
 		var items []*dataservice.UsedTraffic
 		date := time.Now()
-		for i := 0; i < 7; i++ {
+		for i := 6; i >= 0; i-- {
+			d := date.Add(-time.Hour * 24 * time.Duration(i))
 			var item *dataservice.UsedTraffic
-			if ret := db.Where("user_id = ?", userID).Where("time = ?", date.Format("2006-01-02")).Find(&item); ret.Error != nil {
+			if ret := db.Where("user_id = ?", userID).Where("time = ?", d.Format("2006-01-02")).Find(&item); ret.Error != nil {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
 				return
 			} else if ret.RowsAffected == 0 {
 				item = &dataservice.UsedTraffic{
 					UserID: userID.(uint),
-					Time:   date.Format("2006-01-02"),
+					Time:   d.Format("2006-01-02"),
 				}
 			}
 			items = append(items, item)
-			date = date.Add(-time.Hour * 24)
 		}
 
 		//offset := 0
