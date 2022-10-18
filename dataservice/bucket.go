@@ -29,7 +29,7 @@ func (u *Bucket) AfterFind(tx *gorm.DB) (err error) {
 		Total uint64
 	}
 	var ret Result
-	if err := tx.Model(&BucketObject{}).Where("c_id != ''").Where("bucket_id = ?", u.ID).Where("parent_id = ?", 0).Select("COALESCE(SUM(size),0) AS total, COUNT(id) AS count").Scan(&ret).Error; err != nil {
+	if err := tx.Model(&BucketObject{}).Where("status > ?", STATUS_WAIT).Where("bucket_id = ?", u.ID).Where("parent_id = ?", 0).Select("COALESCE(SUM(size),0) AS total, COUNT(id) AS count").Scan(&ret).Error; err != nil {
 		return err
 	}
 	u.TotalSize = ret.Total

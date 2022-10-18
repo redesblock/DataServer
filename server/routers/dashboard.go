@@ -40,7 +40,7 @@ func OverViewHandler(db *dataservice.DataService) func(c *gin.Context) {
 		}
 
 		var rtBucketObject Result
-		if err := db.Model(&dataservice.BucketObject{}).Where("c_id != ''").Where("bucket_id IN (?)", db.Model(&dataservice.Bucket{}).Select("id").Where("user_id = ?", userID)).Select("COALESCE(SUM(size),0) AS total,COUNT(id) AS count").Scan(&rtBucketObject).Error; err != nil {
+		if err := db.Model(&dataservice.BucketObject{}).Where("status > ?", dataservice.STATUS_WAIT).Where("bucket_id IN (?)", db.Model(&dataservice.Bucket{}).Select("id").Where("user_id = ?", userID)).Select("COALESCE(SUM(size),0) AS total,COUNT(id) AS count").Scan(&rtBucketObject).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}

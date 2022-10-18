@@ -45,7 +45,7 @@ type BucketObject struct {
 	IsFolder     bool   `json:"is_folder" gorm:"-"`
 	URL          string `json:"url" gorm:"-"`
 	SizeStr      string `json:"size_str" gorm:"-"`
-	StatusStr    string `json:"status"`
+	StatusStr    string `json:"status" gorm:"-"`
 }
 
 func (u *BucketObject) AfterFind(tx *gorm.DB) (err error) {
@@ -88,7 +88,7 @@ func (s *DataService) FindBucketObject(bucketID uint, fid uint) (item *BucketObj
 		}
 
 		var rt Result
-		s.Model(&BucketObject{}).Where("bucket_id = ?", bucketID).Where("parent_id = ?", fid).Where("c_id != ''").Select("COALESCE(SUM(size),0) AS total, COUNT(id) AS count").Scan(&rt)
+		s.Model(&BucketObject{}).Where("bucket_id = ?", bucketID).Where("parent_id = ?", fid).Where("status > ?", STATUS_WAIT).Select("COALESCE(SUM(size),0) AS total, COUNT(id) AS count").Scan(&rt)
 		item.TotalNum = rt.Count
 		item.TotalSize = rt.Total
 		item.TotalSizeStr = HumanateBytes(item.TotalSize)
