@@ -6,5 +6,5 @@ import (
 )
 
 func TestT(t *testing.T)  {
-	fmt.Println(ByteSize(3170893824))
+	fmt.Println(ByteSize(1024*1024))
 }
