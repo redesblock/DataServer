@@ -5,6 +5,6 @@ import (
 	"testing"
 )
 
-func TestT(t *testing.T)  {
-	fmt.Println(ByteSize(1024*1024))
+func TestT(t *testing.T) {
+	fmt.Println(ByteSize(1024))
 }
