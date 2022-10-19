@@ -62,7 +62,7 @@ func ByteSize(bytes uint64) string {
 	if strings.Contains(result, ".") {
 		result = strings.TrimSuffix(result, "0")
 	}
-	return result + unit
+	return result + " " + unit
 }
 
 // ToMegabytes parses a string formatted by ByteSize as megabytes.

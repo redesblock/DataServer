@@ -6,7 +6,6 @@ import (
 	"github.com/shopspring/decimal"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -52,7 +51,7 @@ func BuyTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 			return
 		}
 
-		size, err := strconv.ParseInt(c.DefaultQuery("size", "0"), 10, 64)
+		size, err := decimal.NewFromString(c.DefaultQuery("size", "0"))
 		if err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
@@ -60,7 +59,7 @@ func BuyTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 
 		c.JSON(http.StatusOK, NewResponse(OKCode, &map[string]interface{}{
 			"size":      size,
-			"amount":    price.Mul(decimal.NewFromInt(size)),
+			"amount":    price.Mul(size),
 			"receiptor": "0x5529E3F428f42C23DDaCbb80fd46247B775725b1",
 		}))
 	}
@@ -72,7 +71,7 @@ func BuyTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 // @Tags bills
 // @Accept json
 // @Produce json
-// @Param   size     query    int     true        "buy size"
+// @Param   size     query    string     true        "buy size"
 // @Success 200 string ok
 // @Router /buy/storage [get]
 func BuyStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
@@ -88,7 +87,7 @@ func BuyStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 			return
 		}
 
-		size, err := strconv.ParseInt(c.DefaultQuery("size", "0"), 10, 64)
+		size, err := decimal.NewFromString(c.DefaultQuery("size", "0"))
 		if err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
@@ -96,7 +95,7 @@ func BuyStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 
 		c.JSON(http.StatusOK, NewResponse(OKCode, &map[string]interface{}{
 			"size":      size,
-			"amount":    price.Mul(decimal.NewFromInt(size)),
+			"amount":    price.Mul(size),
 			"receiptor": "0x5529E3F428f42C23DDaCbb80fd46247B775725b1",
 		}))
 	}

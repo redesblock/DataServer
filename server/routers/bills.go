@@ -3,6 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/dataservice"
+	"github.com/shopspring/decimal"
 	"net/http"
 )
 
@@ -76,10 +77,10 @@ func GetBillsTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 }
 
 type BillReq struct {
-	Hash        string `json:"hash"`
-	Amount      string `json:"amount"`
-	Size        uint64 `json:"size"`
-	Description string `json:"description"`
+	Hash        string          `json:"hash"`
+	Amount      string          `json:"amount"`
+	Size        decimal.Decimal `json:"size"`
+	Description string          `json:"description"`
 }
 
 // @Summary add storage bill
@@ -109,7 +110,7 @@ func AddBillsStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 		item := &dataservice.BillStorage{
 			Hash:        req.Hash,
 			Amount:      req.Amount,
-			Size:        req.Size * 1024 * 1024,
+			Size:        req.Size.Mul(decimal.NewFromInt(1024 * 1024)).BigInt().Uint64(),
 			Description: req.Description,
 			UserID:      userID.(uint),
 		}
@@ -150,7 +151,7 @@ func AddBillsTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 		item := &dataservice.BillTraffic{
 			Hash:        req.Hash,
 			Amount:      req.Amount,
-			Size:        req.Size * 1024 * 1024,
+			Size:        req.Size.Mul(decimal.NewFromInt(1024 * 1024)).BigInt().Uint64(),
 			Description: req.Description,
 			UserID:      userID.(uint),
 		}

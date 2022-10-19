@@ -572,7 +572,7 @@ var doc = `{
                 "summary": "traffic price",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "buy size",
                         "name": "size",
                         "in": "query",

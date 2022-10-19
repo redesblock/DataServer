@@ -556,7 +556,7 @@ paths:
         in: query
         name: size
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
