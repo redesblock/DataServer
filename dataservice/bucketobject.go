@@ -1,8 +1,10 @@
 package dataservice
 
 import (
+	"fmt"
 	"gorm.io/gorm"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -46,6 +48,7 @@ type BucketObject struct {
 	URL          string `json:"url" gorm:"-"`
 	SizeStr      string `json:"size_str" gorm:"-"`
 	StatusStr    string `json:"status" gorm:"-"`
+	NameStr      string `json:"nameStr" gorm:"-"`
 }
 
 func (u *BucketObject) AfterFind(tx *gorm.DB) (err error) {
@@ -81,6 +84,7 @@ func (s *DataService) FindBucketObject(bucketID uint, fid uint) (item *BucketObj
 		item = nil
 		return
 	}
+	item.NameStr = item.Name
 	if item.IsFolder {
 		type Result struct {
 			Count uint64
@@ -92,6 +96,18 @@ func (s *DataService) FindBucketObject(bucketID uint, fid uint) (item *BucketObj
 		item.TotalNum = rt.Count
 		item.TotalSize = rt.Total
 		item.TotalSizeStr = HumanateBytes(item.TotalSize)
+
+		parentID := item.ParentID
+		for parentID > 0 {
+			var t BucketObject
+			if err := s.Model(&BucketObject{}).Where("bucket_id = ?", bucketID).Where("id = ?", parentID).Find(&t).Error; err != nil {
+				fmt.Println("FindBucketObject", err)
+				break
+			}
+			item.NameStr = strings.Join([]string{t.Name, item.NameStr}, "/")
+			parentID = t.ParentID
+		}
 	}
+
 	return
 }

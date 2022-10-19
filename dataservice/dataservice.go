@@ -66,7 +66,7 @@ func HumanateBytes(s uint64) string {
 	val := math.Floor(float64(s)/math.Pow(base, e)*10+0.5) / 10
 	f := "%.0f %s"
 	if val < 10 {
-		f = "%.1f %s"
+		f = "%.2f %s"
 	}
 
 	return fmt.Sprintf(f, val, suffix)

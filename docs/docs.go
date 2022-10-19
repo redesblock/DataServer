@@ -971,6 +971,9 @@ var doc = `{
                 "name": {
                     "type": "string"
                 },
+                "nameStr": {
+                    "type": "string"
+                },
                 "size": {
                     "type": "integer"
                 },

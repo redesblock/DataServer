@@ -72,6 +72,8 @@ definitions:
         type: boolean
       name:
         type: string
+      nameStr:
+        type: string
       size:
         type: integer
       size_str:
