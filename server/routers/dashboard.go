@@ -55,8 +55,8 @@ func OverViewHandler(db *dataservice.DataService) func(c *gin.Context) {
 			Objects:         rtBucketObject.Count,
 			TotalStorage:    rtBucket.Total,
 			UsedStorage:     rtBucketObject.Total,
-			TotalStorageStr: dataservice.HumanateBytes(rtBucket.Total),
-			UsedStorageStr:  dataservice.HumanateBytes(rtBucketObject.Total),
+			TotalStorageStr: dataservice.ByteSize(rtBucket.Total),
+			UsedStorageStr:  dataservice.ByteSize(rtBucketObject.Total),
 		}))
 	}
 }

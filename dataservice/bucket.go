@@ -34,7 +34,7 @@ func (u *Bucket) AfterFind(tx *gorm.DB) (err error) {
 	}
 	u.TotalSize = ret.Total
 	u.TotalNum = ret.Count
-	u.TotalSizeStr = HumanateBytes(u.TotalSize)
+	u.TotalSizeStr = ByteSize(u.TotalSize)
 	return
 }
 

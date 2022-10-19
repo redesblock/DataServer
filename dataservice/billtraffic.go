@@ -22,7 +22,7 @@ type BillTraffic struct {
 
 func (u *BillTraffic) AfterFind(tx *gorm.DB) (err error) {
 	u.Created = u.CreatedAt.Format(TIME_FORMAT)
-	u.SizeStr = HumanateBytes(u.Size)
+	u.SizeStr = ByteSize(u.Size)
 	u.URL = "https://testnet.bscscan.com/tx/" + u.Hash
 	return
 }
