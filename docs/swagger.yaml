@@ -70,9 +70,11 @@ definitions:
         type: integer
       is_folder:
         type: boolean
+      level:
+        items:
+          $ref: '#/definitions/dataservice.Parent'
+        type: array
       name:
-        type: string
-      nameStr:
         type: string
       size:
         type: integer
@@ -91,6 +93,13 @@ definitions:
       updated_at:
         type: string
       url:
+        type: string
+    type: object
+  dataservice.Parent:
+    properties:
+      id:
+        type: integer
+      name:
         type: string
     type: object
   dataservice.UsedStorage:

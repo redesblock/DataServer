@@ -1,10 +1,8 @@
 package dataservice
 
 import (
-	"fmt"
 	"gorm.io/gorm"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -39,16 +37,21 @@ type BucketObject struct {
 	BucketID  uint      `json:"-"`
 	Traffic   uint64    `json:"traffic"`
 
-	Created      string `json:"created_at" gorm:"-"`
-	Updated      string `json:"updated_at" gorm:"-"`
-	TotalSize    uint64 `json:"total_size" gorm:"-"`
-	TotalNum     uint64 `json:"total_num" gorm:"-"`
-	TotalSizeStr string `json:"total_size_str" gorm:"-"`
-	IsFolder     bool   `json:"is_folder" gorm:"-"`
-	URL          string `json:"url" gorm:"-"`
-	SizeStr      string `json:"size_str" gorm:"-"`
-	StatusStr    string `json:"status" gorm:"-"`
-	NameStr      string `json:"nameStr" gorm:"-"`
+	Created      string    `json:"created_at" gorm:"-"`
+	Updated      string    `json:"updated_at" gorm:"-"`
+	TotalSize    uint64    `json:"total_size" gorm:"-"`
+	TotalNum     uint64    `json:"total_num" gorm:"-"`
+	TotalSizeStr string    `json:"total_size_str" gorm:"-"`
+	IsFolder     bool      `json:"is_folder" gorm:"-"`
+	URL          string    `json:"url" gorm:"-"`
+	SizeStr      string    `json:"size_str" gorm:"-"`
+	StatusStr    string    `json:"status" gorm:"-"`
+	Parents      []*Parent `json:"level" gorm:"-"`
+}
+
+type Parent struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
 }
 
 func (u *BucketObject) AfterFind(tx *gorm.DB) (err error) {
@@ -84,7 +87,10 @@ func (s *DataService) FindBucketObject(bucketID uint, fid uint) (item *BucketObj
 		item = nil
 		return
 	}
-	item.NameStr = item.Name
+
+	parents := []*Parent{
+		{ID: item.ID, Name: item.Name},
+	}
 	if item.IsFolder {
 		type Result struct {
 			Count uint64
@@ -100,14 +106,26 @@ func (s *DataService) FindBucketObject(bucketID uint, fid uint) (item *BucketObj
 		parentID := item.ParentID
 		for parentID > 0 {
 			var t BucketObject
-			if err := s.Model(&BucketObject{}).Where("bucket_id = ?", bucketID).Where("id = ?", parentID).Find(&t).Error; err != nil {
-				fmt.Println("FindBucketObject", err)
-				break
+			if err = s.Model(&BucketObject{}).Where("bucket_id = ?", bucketID).Where("id = ?", parentID).Find(&t).Error; err != nil {
+				item = nil
+				return
 			}
-			item.NameStr = strings.Join([]string{t.Name, item.NameStr}, ">")
+			parents = append(parents, &Parent{ID: t.ID, Name: t.Name})
 			parentID = t.ParentID
 		}
 	}
 
+	var t Bucket
+	if err = s.Model(&Bucket{}).Where("id = ?", item.BucketID).Find(&t).Error; err != nil {
+		item = nil
+		return
+	}
+	parents = append(parents, &Parent{ID: t.ID, Name: t.Name})
+
+	cnt := len(parents)
+	item.Parents = make([]*Parent, cnt)
+	for i := cnt; i > 0; i-- {
+		item.Parents[cnt-i] = parents[i-1]
+	}
 	return
 }

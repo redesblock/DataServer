@@ -968,10 +968,13 @@ var doc = `{
                 "is_folder": {
                     "type": "boolean"
                 },
-                "name": {
-                    "type": "string"
+                "level": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dataservice.Parent"
+                    }
                 },
-                "nameStr": {
+                "name": {
                     "type": "string"
                 },
                 "size": {
@@ -999,6 +1002,17 @@ var doc = `{
                     "type": "string"
                 },
                 "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "dataservice.Parent": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
                     "type": "string"
                 }
             }
