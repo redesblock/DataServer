@@ -3,6 +3,7 @@ module github.com/redesblock/dataserver
 go 1.17
 
 require (
+	github.com/Jeffail/gabs/v2 v2.6.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-gonic/gin v1.8.1

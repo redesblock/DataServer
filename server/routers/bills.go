@@ -92,7 +92,7 @@ type BillReq struct {
 // @Produce json
 // @Success 200 {object} dataservice.BillStorage
 // @Router /bills/storage [post]
-func AddBillsStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
+func AddBillsStorageHandler(db *dataservice.DataService, uploadTx chan<- string) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req BillReq
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -101,26 +101,19 @@ func AddBillsStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 		}
 
 		userID, _ := c.Get("id")
-		var user dataservice.User
-		if err := db.Find(&user, "id = ?", userID).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
-		}
-
 		item := &dataservice.BillStorage{
 			Hash:        req.Hash,
 			Amount:      req.Amount,
 			Size:        req.Size.Mul(decimal.NewFromInt(1024 * 1024)).BigInt().Uint64(),
 			Description: req.Description,
 			UserID:      userID.(uint),
+			Status:      dataservice.TX_STATUS_PEND,
 		}
 		if err := db.Save(item).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
-		user.TotalStorage += item.Size
-		db.Save(&user)
-
+		uploadTx <- req.Hash
 		c.JSON(http.StatusOK, NewResponse(OKCode, item))
 	}
 }
@@ -133,7 +126,7 @@ func AddBillsStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} dataservice.BillTraffic
 // @Router /bills/traffic [post]
-func AddBillsTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
+func AddBillsTrafficHandler(db *dataservice.DataService, uploadTx chan<- string) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req BillReq
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -142,25 +135,19 @@ func AddBillsTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 		}
 
 		userID, _ := c.Get("id")
-		var user dataservice.User
-		if err := db.Find(&user, "id = ?", userID).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
-		}
-
 		item := &dataservice.BillTraffic{
 			Hash:        req.Hash,
 			Amount:      req.Amount,
 			Size:        req.Size.Mul(decimal.NewFromInt(1024 * 1024)).BigInt().Uint64(),
 			Description: req.Description,
 			UserID:      userID.(uint),
+			Status:      dataservice.TX_STATUS_PEND,
 		}
 		if err := db.Save(item).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
-		user.TotalTraffic += item.Size
-		db.Save(&user)
+		uploadTx <- req.Hash
 
 		c.JSON(http.StatusOK, NewResponse(OKCode, item))
 	}

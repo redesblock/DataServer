@@ -1,10 +1,11 @@
 package routers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/redesblock/dataserver/dataservice"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/redesblock/dataserver/dataservice"
 )
 
 type OverView struct {
@@ -14,6 +15,10 @@ type OverView struct {
 	TotalStorage    uint64 `json:"total_storage"`
 	UsedStorageStr  string `json:"used_storage_str"`
 	TotalStorageStr string `json:"total_storage_str"`
+	UsedTraffic     uint64 `json:"used_traffic"`
+	TotalTraffic    uint64 `json:"total_traffic"`
+	UsedTrafficStr  string `json:"used_traffic_str"`
+	TotalTrafficStr string `json:"total_traffic_str"`
 }
 
 // @Summary overview
@@ -27,37 +32,48 @@ type OverView struct {
 // @Router /overview [get]
 func OverViewHandler(db *dataservice.DataService) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		type Result struct {
-			Count uint64
-			Total uint64
-		}
+		item := &OverView{}
 
 		userID, _ := c.Get("id")
-		var rtBucket Result
-		if err := db.Model(&dataservice.Bucket{}).Where("user_id = ?", userID).Select("COUNT(id) AS count").Scan(&rtBucket.Count).Error; err != nil {
+		if err := db.Model(&dataservice.Bucket{}).Where("user_id = ?", userID).Select("COUNT(id) AS count").Scan(&item.Buckets).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
 
-		var rtBucketObject Result
-		if err := db.Model(&dataservice.BucketObject{}).Where("status > ?", dataservice.STATUS_WAIT).Where("bucket_id IN (?)", db.Model(&dataservice.Bucket{}).Select("id").Where("user_id = ?", userID)).Select("COALESCE(SUM(size),0) AS total,COUNT(id) AS count").Scan(&rtBucketObject).Error; err != nil {
+		if err := db.Model(&dataservice.BucketObject{}).Where("status > ?", dataservice.STATUS_WAIT).Where("bucket_id IN (?)", db.Model(&dataservice.Bucket{}).Select("id").Where("user_id = ?", userID)).Select("COUNT(id) AS count").Scan(&item.Objects).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
 
-		if err := db.Model(&dataservice.BillStorage{}).Where("user_id = ?", userID).Select("COALESCE(SUM(size),0) AS total").Scan(&rtBucket.Total).Error; err != nil {
+		if err := db.Model(&dataservice.UsedStorage{}).Where("user_id = ?", userID).Select("COALESCE(SUM(num),0) AS total").Scan(&item.UsedStorage).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
 
-		c.JSON(http.StatusOK, NewResponse(OKCode, &OverView{
-			Buckets:         rtBucket.Count,
-			Objects:         rtBucketObject.Count,
-			TotalStorage:    rtBucket.Total,
-			UsedStorage:     rtBucketObject.Total,
-			TotalStorageStr: dataservice.ByteSize(rtBucket.Total),
-			UsedStorageStr:  dataservice.ByteSize(rtBucketObject.Total),
-		}))
+		if err := db.Model(&dataservice.UsedTraffic{}).Where("user_id = ?", userID).Select("COALESCE(SUM(num),0) AS total").Scan(&item.UsedTraffic).Error; err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
+		}
+
+		var usr dataservice.User
+		if err := db.Model(&dataservice.User{}).Where("id = ?", userID).Find(&usr).Error; err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
+		}
+		item.TotalTraffic = usr.TotalTraffic
+		item.TotalTrafficStr = usr.TotalTrafficStr
+		item.TotalStorage = usr.TotalStorage
+		item.TotalStorageStr = usr.TotalStorageStr
+
+		item.UsedTrafficStr = dataservice.ByteSize(item.UsedTraffic)
+		item.UsedStorageStr = dataservice.ByteSize(item.UsedStorage)
+
+		//if err := db.Model(&dataservice.BillStorage{}).Where("user_id = ?", userID).Select("COALESCE(SUM(size),0) AS total").Scan(&rtBucket.Total).Error; err != nil {
+		//	c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+		//	return
+		//}
+
+		c.JSON(http.StatusOK, NewResponse(OKCode, item))
 	}
 }
 

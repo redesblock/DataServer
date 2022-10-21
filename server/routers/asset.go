@@ -2,6 +2,7 @@ package routers
 
 import (
 	"fmt"
+	"gorm.io/gorm"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -51,10 +52,10 @@ func GetAssetHandler(db *dataservice.DataService) func(c *gin.Context) {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
-		if user.UsedStorage >= user.TotalStorage {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "storage usage has reached the maximum"))
-			return
-		}
+		//if user.UsedStorage >= user.TotalStorage {
+		//	c.JSON(http.StatusOK, NewResponse(ExecuteCode, "storage usage has reached the maximum"))
+		//	return
+		//}
 
 		os.Mkdir("assets", os.ModePerm)
 
@@ -279,10 +280,10 @@ func GetFileDownloadHandler(db *dataservice.DataService, nodeFunc func() string)
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
-		if user.UsedTraffic >= user.TotalTraffic {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "storage usage has reached the maximum"))
-			return
-		}
+		//if user.UsedTraffic >= user.TotalTraffic {
+		//	c.JSON(http.StatusOK, NewResponse(ExecuteCode, "storage usage has reached the maximum"))
+		//	return
+		//}
 
 		cid := c.Param("cid")
 		path := c.Param("path")
@@ -290,19 +291,23 @@ func GetFileDownloadHandler(db *dataservice.DataService, nodeFunc func() string)
 		proxy := httputil.NewSingleHostReverseProxy(u)
 		c.Request.URL.Path = "hop/" + cid + "/" + path
 		proxy.ModifyResponse = func(response *http.Response) error {
-			time := time.Now().Format("2006-01-02")
-			var item2 *dataservice.UsedTraffic
-			if ret := db.Model(&dataservice.UsedTraffic{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
-				return ret.Error
-			} else if ret.RowsAffected == 0 {
-				item2 = &dataservice.UsedTraffic{
-					Time:   time,
-					UserID: userID.(uint),
-				}
-			}
 			size, _ := strconv.ParseUint(response.Header.Get("Decompressed-Content-Length"), 10, 64)
-			item2.Num += size
-			db.Save(item2)
+
+			db.Transaction(func(tx *gorm.DB) error {
+				time := time.Now().Format("2006-01-02")
+				var item2 *dataservice.UsedTraffic
+				if ret := db.Model(&dataservice.UsedTraffic{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
+					return ret.Error
+				} else if ret.RowsAffected == 0 {
+					item2 = &dataservice.UsedTraffic{
+						Time:   time,
+						UserID: userID.(uint),
+					}
+				}
+				item2.Num += size
+				return db.Save(item2).Error
+			})
+
 			return nil
 		}
 		proxy.ServeHTTP(c.Writer, c.Request)

@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/dataservice"
-	"math"
 	"net"
 	"net/http"
 	"regexp"
@@ -50,10 +49,8 @@ func LoginHandler(db *dataservice.DataService) func(c *gin.Context) {
 
 		if item == nil {
 			item = &dataservice.User{
-				Email:        req.Email,
-				Password:     req.Password,
-				TotalStorage: math.MaxInt32,
-				TotalTraffic: math.MaxInt32,
+				Email:    req.Email,
+				Password: req.Password,
 			}
 			if err := db.Save(item).Error; err != nil {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))

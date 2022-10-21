@@ -5,24 +5,41 @@ import (
 	"time"
 )
 
+const (
+	TX_STATUS_UNKOWN int = iota
+	TX_STATUS_PEND
+	TX_STATUS_SUCCESS
+	TX_STATUS_FAIL
+)
+
+var TxStatuses = []string{
+	"Unkown",
+	"Pending",
+	"Success",
+	"Fail",
+}
+
 type BillStorage struct {
 	ID uint `json:"-" gorm:"primaryKey"`
 	//Email       string    `json:"email" gorm:"index"`
 	Hash        string    `json:"hash" gorm:"unique"`
 	Amount      string    `json:"amount"`
 	Size        uint64    `json:"size"`
+	Status      int       `json:"status"`
 	Description string    `json:"description"`
 	CreatedAt   time.Time `json:"-"`
 	UserID      uint      `json:"-"`
 
-	Created string `json:"created_at" gorm:"-"`
-	SizeStr string `json:"size_str" gorm:"-"`
-	URL     string `json:"url" gorm:"-"`
+	Created   string `json:"created_at" gorm:"-"`
+	SizeStr   string `json:"size_str" gorm:"-"`
+	StatusStr string `json:"status_str" gorm:"-"`
+	URL       string `json:"url" gorm:"-"`
 }
 
 func (u *BillStorage) AfterFind(tx *gorm.DB) (err error) {
 	u.Created = u.CreatedAt.Format(TIME_FORMAT)
 	u.SizeStr = ByteSize(u.Size)
+	u.StatusStr = TxStatuses[u.Status]
 	u.URL = "https://testnet.bscscan.com/tx/" + u.Hash
 	return
 }
