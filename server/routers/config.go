@@ -13,7 +13,7 @@ func GetAreasHandler(db *dataservice.DataService) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		val, ok := os.LookupEnv("DATA_SERVER_AREA")
 		if !ok {
-			val = "China"
+			val = "Global,China"
 		}
 		c.JSON(http.StatusOK, NewResponse(OKCode, strings.Split(val, ",")))
 	}

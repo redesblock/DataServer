@@ -19,7 +19,7 @@ var Statuses = []string{
 	"Unkown",
 	"Wait",
 	"Uploading",
-	"Pinning",
+	"Pending",
 	"Pined",
 	"Unpin",
 }
