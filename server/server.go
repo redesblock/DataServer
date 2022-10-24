@@ -62,6 +62,7 @@ func Start(port string, db *dataservice.DataService) {
 	v1.GET("/buckets", routers.GetBucketsHandler(db))
 	v1.GET("/buckets/:id", routers.GetBucketHandler(db))
 	v1.DELETE("/buckets/:id", routers.DeleteBucketHandler(db))
+	v1.POST("/buckets/:id", routers.UpdateBucketHandler(db))
 	v1.POST("/buckets", routers.AddBucketHandler(db))
 
 	v1.GET("/buckets/:id/objects", routers.GetBucketObjectsHandler(db))

@@ -432,6 +432,34 @@ paths:
       summary: bucket info
       tags:
       - bucket
+    post:
+      consumes:
+      - application/json
+      description: update bucket
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: update bucket info
+        in: body
+        name: bucket
+        required: true
+        schema:
+          $ref: '#/definitions/routers.Bucket'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.Bucket'
+      security:
+      - ApiKeyAuth: []
+      summary: update bucket
+      tags:
+      - bucket
   /buckets/{id}/objects:
     get:
       consumes:

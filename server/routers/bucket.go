@@ -148,3 +148,46 @@ func AddBucketHandler(db *dataservice.DataService) func(c *gin.Context) {
 		c.JSON(http.StatusOK, NewResponse(OKCode, item))
 	}
 }
+
+// @Summary update bucket
+// @Schemes
+// @Description update bucket
+// @Security ApiKeyAuth
+// @Tags bucket
+// @Accept json
+// @Produce json
+// @Param   id     path    int     true        "bucket id"
+// @Param bucket body Bucket true "update bucket info"
+// @Success 200 {object} dataservice.Bucket
+// @Router /buckets/{id} [post]
+func UpdateBucketHandler(db *dataservice.DataService) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var req Bucket
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			return
+		}
+
+		userID, _ := c.Get("id")
+		var item *dataservice.Bucket
+		if ret := db.Model(&dataservice.Bucket{}).Where("user_id = ?", userID).Where("id = ?", c.Param("id")).Find(&item); ret.Error != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
+			return
+		} else if ret.RowsAffected == 0 {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "not found"))
+			return
+		}
+
+		item.Name = req.Name
+		item.Area = req.Area
+		item.Access = req.Access
+		item.Network = req.Network
+		item.UserID = userID.(uint)
+
+		if err := db.Save(item).Error; err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
+		}
+		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+	}
+}
