@@ -1,9 +1,10 @@
 package dataservice
 
 import (
-	"gorm.io/gorm"
 	"os"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -11,6 +12,7 @@ const (
 	STATUS_WAIT
 	STATUS_UPLOAD
 	STATUS_UPLOADED
+	STATUS_PIN
 	STATUS_PINED
 	STATUS_FAIL_PINED
 )
@@ -20,6 +22,7 @@ var Statuses = []string{
 	"Wait",
 	"Uploading",
 	"Pending",
+	"Pined",
 	"Pined",
 	"Unpin",
 }
@@ -37,16 +40,17 @@ type BucketObject struct {
 	BucketID  uint      `json:"-"`
 	Traffic   uint64    `json:"traffic"`
 
-	Created      string    `json:"created_at" gorm:"-"`
-	Updated      string    `json:"updated_at" gorm:"-"`
-	TotalSize    uint64    `json:"total_size" gorm:"-"`
-	TotalNum     uint64    `json:"total_num" gorm:"-"`
-	TotalSizeStr string    `json:"total_size_str" gorm:"-"`
-	IsFolder     bool      `json:"is_folder" gorm:"-"`
-	URL          string    `json:"url" gorm:"-"`
-	SizeStr      string    `json:"size_str" gorm:"-"`
-	StatusStr    string    `json:"status" gorm:"-"`
-	Parents      []*Parent `json:"level" gorm:"-"`
+	Created        string    `json:"created_at" gorm:"-"`
+	Updated        string    `json:"updated_at" gorm:"-"`
+	TotalSize      uint64    `json:"total_size" gorm:"-"`
+	TotalNum       uint64    `json:"total_num" gorm:"-"`
+	TotalSizeStr   string    `json:"total_size_str" gorm:"-"`
+	IsFolder       bool      `json:"is_folder" gorm:"-"`
+	URL            string    `json:"url" gorm:"-"`
+	SizeStr        string    `json:"size_str" gorm:"-"`
+	StatusStr      string    `json:"status" gorm:"-"`
+	Parents        []*Parent `json:"level" gorm:"-"`
+	UplinkProgress int       `json:"uplinkProgress"`
 }
 
 type Parent struct {

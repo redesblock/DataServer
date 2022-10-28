@@ -1057,6 +1057,9 @@ var doc = `{
                 "updated_at": {
                     "type": "string"
                 },
+                "uplinkProgress": {
+                    "type": "integer"
+                },
                 "url": {
                     "type": "string"
                 }

@@ -2,6 +2,11 @@ package server
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/Jeffail/gabs/v2"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -13,10 +18,6 @@ import (
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
-	"io/ioutil"
-	"net/http"
-	"strings"
-	"time"
 )
 
 func Start(port string, db *dataservice.DataService) {
@@ -85,7 +86,19 @@ func Start(port string, db *dataservice.DataService) {
 	v1.GET("/download/:cid", routers.GetFileDownloadHandler(db, node))
 
 	uploadChan := make(chan string, 1024)
+	uploadCID := make(chan *dataservice.BucketObject, 1024)
 	v1.POST("/finish/:asset_id", routers.FinishFileUploadHandler(db, uploadChan))
+
+	go func() {
+		for {
+			select {
+			case obj := <-uploadCID:
+				obj.UplinkProgress = 100
+				obj.Status = dataservice.STATUS_PINED
+				db.Save(obj)
+			}
+		}
+	}()
 
 	go func() {
 		for {
@@ -101,9 +114,11 @@ func Start(port string, db *dataservice.DataService) {
 						continue
 					}
 					log.Infof("upload file %s, size %d, cid %s, elapse %v", item.AssetID, item.Size, cid, time.Now().Sub(t))
-					item.Status = dataservice.STATUS_PINED
+					item.Status = dataservice.STATUS_PIN
+					item.UplinkProgress = 50
 					item.CID = cid
 					db.Save(&item)
+					uploadCID <- item
 				}
 			}
 		}
