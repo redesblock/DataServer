@@ -34,14 +34,14 @@ func node() string {
 	if val, ok := os.LookupEnv("DATA_SERVER_MOP"); ok {
 		return val
 	}
-	return "http://58.34.1.130:1633"
+	return "http://183.131.181.164:1685"
 }
 
 func voucher() string {
 	if val, ok := os.LookupEnv("DATA_SERVER_VOUCHER"); ok {
 		return val
 	}
-	return "e92110b77f959065768e24a44c5ab04de4f6bc20f0010fbba726ee4b31291797"
+	return "05372c71a9e167d4158302f613c9a81543a5b82d44e5fdda2685e8836a8c39c9"
 }
 
 func uploadFiles(url, batchID, assetID, name string) (string, error) {
@@ -50,7 +50,7 @@ func uploadFiles(url, batchID, assetID, name string) (string, error) {
 		return "", err
 	}
 
-	url += "/hop"
+	url += "/mop"
 	req, err := http.NewRequest(http.MethodPost, url, buf)
 	if err != nil {
 		return "", fmt.Errorf("http request %v", err)
