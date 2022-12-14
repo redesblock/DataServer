@@ -33,6 +33,7 @@ type BucketObject struct {
 	CID       string    `json:"cid"`
 	Size      uint64    `json:"size"`
 	Status    int       `json:"-"`
+	Chunks    int       `json:"chunks"`
 	AssetID   string    `json:"asset_id"`
 	ParentID  uint      `json:"-"`
 	UpdatedAt time.Time `json:"-"`
@@ -78,7 +79,7 @@ func (u *BucketObject) AfterFind(tx *gorm.DB) (err error) {
 }
 
 func (s *DataService) FindBucketObjects(bucketID uint, fid uint, offset int64, limit int64) (total int64, items []*BucketObject, err error) {
-	err = s.Model(&BucketObject{}).Where("bucket_id = ?", bucketID).Where("parent_id = ?", fid).Where("name != ''").Order("id DESC").Count(&total).Offset(int(offset)).Limit(int(limit)).Find(&items).Error
+	err = s.Model(&BucketObject{}).Where("bucket_id = ?", bucketID).Where("parent_id = ?", fid).Order("id DESC").Count(&total).Offset(int(offset)).Limit(int(limit)).Find(&items).Error
 	return
 }
 

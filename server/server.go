@@ -105,7 +105,7 @@ func Start(port string, db *dataservice.DataService) {
 			select {
 			case <-uploadChan:
 				var items []*dataservice.BucketObject
-				db.Find(&dataservice.BucketObject{}).Where("size > 0").Where("asset_id != ''").Where("c_id = ''").Where("status = ?", dataservice.STATUS_UPLOADED).Find(&items)
+				db.Find(&dataservice.BucketObject{}).Where("size > 0").Where("c_id = ''").Where("status = ?", dataservice.STATUS_UPLOADED).Find(&items)
 				for _, item := range items {
 					t := time.Now()
 					cid, err := uploadFiles(node(), voucher(), item.AssetID, item.Name)

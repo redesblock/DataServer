@@ -1012,6 +1012,9 @@ var doc = `{
                 "asset_id": {
                     "type": "string"
                 },
+                "chunks": {
+                    "type": "integer"
+                },
                 "cid": {
                     "type": "string"
                 },

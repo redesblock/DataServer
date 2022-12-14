@@ -176,13 +176,13 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 		}
 		defer f.Close()
 		io.Copy(f, file)
+		item.Chunks++
 
-		uploaded := false
 		var videoFileSize int64
-		currentChunk, err := strconv.Atoi(resumableChunkNumber[0])
+		//currentChunk, err := strconv.Atoi(resumableChunkNumber[0])
 		totalChunks, err := strconv.Atoi(resumableTotalChunks[0])
 		// If it is the last chunk, trigger the recombination of chunks
-		if currentChunk == totalChunks {
+		if item.Chunks == totalChunks {
 			// log.Info("Combining chunks into one file")
 			resumableTotalSize, _ := c.Request.URL.Query()["resumableTotalSize"]
 			videoFileSizeInt, _ := strconv.Atoi(resumableTotalSize[0])
@@ -221,7 +221,6 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 				//log.Infof("%d bytes written offset %d\n", size, writeOffset)
 			}
 
-			uploaded = true
 			if _, err := exec.Command("rm", "-rf", tempFolder+"/"+resumableIdentifier[0]).Output(); err != nil {
 				log.Error(tempFolder+"/"+resumableIdentifier[0], err)
 			}
@@ -229,33 +228,25 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 
 		item.Name = strings.Split(resumableRelativePath[0], "/")[0]
 		item.Size += uint64(videoFileSize)
-		//if uploaded {
-		//	// TODO
-		//	item.Status = dataservice.STATUS_UPLOADED
-		//} else {
 		item.Status = dataservice.STATUS_UPLOAD
-		//}
 		if err := db.Save(item).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
 
-		if uploaded {
-			time := time.Now().Format("2006-01-02")
-			var item2 *dataservice.UsedStorage
-			if ret := db.Model(&dataservice.UsedStorage{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
-				// c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
-				return
-			} else if ret.RowsAffected == 0 {
-				item2 = &dataservice.UsedStorage{
-					Time:   time,
-					UserID: userID.(uint),
-				}
+		time := time.Now().Format("2006-01-02")
+		var item2 *dataservice.UsedStorage
+		if ret := db.Model(&dataservice.UsedStorage{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
+			// c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
+			return
+		} else if ret.RowsAffected == 0 {
+			item2 = &dataservice.UsedStorage{
+				Time:   time,
+				UserID: userID.(uint),
 			}
-			fmt.Println(item2.Num, videoFileSize)
-			item2.Num += uint64(videoFileSize)
-			db.Save(&item2)
 		}
+		item2.Num += uint64(videoFileSize)
+		db.Save(&item2)
 
 		c.JSON(http.StatusOK, NewResponse(OKCode, item))
 	}
