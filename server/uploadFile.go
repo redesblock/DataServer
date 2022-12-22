@@ -14,16 +14,16 @@ import (
 )
 
 const (
-	PinHeader            = "Swarm-Pin"
-	TagHeader            = "Swarm-Tag"
-	EncryptHeader        = "Swarm-Encrypt"
-	IndexDocumentHeader  = "Swarm-Index-Document"
-	ErrorDocumentHeader  = "Swarm-Error-Document"
-	FeedIndexHeader      = "Swarm-Feed-Index"
-	FeedIndexNextHeader  = "Swarm-Feed-Index-Next"
-	CollectionHeader     = "Swarm-Collection"
-	PostageBatchIdHeader = "Swarm-Postage-Batch-Id"
-	DeferredUploadHeader = "Swarm-Deferred-Upload"
+	PinHeader            = "Cluster-Pin"
+	TagHeader            = "Cluster-Tag"
+	EncryptHeader        = "Cluster-Encrypt"
+	IndexDocumentHeader  = "Cluster-Index-Document"
+	ErrorDocumentHeader  = "Cluster-Error-Document"
+	FeedIndexHeader      = "Cluster-Feed-Index"
+	FeedIndexNextHeader  = "Cluster-Feed-Index-Next"
+	CollectionHeader     = "Cluster-Collection"
+	PostageBatchIdHeader = "Cluster-Postage-Batch-Id"
+	DeferredUploadHeader = "Cluster-Deferred-Upload"
 
 	ContentTypeHeader = "Content-Type"
 	MultiPartFormData = "multipart/form-data"
