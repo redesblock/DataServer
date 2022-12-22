@@ -22,7 +22,7 @@ const (
 	FeedIndexHeader      = "Cluster-Feed-Index"
 	FeedIndexNextHeader  = "Cluster-Feed-Index-Next"
 	CollectionHeader     = "Cluster-Collection"
-	PostageBatchIdHeader = "Cluster-Postage-Batch-Id"
+	PostageVoucherIdHeader = "Cluster-Voucher-Batch-Id"
 	DeferredUploadHeader = "Cluster-Deferred-Upload"
 
 	ContentTypeHeader = "Content-Type"
@@ -56,7 +56,7 @@ func uploadFiles(url, batchID, assetID, name string) (string, error) {
 		return "", fmt.Errorf("http request %v", err)
 	}
 	req.Header.Add(DeferredUploadHeader, "true")
-	req.Header.Add(PostageBatchIdHeader, batchID)
+	req.Header.Add(PostageVoucherIdHeader, batchID)
 	req.Header.Add(CollectionHeader, "true")
 	req.Header.Add(ContentTypeHeader, ContentTypeTar)
 	req.Header.Add(IndexDocumentHeader, filename)
