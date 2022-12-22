@@ -71,9 +71,9 @@ func (u *BucketObject) AfterFind(tx *gorm.DB) (err error) {
 	if len(u.CID) > 0 {
 		gateway, ok := os.LookupEnv("DATA_SERVER_GATEWAY")
 		if !ok {
-			gateway = "https://gateway.mopweb3.com:13443/"
+			gateway = "https://gateway.mopweb3.cn/"
 		}
-		u.URL = gateway + "access/" + u.CID + "/"
+		u.URL = gateway + "mop/" + u.CID + "/"
 	}
 	return
 }

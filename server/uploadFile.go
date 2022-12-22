@@ -34,14 +34,14 @@ func node() string {
 	if val, ok := os.LookupEnv("DATA_SERVER_MOP"); ok {
 		return val
 	}
-	return "http://183.131.181.164:1685"
+	return "http://183.131.181.164:1683"
 }
 
 func voucher() string {
 	if val, ok := os.LookupEnv("DATA_SERVER_VOUCHER"); ok {
 		return val
 	}
-	return "05372c71a9e167d4158302f613c9a81543a5b82d44e5fdda2685e8836a8c39c9"
+	return "3a10f61116ce8d85d2433b309c68365c95b2b37390b1d7bfc218418599275636"
 }
 
 func uploadFiles(url, batchID, assetID, name string) (string, error) {
