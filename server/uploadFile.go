@@ -41,7 +41,7 @@ func voucher() string {
 	if val, ok := os.LookupEnv("DATA_SERVER_VOUCHER"); ok {
 		return val
 	}
-	return "3a10f61116ce8d85d2433b309c68365c95b2b37390b1d7bfc218418599275636"
+	return "5e3f89c68a7190d23d5bfef48b9abb84266df9f318f532f64fbae7724c1df10d"
 }
 
 func uploadFiles(url, batchID, assetID, name string) (string, error) {
