@@ -71,7 +71,7 @@ func uploadFiles(url, batchID, assetID, name string) (string, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
-		return "", fmt.Errorf("http resp got status %s, want %s", resp.Status, http.StatusText(http.StatusCreated))
+		return "", fmt.Errorf("http %s resp got status %s, want %s", url, resp.Status, http.StatusText(http.StatusCreated))
 	}
 
 	var ret map[string]string
