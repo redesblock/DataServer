@@ -14,16 +14,16 @@ import (
 )
 
 const (
-	PinHeader            = "Cluster-Pin"
-	TagHeader            = "Cluster-Tag"
-	EncryptHeader        = "Cluster-Encrypt"
-	IndexDocumentHeader  = "Cluster-Index-Document"
-	ErrorDocumentHeader  = "Cluster-Error-Document"
-	FeedIndexHeader      = "Cluster-Feed-Index"
-	FeedIndexNextHeader  = "Cluster-Feed-Index-Next"
-	CollectionHeader     = "Cluster-Collection"
+	PinHeader              = "Cluster-Pin"
+	TagHeader              = "Cluster-Tag"
+	EncryptHeader          = "Cluster-Encrypt"
+	IndexDocumentHeader    = "Cluster-Index-Document"
+	ErrorDocumentHeader    = "Cluster-Error-Document"
+	FeedIndexHeader        = "Cluster-Feed-Index"
+	FeedIndexNextHeader    = "Cluster-Feed-Index-Next"
+	CollectionHeader       = "Cluster-Collection"
 	PostageVoucherIdHeader = "Cluster-Voucher-Batch-Id"
-	DeferredUploadHeader = "Cluster-Deferred-Upload"
+	DeferredUploadHeader   = "Cluster-Deferred-Upload"
 
 	ContentTypeHeader = "Content-Type"
 	MultiPartFormData = "multipart/form-data"

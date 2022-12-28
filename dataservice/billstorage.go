@@ -7,6 +7,7 @@ import (
 
 const (
 	TX_STATUS_UNKOWN int = iota
+	TX_STATUS_UNPAIND
 	TX_STATUS_PEND
 	TX_STATUS_SUCCESS
 	TX_STATUS_FAIL
@@ -14,6 +15,7 @@ const (
 
 var TxStatuses = []string{
 	"Unkown",
+	"Unpaid",
 	"Pending",
 	"Success",
 	"Fail",

@@ -109,11 +109,16 @@ func AddBillsStorageHandler(db *dataservice.DataService, uploadTx chan<- string)
 			UserID:      userID.(uint),
 			Status:      dataservice.TX_STATUS_PEND,
 		}
+		if len(req.Hash) == 0 {
+			item.Status = dataservice.TX_STATUS_UNPAIND
+		}
 		if err := db.Save(item).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
-		uploadTx <- req.Hash
+		if len(req.Hash) > 0 {
+			uploadTx <- req.Hash
+		}
 		c.JSON(http.StatusOK, NewResponse(OKCode, item))
 	}
 }
@@ -143,11 +148,16 @@ func AddBillsTrafficHandler(db *dataservice.DataService, uploadTx chan<- string)
 			UserID:      userID.(uint),
 			Status:      dataservice.TX_STATUS_PEND,
 		}
+		if len(req.Hash) == 0 {
+			item.Status = dataservice.TX_STATUS_UNPAIND
+		}
 		if err := db.Save(item).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
-		uploadTx <- req.Hash
+		if len(req.Hash) > 0 {
+			uploadTx <- req.Hash
+		}
 
 		c.JSON(http.StatusOK, NewResponse(OKCode, item))
 	}
