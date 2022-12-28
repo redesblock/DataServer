@@ -24,7 +24,7 @@ var TxStatuses = []string{
 type BillStorage struct {
 	ID uint `json:"-" gorm:"primaryKey"`
 	//Email       string    `json:"email" gorm:"index"`
-	Hash        string    `json:"hash" gorm:"unique"`
+	Hash        string    `json:"hash"`
 	Amount      string    `json:"amount"`
 	Size        uint64    `json:"size"`
 	Status      int       `json:"status"`
