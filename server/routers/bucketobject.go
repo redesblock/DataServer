@@ -3,6 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/dataservice"
+	"github.com/spf13/viper"
 	"net/http"
 	"strconv"
 )
@@ -143,7 +144,7 @@ type AddBucketReq struct {
 // @Param object body AddBucketReq false "object info"
 // @Success 200 {object} dataservice.BucketObject
 // @Router /buckets/{id}/objects/{name} [post]
-func AddBucketObjectHandler(db *dataservice.DataService, nodeFunc func() string) func(c *gin.Context) {
+func AddBucketObjectHandler(db *dataservice.DataService) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
@@ -178,7 +179,7 @@ func AddBucketObjectHandler(db *dataservice.DataService, nodeFunc func() string)
 		if len(item.CID) > 0 {
 			item.Status = dataservice.STATUS_PINED
 			item.UplinkProgress = 100
-			response, err := http.Get(nodeFunc() + "/mop/" + cid + "/")
+			response, err := http.Get(viper.GetString("gateway") + "/mop/" + cid + "/")
 			if err == nil {
 				size, _ := strconv.ParseUint(response.Header.Get("Decompressed-Content-Length"), 10, 64)
 				item.Size = size

@@ -2,6 +2,7 @@ package routers
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	"io"
 	"io/ioutil"
@@ -263,7 +264,7 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 // @Param   path     query  string  false     "path"
 // @Success 200 string {}
 // @Router /download/{cid}/{path} [get]
-func GetFileDownloadHandler(db *dataservice.DataService, nodeFunc func() string) func(c *gin.Context) {
+func GetFileDownloadHandler(db *dataservice.DataService) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("id")
 		var user dataservice.User
@@ -278,7 +279,7 @@ func GetFileDownloadHandler(db *dataservice.DataService, nodeFunc func() string)
 
 		cid := c.Param("cid")
 		path := c.Param("path")
-		u, _ := url.Parse(nodeFunc())
+		u, _ := url.Parse(viper.GetString("gateway"))
 		proxy := httputil.NewSingleHostReverseProxy(u)
 		c.Request.URL.Path = "mop/" + cid + "/" + path
 		proxy.ModifyResponse = func(response *http.Response) error {

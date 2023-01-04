@@ -1,0 +1,57 @@
+version: '2.1'
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:12
+    restart: always
+    environment:
+      POSTGRES_DB: dataserver
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - ./dbdata:/var/lib/postgresql/data
+    logging:
+      driver: json-file
+      options:
+        max-file: "1"
+        max-size: 10m
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:management
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ./mqdata:/var/lib/rabbitmq
+    logging:
+      driver: json-file
+      options:
+        max-file: "1"
+        max-size: 10m
+  dataserver:
+    container_name: dataserver
+    image: redesblock/dataserver
+    restart: always
+    environment:
+      DATA_SERVER_PORT: ":8080"
+      DATA_SERVER_DB_MODE: "postgres"
+      DATA_SERVER_DB_DSN: "host=postgres user=postgres password=postgres dbname=dataserver port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+      DATA_SERVER_RABBITMQ: "amqp://rabbitmq:rabbitmq@rabbitmq:5672/"
+    ports:
+      - 8080:8080
+    volumes:
+      - ./assets:/root/assets
+    logging:
+      driver: json-file
+      options:
+        max-file: "1"
+        max-size: 10m
+    depends_on:
+      - postgres
+      - rabbitmq

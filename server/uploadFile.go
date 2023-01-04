@@ -30,27 +30,13 @@ const (
 	ContentTypeTar    = "application/x-tar"
 )
 
-func node() string {
-	if val, ok := os.LookupEnv("DATA_SERVER_MOP"); ok {
-		return val
-	}
-	return "http://183.131.181.164:1683"
-}
-
-func voucher() string {
-	if val, ok := os.LookupEnv("DATA_SERVER_VOUCHER"); ok {
-		return val
-	}
-	return "5e3f89c68a7190d23d5bfef48b9abb84266df9f318f532f64fbae7724c1df10d"
-}
-
-func uploadFiles(url, batchID, assetID, name string) (string, error) {
+func uploadFiles(node, batchID, assetID, name string) (string, error) {
 	buf, filename, err := tarFiles(assetID, name)
 	if err != nil {
 		return "", err
 	}
 
-	url += "/mop"
+	url := "http://" + node + ":1683" + "/mop"
 	req, err := http.NewRequest(http.MethodPost, url, buf)
 	if err != nil {
 		return "", fmt.Errorf("http request %v", err)

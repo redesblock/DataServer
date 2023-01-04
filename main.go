@@ -1,9 +1,8 @@
 package main
 
 import (
-	"github.com/redesblock/dataserver/dataservice"
-	"github.com/redesblock/dataserver/server"
-	"os"
+	"github.com/redesblock/dataserver/cmd"
+	_ "github.com/redesblock/dataserver/docs"
 )
 
 // @title DataServer Swagger API
@@ -24,30 +23,5 @@ import (
 // @in header
 // @name Authorization
 func main() {
-	mode, ok := os.LookupEnv("DATA_SERVER_DB_MODE")
-	if !ok {
-		mode = "sqlite"
-	}
-	dsn, ok := os.LookupEnv("DATA_SERVER_DB_DSN")
-	if !ok {
-		dsn = "gateway.db"
-	}
-	port, ok := os.LookupEnv("DATA_SERVER_PORT")
-	if !ok {
-		port = "8080"
-	}
-	db := dataservice.New(mode, dsn)
-	server.Start(":"+port, db)
+	cmd.Execute()
 }
-
-// DATA_SERVER_DB_MODE
-// DATA_SERVER_DB_DSN
-// DATA_SERVER_PORT
-// DATA_SERVER_JWT_SECRET
-// DATA_SERVER_AREA
-// DATA_SERVER_NETWORK
-// DATA_SERVER_TRAFFIC_PRICE
-// DATA_SERVER_STORAGE_PRICE
-// DATA_SERVER_GATEWAY
-// DATA_SERVER_MOP
-// DATA_SERVER_VOUCHER

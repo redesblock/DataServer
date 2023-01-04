@@ -1,31 +1,29 @@
 package routers
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/dataservice"
 	"github.com/shopspring/decimal"
-	"net/http"
-	"os"
-	"strings"
+	"github.com/spf13/viper"
 )
 
 func GetAreasHandler(db *dataservice.DataService) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		val, ok := os.LookupEnv("DATA_SERVER_AREA")
-		if !ok {
-			val = "Global,China"
+		items, err := db.FindAreas()
+		if err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, strings.Split(val, ",")))
+		c.JSON(http.StatusOK, NewResponse(OKCode, items))
 	}
 }
 
 func GetNetWorksHandler(db *dataservice.DataService) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		val, ok := os.LookupEnv("DATA_SERVER_NETWORK")
-		if !ok {
-			val = "MOP Storage"
-		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, strings.Split(val, ",")))
+		c.JSON(http.StatusOK, NewResponse(OKCode, strings.Split("MOP Storage", ",")))
 	}
 }
 
@@ -40,12 +38,7 @@ func GetNetWorksHandler(db *dataservice.DataService) func(c *gin.Context) {
 // @Router /buy/traffic [get]
 func BuyTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		val, ok := os.LookupEnv("DATA_SERVER_TRAFFIC_PRICE")
-		if !ok {
-			val = "0.0001"
-		}
-
-		price, err := decimal.NewFromString(val)
+		price, err := decimal.NewFromString(viper.GetString("price.traffic"))
 		if err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
@@ -60,7 +53,7 @@ func BuyTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 		c.JSON(http.StatusOK, NewResponse(OKCode, &map[string]interface{}{
 			"size":      size,
 			"amount":    price.Mul(size),
-			"receiptor": "0x5529E3F428f42C23DDaCbb80fd46247B775725b1",
+			"receiptor": viper.GetString("price.receiptor"),
 		}))
 	}
 }
@@ -76,12 +69,7 @@ func BuyTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 // @Router /buy/storage [get]
 func BuyStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		val, ok := os.LookupEnv("DATA_SERVER_STORAGE_PRICE")
-		if !ok {
-			val = "0.0001"
-		}
-
-		price, err := decimal.NewFromString(val)
+		price, err := decimal.NewFromString(viper.GetString("price.storage"))
 		if err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
@@ -96,7 +84,7 @@ func BuyStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 		c.JSON(http.StatusOK, NewResponse(OKCode, &map[string]interface{}{
 			"size":      size,
 			"amount":    price.Mul(size),
-			"receiptor": "0x5529E3F428f42C23DDaCbb80fd46247B775725b1",
+			"receiptor": viper.GetString("price.receiptor"),
 		}))
 	}
 }
@@ -105,7 +93,7 @@ func GetContractHandler(db *dataservice.DataService) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		c.JSON(http.StatusOK, NewResponse(OKCode, map[string]string{
 			"abi":     ERC20ABI,
-			"address": "0xcc07B6277c7B4614884eEa59972AfEa17f40716F",
+			"address": viper.GetString("price.erc20"),
 		}))
 	}
 }

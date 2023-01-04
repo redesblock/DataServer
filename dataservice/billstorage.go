@@ -1,12 +1,13 @@
 package dataservice
 
 import (
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	"time"
 )
 
 const (
-	TX_STATUS_UNKOWN int = iota
+	TX_STATUS_UNKNOWN int = iota
 	TX_STATUS_UNPAIND
 	TX_STATUS_PEND
 	TX_STATUS_SUCCESS
@@ -14,7 +15,7 @@ const (
 )
 
 var TxStatuses = []string{
-	"Unkown",
+	"Unknown",
 	"Unpaid",
 	"Pending",
 	"Success",
@@ -42,7 +43,7 @@ func (u *BillStorage) AfterFind(tx *gorm.DB) (err error) {
 	u.Created = u.CreatedAt.Format(TIME_FORMAT)
 	u.SizeStr = ByteSize(u.Size)
 	u.StatusStr = TxStatuses[u.Status]
-	u.URL = "https://testnet.bscscan.com/tx/" + u.Hash
+	u.URL = viper.GetString("browser") + "tx/" + u.Hash
 	return
 }
 

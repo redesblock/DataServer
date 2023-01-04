@@ -2,8 +2,8 @@ package routers
 
 import (
 	"errors"
+	"github.com/spf13/viper"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -30,7 +30,7 @@ type MyClaims struct {
 }
 
 func secret() []byte {
-	if secret, ok := os.LookupEnv("DATA_SERVER_JWT_SECRET"); ok {
+	if secret := viper.GetString("jwt.secret"); len(secret) > 0 {
 		return []byte(secret)
 	}
 	return MySecret

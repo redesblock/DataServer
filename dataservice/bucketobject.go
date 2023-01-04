@@ -1,7 +1,7 @@
 package dataservice
 
 import (
-	"os"
+	"github.com/spf13/viper"
 	"time"
 
 	"gorm.io/gorm"
@@ -69,11 +69,7 @@ func (u *BucketObject) AfterFind(tx *gorm.DB) (err error) {
 	u.Updated = u.UpdatedAt.Format(TIME_FORMAT)
 	u.SizeStr = ByteSize(u.Size)
 	if len(u.CID) > 0 {
-		gateway, ok := os.LookupEnv("DATA_SERVER_GATEWAY")
-		if !ok {
-			gateway = "https://gateway.mopweb3.cn/"
-		}
-		u.URL = gateway + "mop/" + u.CID + "/"
+		u.URL = viper.GetString("gateway") + "mop/" + u.CID + "/"
 	}
 	return
 }

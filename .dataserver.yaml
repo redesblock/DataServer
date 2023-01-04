@@ -1,0 +1,25 @@
+# listen
+port: ":8080"
+
+# database
+db:
+  mode: "sqlite" # sqlite、 mysql、 postgres
+  dsn: "dataserver.db" # Data Source Name
+
+# rabbit mq
+rabbitmq: 
+
+jwt:
+  secret:
+
+# price
+price:
+  erc20: 0xcc07B6277c7B4614884eEa59972AfEa17f40716F
+  receiptor: 0x5529E3F428f42C23DDaCbb80fd46247B775725b1
+  traffic: 0.0001 # download price
+  storage: 0.0001 # upload price
+
+# download base url
+gateway: https://gateway.mopweb3.cn/
+
+browser: https://testnet.bscscan.com/

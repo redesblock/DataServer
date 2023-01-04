@@ -47,6 +47,17 @@ func New(mode string, dsn string, opts ...gorm.Option) *DataService {
 	db.AutoMigrate(&BucketObject{})
 	db.AutoMigrate(&UsedTraffic{})
 	db.AutoMigrate(&UsedStorage{})
+	db.AutoMigrate(&Voucher{})
+
+	if err := db.Save(&Voucher{
+		ID:      1,
+		Node:    "183.131.181.164",
+		Voucher: "15075cfe5d0b95fc200d6dec9b343ddb831d3f1766ba96e381d4c1a3f81fb13a",
+		Area:    "China",
+		Usable:  true,
+	}).Error; err != nil {
+		log.Fatal("Failed to init database: ", err)
+	}
 
 	return &DataService{
 		DB: db,
