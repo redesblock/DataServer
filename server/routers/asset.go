@@ -280,7 +280,7 @@ func GetFileDownloadHandler(db *dataservice.DataService, nodeFunc func() string)
 		path := c.Param("path")
 		u, _ := url.Parse(nodeFunc())
 		proxy := httputil.NewSingleHostReverseProxy(u)
-		c.Request.URL.Path = "hop/" + cid + "/" + path
+		c.Request.URL.Path = "mop/" + cid + "/" + path
 		proxy.ModifyResponse = func(response *http.Response) error {
 			size, _ := strconv.ParseUint(response.Header.Get("Decompressed-Content-Length"), 10, 64)
 
