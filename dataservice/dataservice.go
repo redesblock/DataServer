@@ -48,6 +48,7 @@ func New(mode string, dsn string, opts ...gorm.Option) *DataService {
 	db.AutoMigrate(&UsedTraffic{})
 	db.AutoMigrate(&UsedStorage{})
 	db.AutoMigrate(&Voucher{})
+	db.AutoMigrate(&ReportTraffic{})
 
 	if err := db.Save(&Voucher{
 		ID:      1,
