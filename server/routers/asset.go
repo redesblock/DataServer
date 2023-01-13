@@ -181,7 +181,7 @@ func FinishFileUploadHandler(db *dataservice.DataService, uploadChan chan<- stri
 			return nil
 		}
 
-		if err := readLine(tempFolder+"/metadata.json", handler); err != nil {
+		if err := readLine("./assets/"+assetID+".json", handler); err != nil {
 			fmt.Printf("======= error %s\n", err)
 		} else {
 			item.Status = dataservice.STATUS_UPLOADED
@@ -257,7 +257,7 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 
 		if err := db.Transaction(func(tx *gorm.DB) error {
 			if resumableChunkNumber[0] == "1" {
-				f, err := os.OpenFile(fmt.Sprintf("%s%s%s", tempFolder, "/", "metadata.json"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+				f, err := os.OpenFile(fmt.Sprintf("%s%s%s", "./assets", "/", assetID+".json"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 				if err != nil {
 					return fmt.Errorf("open file metadata.json error %s", err)
 				}
