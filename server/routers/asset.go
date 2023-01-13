@@ -116,11 +116,6 @@ func FinishFileUploadHandler(db *dataservice.DataService, uploadChan chan<- stri
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "asset not found"))
 			return
 		}
-		item.Status = dataservice.STATUS_UPLOADED
-		if err := db.Save(item).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
-		}
 
 		readLine := func(fileName string, handler func(string) error) error {
 			f, err := os.Open(fileName)
@@ -189,6 +184,11 @@ func FinishFileUploadHandler(db *dataservice.DataService, uploadChan chan<- stri
 		if err := readLine(tempFolder+"/metadata.json", handler); err != nil {
 			fmt.Printf("======= error %s\n", err)
 		} else {
+			item.Status = dataservice.STATUS_UPLOADED
+			if err := db.Save(item).Error; err != nil {
+				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+				return
+			}
 			uploadChan <- assetID
 		}
 		c.JSON(http.StatusOK, NewResponse(OKCode, ""))
