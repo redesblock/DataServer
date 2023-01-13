@@ -197,12 +197,12 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 
 		if err := db.Transaction(func(tx *gorm.DB) error {
 			if resumableChunkNumber[0] == "1" {
-				f, err := os.OpenFile(fmt.Sprintf("%s%s", tempFolder, "/", "metadata.json"), os.O_WRONLY|os.O_CREATE, 0666)
+				f, err := os.OpenFile(fmt.Sprintf("%s%s%s", tempFolder, "/", "metadata.json"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 				if err != nil {
 					return fmt.Errorf("open file metadata.json error %s", err)
 				}
 				defer f.Close()
-				if _, err := f.WriteString(fmt.Sprintf(`{"identifier": "%s", "path": "%s", "chunks": %s}\n`, resumableIdentifier[0], resumableRelativePath[0], resumableTotalChunks[0])); err != nil {
+				if _, err := f.WriteString(fmt.Sprintf(`{"identifier":"%s", "path":"%s", "chunks":%s}\n`, resumableIdentifier[0], resumableRelativePath[0], resumableTotalChunks[0])); err != nil {
 					return fmt.Errorf("write file metadata.json error %s", err)
 				}
 			}
