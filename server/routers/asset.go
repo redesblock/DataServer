@@ -189,7 +189,7 @@ func FinishFileUploadHandler(db *dataservice.DataService, uploadChan chan<- stri
 			return nil
 		}
 
-		if err := readLine(tempFolder, handler); err != nil {
+		if err := readLine(tempFolder+"/metadata.json", handler); err != nil {
 			fmt.Printf("======= error %s\n", err)
 		} else {
 			uploadChan <- assetID
