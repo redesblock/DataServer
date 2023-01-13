@@ -202,7 +202,7 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 					return fmt.Errorf("open file metadata.json error %s", err)
 				}
 				defer f.Close()
-				if _, err := f.WriteString(fmt.Sprintf(`{"identifier":"%s", "path":"%s", "chunks":%s}\r\n`, resumableIdentifier[0], resumableRelativePath[0], resumableTotalChunks[0])); err != nil {
+				if _, err := f.WriteString(fmt.Sprintf(`{"identifier":"%s", "path":"%s", "chunks":%s}`, resumableIdentifier[0], resumableRelativePath[0], resumableTotalChunks[0])+ "\r\n"); err != nil {
 					return fmt.Errorf("write file metadata.json error %s", err)
 				}
 			}
