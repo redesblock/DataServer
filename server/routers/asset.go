@@ -221,13 +221,13 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 			item.Size += uint64(chunkSizeInBytes)
 			item.Name = strings.Split(resumableRelativePath[0], "/")[0]
 			item.Status = dataservice.STATUS_UPLOAD
-			if err := db.Save(item).Error; err != nil {
+			if err := tx.Save(item).Error; err != nil {
 				return err
 			}
 
 			time := time.Now().Format("2006-01-02")
 			var item2 *dataservice.UsedStorage
-			if ret := db.Model(&dataservice.UsedStorage{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
+			if ret := tx.Model(&dataservice.UsedStorage{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
 				return ret.Error
 			} else if ret.RowsAffected == 0 {
 				item2 = &dataservice.UsedStorage{
