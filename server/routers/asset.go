@@ -126,9 +126,6 @@ func FinishFileUploadHandler(db *dataservice.DataService, uploadChan chan<- stri
 			if fi.IsDir() {
 				return nil
 			}
-
-			fmt.Println(fi.Name(), "=================")
-
 			return nil
 		}); err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
@@ -198,21 +195,17 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 			return
 		}
 
-		if resumableChunkNumber[0] == "1" {
-			f, err := os.OpenFile(fmt.Sprintf("%s%s%s", path, "/", "metadata.json"), os.O_WRONLY|os.O_CREATE, 0666)
-			if err != nil {
-				log.Errorf("open file metadata.json error ", err)
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, "open file error"))
-				return
-			}
-			defer f.Close()
-			if _, err := f.WriteString(fmt.Sprintf(`{"path": "%s", "chunk": %s}`, resumableRelativePath, resumableTotalChunks)); err != nil {
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, "write metadata.json error"))
-				return
-			}
-		}
-
 		if err := db.Transaction(func(tx *gorm.DB) error {
+			if resumableChunkNumber[0] == "1" {
+				f, err := os.OpenFile(fmt.Sprintf("%s%s", tempFolder, "/", "metadata.json"), os.O_WRONLY|os.O_CREATE, 0666)
+				if err != nil {
+					return fmt.Errorf("open file metadata.json error %s", err)
+				}
+				defer f.Close()
+				if _, err := f.WriteString(fmt.Sprintf(`{"identifier": "%s", "path": "%s", "chunks": %s}\n`, resumableIdentifier[0], resumableRelativePath[0], resumableTotalChunks[0])); err != nil {
+					return fmt.Errorf("write file metadata.json error %s", err)
+				}
+			}
 			var item *dataservice.BucketObject
 			if ret := tx.Find(&item, "asset_id = ?", assetID); ret.RowsAffected == 0 {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, fmt.Errorf("asset %s not found", assetID)))
