@@ -183,9 +183,6 @@ func FinishFileUploadHandler(db *dataservice.DataService, uploadChan chan<- stri
 			if _, err := exec.Command("rm", "-rf", tempFolder+"/"+resumableIdentifier).Output(); err != nil {
 				return fmt.Errorf("remove file %s error %s", tempFolder+"/"+resumableIdentifier, err)
 			}
-			if _, err := exec.Command("rm", "-rf", tempFolder+"/"+"metadata.json").Output(); err != nil {
-				return fmt.Errorf("remove file %s error %s", tempFolder+"/"+"metadata.json", err)
-			}
 			return nil
 		}
 
