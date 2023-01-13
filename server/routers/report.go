@@ -9,11 +9,13 @@ import (
 )
 
 type ReportTrafficReq struct {
-	Timestamp  int64            `json:"timestamp"`
-	Address    string           `json:"address"`
-	Uploaded   map[string]int64 `json:"uploaded"`
-	Downloaded map[string]int64 `json:"downloaded"`
-	Signed     string           `json:"signed"`
+	Timestamp     int64            `json:"timestamp"`
+	Address       string           `json:"address"`
+	Uploaded      map[string]int64 `json:"uploaded"`
+	Downloaded    map[string]int64 `json:"downloaded"`
+	UploadedCnt   int64            `json:"uploaded_cnt"`
+	DownloadedCnt int64            `json:"downloaded_cnt"`
+	Signed        string           `json:"signed"`
 }
 
 // @Summary report traffic

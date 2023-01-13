@@ -1,6 +1,8 @@
 package routers
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -117,21 +119,44 @@ func FinishFileUploadHandler(db *dataservice.DataService, uploadChan chan<- stri
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
-		tempFolder := "./assets/" + assetID
-		if err := filepath.Walk(tempFolder, func(filename string, fi os.FileInfo, err error) error { //遍历目录
+
+		readLine := func(fileName string, handler func(string) error) error {
+			f, err := os.Open(fileName)
 			if err != nil {
 				return err
 			}
+			defer f.Close()
 
-			if fi.IsDir() {
-				return nil
+			br := bufio.NewReader(f)
+			for {
+				line, _, err := br.ReadLine()
+				if err != nil {
+					// file read complete
+					if err == io.EOF {
+						return nil
+					}
+					return err
+				}
+				if err := handler(string(line)); err != nil {
+					return err
+				}
+			}
+		}
+
+		handler := func(line string) error {
+			var ret map[string]interface{}
+			if err := json.Unmarshal([]byte(line), &ret); err != nil {
+				return err
 			}
 			return nil
-		}); err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
 		}
-		uploadChan <- assetID
+
+		tempFolder := "./assets/" + assetID + "/metadata.json"
+		if err := readLine(tempFolder, handler); err != nil {
+			fmt.Printf("======= error %s\n", err)
+		} else {
+			uploadChan <- assetID
+		}
 		c.JSON(http.StatusOK, NewResponse(OKCode, ""))
 	}
 }
@@ -202,7 +227,7 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 					return fmt.Errorf("open file metadata.json error %s", err)
 				}
 				defer f.Close()
-				if _, err := f.WriteString(fmt.Sprintf(`{"identifier":"%s", "path":"%s", "chunks":%s}`, resumableIdentifier[0], resumableRelativePath[0], resumableTotalChunks[0])+ "\r\n"); err != nil {
+				if _, err := f.WriteString(fmt.Sprintf(`{"identifier":"%s", "path":"%s", "chunks":%s}`, resumableIdentifier[0], resumableRelativePath[0], resumableTotalChunks[0]) + "\r\n"); err != nil {
 					return fmt.Errorf("write file metadata.json error %s", err)
 				}
 			}
