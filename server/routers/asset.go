@@ -153,8 +153,8 @@ func FinishFileUploadHandler(db *dataservice.DataService, uploadChan chan<- stri
 			}
 			resumableIdentifier := ret["identifier"].(string)
 			resumableRelativePath := ret["relativePath"].(string)
-			resumableChunkSize := ret["chunkSize"].(int)
-			totalChunks := ret["totalChunks"].(int)
+			resumableChunkSize := int(ret["chunkSize"].(float64))
+			totalChunks := int(ret["totalChunks"].(float64))
 
 			chunksDir := fmt.Sprintf("%s/%s", tempFolder, resumableIdentifier)
 			// Generate an empty file
