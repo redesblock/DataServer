@@ -252,7 +252,8 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 			return
 		}
 		defer f.Close()
-		if _, err := io.Copy(f, file); err != nil {
+		writeSize, err := io.Copy(f, file)
+		if err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "copy file error"))
 			return
 		}
@@ -273,7 +274,7 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, fmt.Errorf("asset %s not found", assetID)))
 				return nil
 			}
-			item.Size += uint64(chunkSizeInBytes)
+			item.Size += uint64(writeSize)
 			item.Name = strings.Split(resumableRelativePath[0], "/")[0]
 			item.Status = dataservice.STATUS_UPLOAD
 			if err := tx.Save(item).Error; err != nil {
@@ -290,7 +291,7 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 					UserID: userID.(uint),
 				}
 			}
-			item2.Num += uint64(chunkSizeInBytes)
+			item2.Num += uint64(writeSize)
 			return tx.Save(&item2).Error
 		}); err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
