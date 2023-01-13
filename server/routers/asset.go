@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -123,7 +125,7 @@ func FinishFileUploadHandler(db *dataservice.DataService, uploadChan chan<- stri
 		readLine := func(fileName string, handler func(string) error) error {
 			f, err := os.Open(fileName)
 			if err != nil {
-				return err
+				return fmt.Errorf("open file %s error %s", fileName, err)
 			}
 			defer f.Close()
 
@@ -135,7 +137,7 @@ func FinishFileUploadHandler(db *dataservice.DataService, uploadChan chan<- stri
 					if err == io.EOF {
 						return nil
 					}
-					return err
+					return fmt.Errorf("read file %s error %s", fileName, err)
 				}
 				if err := handler(string(line)); err != nil {
 					return err
@@ -143,16 +145,48 @@ func FinishFileUploadHandler(db *dataservice.DataService, uploadChan chan<- stri
 			}
 		}
 
+		tempFolder := "./assets/" + assetID
 		handler := func(line string) error {
 			var ret map[string]interface{}
 			if err := json.Unmarshal([]byte(line), &ret); err != nil {
 				return err
 			}
+			resumableIdentifier := ret["identifier"].(string)
+			resumableRelativePath := ret["relativePath"].(string)
+			resumableChunkSize := ret["chunkSize"].(int)
+			totalChunks := ret["totalChunks"].(int)
+
+			chunksDir := fmt.Sprintf("%s/%s", tempFolder, resumableIdentifier)
+			// Generate an empty file
+
+			os.MkdirAll(tempFolder+"/"+filepath.Dir(resumableRelativePath), os.ModePerm)
+			f, err := os.Create(tempFolder + "/" + resumableRelativePath)
+			if err != nil {
+				return fmt.Errorf("create file %s error %s", resumableRelativePath, err)
+			}
+			defer f.Close()
+
+			// For every chunk, write it to the empty file.
+			for i := 1; i <= totalChunks; i++ {
+				relativePath := fmt.Sprintf("%s%s%d", chunksDir, "/part", i)
+				writeOffset := int64(resumableChunkSize * (i - 1))
+				if i == 1 {
+					writeOffset = 0
+				}
+				dat, err := ioutil.ReadFile(relativePath)
+				size, err := f.WriteAt(dat, writeOffset)
+				if err != nil {
+					return fmt.Errorf("write file %s error %s", relativePath, err)
+				}
+				_ = size
+			}
+			if _, err := exec.Command("rm", "-rf", tempFolder+"/"+resumableIdentifier).Output(); err != nil {
+				return fmt.Errorf("remove file %s error %s", tempFolder+"/"+resumableIdentifier, err)
+			}
 			return nil
 		}
 
-		tempFolder := "./assets/" + assetID + "/metadata.json"
-		if err := readLine(tempFolder, handler); err != nil {
+		if err := readLine(tempFolder+"/metadata.json", handler); err != nil {
 			fmt.Printf("======= error %s\n", err)
 		} else {
 			uploadChan <- assetID
@@ -227,7 +261,7 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 					return fmt.Errorf("open file metadata.json error %s", err)
 				}
 				defer f.Close()
-				if _, err := f.WriteString(fmt.Sprintf(`{"identifier":"%s", "path":"%s", "chunks":%s}`, resumableIdentifier[0], resumableRelativePath[0], resumableTotalChunks[0]) + "\r\n"); err != nil {
+				if _, err := f.WriteString(fmt.Sprintf(`{"identifier":"%s", "relativePath":"%s", "chunkSize": %s, "totalChunks":%s}`, resumableIdentifier[0], resumableRelativePath[0], resumableTotalChunks[0]) + "\r\n"); err != nil {
 					return fmt.Errorf("write file metadata.json error %s", err)
 				}
 			}
