@@ -239,7 +239,7 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 		resumableTotalChunks := c.Request.URL.Query()["resumableTotalChunks"]
 		resumableRelativePath := c.Request.URL.Query()["resumableRelativePath"]
 		chunkSizeInBytesStr := c.Request.URL.Query()["resumableChunkSize"]
-		chunkSizeInBytes, _ := strconv.Atoi(chunkSizeInBytesStr[0])
+		//chunkSizeInBytes, _ := strconv.Atoi(chunkSizeInBytesStr[0])
 		path := fmt.Sprintf("%s/%s", tempFolder, resumableIdentifier[0])
 		relativeChunk := fmt.Sprintf("%s%s%s%s", path, "/", "part", resumableChunkNumber[0])
 		if _, err := os.Stat(path); os.IsNotExist(err) {
