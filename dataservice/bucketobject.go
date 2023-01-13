@@ -1,8 +1,9 @@
 package dataservice
 
 import (
-	"github.com/spf13/viper"
 	"time"
+
+	"github.com/spf13/viper"
 
 	"gorm.io/gorm"
 )
@@ -33,7 +34,6 @@ type BucketObject struct {
 	CID       string    `json:"cid"`
 	Size      uint64    `json:"size"`
 	Status    int       `json:"-"`
-	Chunks    int       `json:"chunks"`
 	AssetID   string    `json:"asset_id"`
 	ParentID  uint      `json:"-"`
 	UpdatedAt time.Time `json:"-"`

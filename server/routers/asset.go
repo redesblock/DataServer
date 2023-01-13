@@ -2,19 +2,18 @@ package routers
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
-	"gorm.io/gorm"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/spf13/viper"
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -118,7 +117,25 @@ func FinishFileUploadHandler(db *dataservice.DataService, uploadChan chan<- stri
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
+		tempFolder := "./assets/" + assetID
+		if err := filepath.Walk(tempFolder, func(filename string, fi os.FileInfo, err error) error { //遍历目录
+			if err != nil {
+				return err
+			}
+
+			if fi.IsDir() {
+				return nil
+			}
+
+			fmt.Println(fi.Name(), "=================")
+
+			return nil
+		}); err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
+		}
 		uploadChan <- assetID
+		c.JSON(http.StatusOK, NewResponse(OKCode, ""))
 	}
 }
 
@@ -126,8 +143,8 @@ func GetFileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		assetID := c.Param("asset_id")
 		tempFolder := "./assets/" + assetID
-		resumableIdentifier, _ := c.Request.URL.Query()["resumableIdentifier"]
-		resumableChunkNumber, _ := c.Request.URL.Query()["resumableChunkNumber"]
+		resumableIdentifier := c.Request.URL.Query()["resumableIdentifier"]
+		resumableChunkNumber := c.Request.URL.Query()["resumableChunkNumber"]
 		path := fmt.Sprintf("%s/%s", tempFolder, resumableIdentifier[0])
 		relativeChunk := fmt.Sprintf("%s%s%s%s", path, "/", "part", resumableChunkNumber[0])
 		if _, err := os.Stat(relativeChunk); os.IsNotExist(err) {
@@ -137,7 +154,6 @@ func GetFileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 			c.JSON(http.StatusCreated, "Chunk already exist")
 			return
 		}
-		c.JSON(http.StatusOK, "ok")
 	}
 }
 
@@ -159,11 +175,12 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 			return
 		}
 		tempFolder := "./assets/" + assetID
-		resumableIdentifier, _ := c.Request.URL.Query()["resumableIdentifier"]
-		resumableChunkNumber, _ := c.Request.URL.Query()["resumableChunkNumber"]
-		resumableTotalChunks, _ := c.Request.URL.Query()["resumableTotalChunks"]
-		resumableRelativePath, _ := c.Request.URL.Query()["resumableRelativePath"]
-		resumableFilename, _ := c.Request.URL.Query()["resumableFilename"]
+		resumableIdentifier := c.Request.URL.Query()["resumableIdentifier"]
+		resumableChunkNumber := c.Request.URL.Query()["resumableChunkNumber"]
+		resumableTotalChunks := c.Request.URL.Query()["resumableTotalChunks"]
+		resumableRelativePath := c.Request.URL.Query()["resumableRelativePath"]
+		chunkSizeInBytesStr := c.Request.URL.Query()["resumableChunkSize"]
+		chunkSizeInBytes, _ := strconv.Atoi(chunkSizeInBytesStr[0])
 		path := fmt.Sprintf("%s/%s", tempFolder, resumableIdentifier[0])
 		relativeChunk := fmt.Sprintf("%s%s%s%s", path, "/", "part", resumableChunkNumber[0])
 		if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -171,84 +188,58 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 		}
 		f, err := os.OpenFile(relativeChunk, os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
-			log.Errorf("open file error ", err)
+			log.Errorf("open file %s error ", relativeChunk, err)
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "open file error"))
 			return
 		}
 		defer f.Close()
-		io.Copy(f, file)
-		item.Chunks++
+		if _, err := io.Copy(f, file); err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "copy file error"))
+			return
+		}
 
-		var videoFileSize int64
-		//currentChunk, err := strconv.Atoi(resumableChunkNumber[0])
-		totalChunks, err := strconv.Atoi(resumableTotalChunks[0])
-		// If it is the last chunk, trigger the recombination of chunks
-		if item.Chunks == totalChunks {
-			// log.Info("Combining chunks into one file")
-			resumableTotalSize, _ := c.Request.URL.Query()["resumableTotalSize"]
-			videoFileSizeInt, _ := strconv.Atoi(resumableTotalSize[0])
-
-			videoFileSize = int64(videoFileSizeInt)
-			chunkSizeInBytesStr, _ := c.Request.URL.Query()["resumableChunkSize"]
-			chunkSizeInBytes, _ := strconv.Atoi(chunkSizeInBytesStr[0])
-
-			chunksDir := path
-			// Generate an empty file
-			os.MkdirAll("./assets/"+assetID+"/"+strings.TrimRight(resumableRelativePath[0], resumableFilename[0]), os.ModePerm)
-			f, err := os.Create("./assets/" + assetID + "/" + resumableRelativePath[0])
+		if resumableChunkNumber[0] == "1" {
+			f, err := os.OpenFile(fmt.Sprintf("%s%s%s", path, "/", "metadata.json"), os.O_WRONLY|os.O_CREATE, 0666)
 			if err != nil {
-				log.Errorf("create file error ", err)
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, "create file error"))
+				log.Errorf("open file metadata.json error ", err)
+				c.JSON(http.StatusOK, NewResponse(ExecuteCode, "open file error"))
 				return
 			}
 			defer f.Close()
-
-			// For every chunk, write it to the empty file.
-			for i := 1; i <= totalChunks; i++ {
-				relativePath := fmt.Sprintf("%s%s%d", chunksDir, "/part", i)
-
-				writeOffset := int64(chunkSizeInBytes * (i - 1))
-				if i == 1 {
-					writeOffset = 0
-				}
-				dat, err := ioutil.ReadFile(relativePath)
-				size, err := f.WriteAt(dat, writeOffset)
-				if err != nil {
-					log.Errorf("write file error ", err)
-					c.JSON(http.StatusOK, NewResponse(ExecuteCode, "write file error"))
-					return
-				}
-				_ = size
-				//log.Infof("%d bytes written offset %d\n", size, writeOffset)
-			}
-
-			if _, err := exec.Command("rm", "-rf", tempFolder+"/"+resumableIdentifier[0]).Output(); err != nil {
-				log.Error(tempFolder+"/"+resumableIdentifier[0], err)
+			if _, err := f.WriteString(fmt.Sprintf(`{"path": "%s", "chunk": %s}`, resumableRelativePath, resumableTotalChunks)); err != nil {
+				c.JSON(http.StatusOK, NewResponse(ExecuteCode, "write metadata.json error"))
+				return
 			}
 		}
 
-		item.Name = strings.Split(resumableRelativePath[0], "/")[0]
-		item.Size += uint64(videoFileSize)
-		item.Status = dataservice.STATUS_UPLOAD
-		if err := db.Save(item).Error; err != nil {
+		if err := db.Transaction(func(tx *gorm.DB) error {
+			var item *dataservice.BucketObject
+			if ret := tx.Find(&item, "asset_id = ?", assetID); ret.RowsAffected == 0 {
+				c.JSON(http.StatusOK, NewResponse(ExecuteCode, fmt.Errorf("asset %s not found", assetID)))
+				return nil
+			}
+			item.Size += uint64(chunkSizeInBytes)
+			item.Name = strings.Split(resumableRelativePath[0], "/")[0]
+			item.Status = dataservice.STATUS_UPLOAD
+			if err := db.Save(item).Error; err != nil {
+				return err
+			}
+
+			time := time.Now().Format("2006-01-02")
+			var item2 *dataservice.UsedStorage
+			if ret := db.Model(&dataservice.UsedStorage{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
+				return ret.Error
+			} else if ret.RowsAffected == 0 {
+				item2 = &dataservice.UsedStorage{
+					Time:   time,
+					UserID: userID.(uint),
+				}
+			}
+			item2.Num += uint64(chunkSizeInBytes)
+			return tx.Save(&item2).Error
+		}); err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
 		}
-
-		time := time.Now().Format("2006-01-02")
-		var item2 *dataservice.UsedStorage
-		if ret := db.Model(&dataservice.UsedStorage{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
-			// c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
-			return
-		} else if ret.RowsAffected == 0 {
-			item2 = &dataservice.UsedStorage{
-				Time:   time,
-				UserID: userID.(uint),
-			}
-		}
-		item2.Num += uint64(videoFileSize)
-		db.Save(&item2)
-
 		c.JSON(http.StatusOK, NewResponse(OKCode, item))
 	}
 }
