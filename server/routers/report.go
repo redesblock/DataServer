@@ -63,7 +63,7 @@ func AddReportTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 			}
 
 			for key, size := range req.Downloaded {
-				traffic, err := getItemFunc(key, req.Timestamp)
+				traffic, err := getItemFunc(key, req.NATAddr, req.Timestamp)
 				if err != nil {
 					continue
 				}
