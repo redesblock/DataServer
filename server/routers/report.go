@@ -16,6 +16,7 @@ type ReportTrafficReq struct {
 	UploadedCnt   int64            `json:"uploaded_cnt"`
 	DownloadedCnt int64            `json:"downloaded_cnt"`
 	Signed        string           `json:"signed"`
+	NATAddr       string           `json:"nat_addr"`
 }
 
 // @Summary report traffic
@@ -36,24 +37,25 @@ func AddReportTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 
 		if err := db.Transaction(func(tx *gorm.DB) error {
 			items := make(map[string]*dataservice.ReportTraffic)
-			getItemFunc := func(key string, timestamp int64) (*dataservice.ReportTraffic, error) {
+			getItemFunc := func(key, nat_addr string, timestamp int64) (*dataservice.ReportTraffic, error) {
 				k := fmt.Sprintf("%s_%d", key, timestamp)
 				if item, ok := items[k]; ok {
 					return item, nil
 				}
 				var item dataservice.ReportTraffic
-				if result := db.Find(&item, "token = ? AND timestamp =?", key, timestamp); result.Error != nil {
+				if result := db.Find(&item, "token = ? AND timestamp =? AND nat_addr = ?", key, timestamp, nat_addr); result.Error != nil {
 					return nil, result.Error
 				} else if result.RowsAffected == 0 {
 					item.Token = key
 					item.Timestamp = timestamp
+					item.NATAddr = nat_addr
 					items[k] = &item
 				}
 				return &item, nil
 			}
 
 			for key, size := range req.Uploaded {
-				traffic, err := getItemFunc(key, req.Timestamp)
+				traffic, err := getItemFunc(key, req.NATAddr, req.Timestamp)
 				if err != nil {
 					continue
 				}
