@@ -1,10 +1,12 @@
 package routers
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/dataservice"
 	"github.com/shopspring/decimal"
-	"net/http"
 )
 
 // @Summary list storage bills
@@ -92,7 +94,7 @@ type BillReq struct {
 // @Produce json
 // @Success 200 {object} dataservice.BillStorage
 // @Router /bills/storage [post]
-func AddBillsStorageHandler(db *dataservice.DataService, uploadTx chan<- string) func(c *gin.Context) {
+func AddBillsStorageHandler(db *dataservice.DataService, addedTx chan<- []string) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req BillReq
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -111,13 +113,22 @@ func AddBillsStorageHandler(db *dataservice.DataService, uploadTx chan<- string)
 		}
 		if len(req.Hash) == 0 {
 			item.Status = dataservice.TX_STATUS_UNPAIND
+		} else {
+			var t dataservice.BillStorage
+			if ret := db.Find(&t, "hash = ?", req.Hash); ret.Error != nil {
+				c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error.Error()))
+				return
+			} else if ret.RowsAffected > 0 {
+				c.JSON(http.StatusOK, NewResponse(ExecuteCode, fmt.Errorf("hash already exist")))
+				return
+			}
 		}
 		if err := db.Save(item).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
 		if len(req.Hash) > 0 {
-			uploadTx <- req.Hash
+			addedTx <- []string{req.Hash}
 		}
 		c.JSON(http.StatusOK, NewResponse(OKCode, item))
 	}
@@ -131,7 +142,7 @@ func AddBillsStorageHandler(db *dataservice.DataService, uploadTx chan<- string)
 // @Produce json
 // @Success 200 {object} dataservice.BillTraffic
 // @Router /bills/traffic [post]
-func AddBillsTrafficHandler(db *dataservice.DataService, uploadTx chan<- string) func(c *gin.Context) {
+func AddBillsTrafficHandler(db *dataservice.DataService, addedTx chan<- []string) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req BillReq
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -150,15 +161,23 @@ func AddBillsTrafficHandler(db *dataservice.DataService, uploadTx chan<- string)
 		}
 		if len(req.Hash) == 0 {
 			item.Status = dataservice.TX_STATUS_UNPAIND
+		} else {
+			var t dataservice.BillTraffic
+			if ret := db.Find(&t, "hash = ?", req.Hash); ret.Error != nil {
+				c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error.Error()))
+				return
+			} else if ret.RowsAffected > 0 {
+				c.JSON(http.StatusOK, NewResponse(ExecuteCode, fmt.Errorf("hash already exist")))
+				return
+			}
 		}
 		if err := db.Save(item).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
 		if len(req.Hash) > 0 {
-			uploadTx <- req.Hash
+			addedTx <- []string{req.Hash}
 		}
-
 		c.JSON(http.StatusOK, NewResponse(OKCode, item))
 	}
 }

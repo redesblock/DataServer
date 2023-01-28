@@ -50,12 +50,12 @@ func GetAssetHandler(db *dataservice.DataService) func(c *gin.Context) {
 			return
 		}
 
-		userID, _ := c.Get("id")
-		var user dataservice.User
-		if err := db.Find(&user, "id = ?", userID).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
-		}
+		//userID, _ := c.Get("id")
+		//var user dataservice.User
+		//if err := db.Find(&user, "id = ?", userID).Error; err != nil {
+		//	c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+		//	return
+		//}
 		//if user.UsedStorage >= user.TotalStorage {
 		//	c.JSON(http.StatusOK, NewResponse(ExecuteCode, "storage usage has reached the maximum"))
 		//	return
@@ -108,7 +108,7 @@ func GetAssetHandler(db *dataservice.DataService) func(c *gin.Context) {
 // @Produce json
 // @Success 200 string {}
 // @Router /finish/{asset_id} [post]
-func FinishFileUploadHandler(db *dataservice.DataService, uploadChan chan<- string) func(c *gin.Context) {
+func FinishFileUploadHandler(db *dataservice.DataService, uploadedAsset chan<- []string) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		assetID := c.Param("asset_id")
 		var item *dataservice.BucketObject
@@ -182,16 +182,18 @@ func FinishFileUploadHandler(db *dataservice.DataService, uploadChan chan<- stri
 		}
 
 		if err := readLine("./assets/"+assetID+".json", handler); err != nil {
-			fmt.Printf("======= error %s\n", err)
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
 		} else {
+			item.UplinkProgress = 10
 			item.Status = dataservice.STATUS_UPLOADED
 			if err := db.Save(item).Error; err != nil {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 				return
 			}
-			uploadChan <- assetID
+			uploadedAsset <- []string{assetID}
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, ""))
+		c.JSON(http.StatusOK, NewResponse(OKCode, assetID))
 	}
 }
 

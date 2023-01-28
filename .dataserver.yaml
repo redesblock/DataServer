@@ -22,4 +22,6 @@ price:
 # download base url
 gateway: https://gateway.mopweb3.cn/
 
-browser: https://testnet.bscscan.com/
+bsc:
+  rpc: http://202.83.246.155:8575
+  browser: https://testnet.bscscan.com/

@@ -178,7 +178,6 @@ func AddBucketObjectHandler(db *dataservice.DataService) func(c *gin.Context) {
 		}
 		if len(item.CID) > 0 {
 			item.Status = dataservice.STATUS_PINED
-			item.UplinkProgress = 100
 			response, err := http.Get(viper.GetString("gateway") + "/mop/" + cid + "/")
 			if err == nil {
 				size, _ := strconv.ParseUint(response.Header.Get("Decompressed-Content-Length"), 10, 64)
@@ -186,6 +185,7 @@ func AddBucketObjectHandler(db *dataservice.DataService) func(c *gin.Context) {
 			} else {
 				item.Status = dataservice.STATUS_FAIL_PINED
 			}
+			item.UplinkProgress = 100
 		}
 		if err := db.Save(item).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))

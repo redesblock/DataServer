@@ -39,7 +39,7 @@ func uploadFiles(node, batchID, assetID, name string) (string, error) {
 	url := "http://" + node + ":1683" + "/mop"
 	req, err := http.NewRequest(http.MethodPost, url, buf)
 	if err != nil {
-		return "", fmt.Errorf("http request %v", err)
+		return "", fmt.Errorf("http new request %v", err)
 	}
 	req.Header.Add(DeferredUploadHeader, "true")
 	req.Header.Add(PostageVoucherIdHeader, batchID)
@@ -52,12 +52,12 @@ func uploadFiles(node, batchID, assetID, name string) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("http do %v", err)
+		return "", fmt.Errorf("http client do %v", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
-		return "", fmt.Errorf("http %s resp got status %s, want %s", url, resp.Status, http.StatusText(http.StatusCreated))
+		return "", fmt.Errorf("http resp got status %s, want %s, url %s", resp.Status, http.StatusText(http.StatusCreated), url)
 	}
 
 	var ret map[string]string
@@ -72,15 +72,14 @@ func tarFiles(assetID, name string) (*bytes.Buffer, string, error) {
 	tw := tar.NewWriter(&buf)
 
 	tempFolder := "assets/" + assetID
-
 	if s, err := os.Stat(filepath.Join(tempFolder, name)); err != nil {
 		return nil, "", err
 	} else if s.IsDir() {
 		tempFolder = filepath.Join(tempFolder, name)
 	}
 
-	n := len(strings.Split(tempFolder, "/"))
 	filename := ""
+	n := len(strings.Split(tempFolder, "/"))
 	filepath.Walk(tempFolder, func(path string, info fs.FileInfo, err error) error {
 		if info == nil {
 			return err
@@ -88,29 +87,30 @@ func tarFiles(assetID, name string) (*bytes.Buffer, string, error) {
 		if info.IsDir() {
 			return nil
 		}
-		data, err := ioutil.ReadFile(path)
-		if err != nil {
-			return fmt.Errorf("failed tar, read data %v", err)
-		}
 		if filepath.Join(strings.Split(path, "/")[n:]...) == info.Name() {
 			filename = info.Name()
 		}
+		data, err := ioutil.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("tar failed, read data %v", err)
+		}
+
 		hdr := &tar.Header{
 			Name: filepath.Join(strings.Split(path, "/")[n:]...),
 			Mode: 0600,
 			Size: info.Size(),
 		}
 		if err := tw.WriteHeader(hdr); err != nil {
-			return fmt.Errorf("failed tar, write header %v", err)
+			return fmt.Errorf("tar failed, write header %v", err)
 		}
 		if _, err := tw.Write(data); err != nil {
-			return fmt.Errorf("failed tar, write data %v", err)
+			return fmt.Errorf("tar failed, write data %v", err)
 		}
 		return nil
 	})
 	// finally close the tar writer
 	if err := tw.Close(); err != nil {
-		return nil, filename, fmt.Errorf("failed tar, close %v", err)
+		return nil, filename, fmt.Errorf("tar failed, close %v", err)
 	}
 	return &buf, filename, nil
 }

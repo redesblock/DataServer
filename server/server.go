@@ -4,6 +4,8 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"github.com/redesblock/dataserver/server/dispatcher"
+	"github.com/spf13/viper"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -12,7 +14,6 @@ import (
 	"github.com/Jeffail/gabs/v2"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
-	"github.com/go-co-op/gocron"
 	"github.com/redesblock/dataserver/dataservice"
 	"github.com/redesblock/dataserver/docs"
 	"github.com/redesblock/dataserver/server/routers"
@@ -23,6 +24,8 @@ import (
 )
 
 func Start(port string, db *dataservice.DataService) {
+	dispatcher.NewDispatcher(100).Run()
+
 	gin.SetMode(gin.DebugMode)
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
@@ -44,7 +47,7 @@ func Start(port string, db *dataservice.DataService) {
 		// 处理请求
 		c.Next()
 	})
-	router.MaxMultipartMemory = 8 << 20 // 8 MiB
+	//router.MaxMultipartMemory = 8 << 20 // 8 MiB
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	docs.SwaggerInfo.BasePath = "/api/v1"
@@ -76,85 +79,28 @@ func Start(port string, db *dataservice.DataService) {
 	v1.DELETE("/buckets/:id/objects/:fid", routers.DeleteBucketObjectHandler(db))
 	v1.POST("/buckets/:id/objects/:name", routers.AddBucketObjectHandler(db))
 
-	uploadBill := make(chan string, 1024)
+	uploadedTx := make(chan []string)
 	v1.GET("/contract", routers.GetContractHandler(db))
 	v1.GET("/buy/storage", routers.BuyStorageHandler(db))
 	v1.GET("/buy/traffic", routers.BuyTrafficHandler(db))
 	v1.GET("/bills/storage", routers.GetBillsStorageHandler(db))
-	v1.POST("/bills/storage", routers.AddBillsStorageHandler(db, uploadBill))
+	v1.POST("/bills/storage", routers.AddBillsStorageHandler(db, uploadedTx))
 	v1.GET("/bills/traffic", routers.GetBillsTrafficHandler(db))
-	v1.POST("/bills/traffic", routers.AddBillsTrafficHandler(db, uploadBill))
+	v1.POST("/bills/traffic", routers.AddBillsTrafficHandler(db, uploadedTx))
 
 	v1.GET("/asset/:id", routers.GetAssetHandler(db))
 	v1.GET("/upload/:asset_id", routers.GetFileUploadHandler(db))
 	v1.POST("/upload/:asset_id", routers.FileUploadHandler(db))
 	v1.GET("/download/:cid", routers.GetFileDownloadHandler(db))
 
-	uploadChan := make(chan string, 1024)
-	uploadCID := make(chan *dataservice.BucketObject, 1024)
-	v1.POST("/finish/:asset_id", routers.FinishFileUploadHandler(db, uploadChan))
+	uploadedAsset := make(chan []string, 512)
+	v1.POST("/finish/:asset_id", routers.FinishFileUploadHandler(db, uploadedAsset))
 
-	go func() {
-		for {
-			select {
-			case obj := <-uploadCID:
-				obj.UplinkProgress = 100
-				obj.Status = dataservice.STATUS_PINED
-				db.Save(obj)
-			}
-		}
-	}()
-
-	go func() {
-		for {
-			select {
-			case <-uploadChan:
-				var vouchers []*dataservice.Voucher
-				if err := db.Model(&dataservice.Voucher{}).Order("id desc").Where("usable = true").Find(&vouchers).Error; err != nil {
-					log.WithField("error", err).Errorf("load vouchers")
-					return
-				}
-				if len(vouchers) == 0 {
-					log.WithField("error", "no usable vouchers").Errorf("load vouchers")
-					return
-				}
-
-				voucherCnt := len(vouchers)
-				voucherIndex := 0
-
-				var items []*dataservice.BucketObject
-				db.Find(&dataservice.BucketObject{}).Where("size > 0").Where("c_id = ''").Where("status = ?", dataservice.STATUS_UPLOADED).Find(&items)
-				for _, item := range items {
-					hash := ""
-					for i := 0; i < voucherCnt; i++ {
-						voucherIndex += i
-						voucher := vouchers[voucherIndex%voucherCnt]
-						t := time.Now()
-						cid, err := uploadFiles(voucher.Node, voucher.Voucher, item.AssetID, item.Name)
-						if err != nil {
-							log.Errorf("upload %s error %v", item.AssetID, err)
-							continue
-						}
-						hash = cid
-						log.Infof("upload file %s, size %d, cid %s, elapse %v", item.AssetID, item.Size, cid, time.Now().Sub(t))
-						break
-					}
-					if len(hash) > 0 {
-						item.Status = dataservice.STATUS_PIN
-						item.UplinkProgress = 50
-						item.CID = hash
-						db.Save(&item)
-						uploadCID <- item
-					}
-				}
-			}
-		}
-	}()
-
+	// update tx status
 	go func() {
 		txStatusFunc := func(hash string) int {
 			retBody := strings.NewReader(fmt.Sprintf("{\"jsonrpc\":\"2.0\",\"method\":\"eth_getTransactionReceipt\",\"params\":[\"%s\"],\"id\":1}", hash))
-			resp, err := http.Post("http://202.83.246.155:8575", "application/json", retBody)
+			resp, err := http.Post(viper.GetString("bsc.rpc"), "application/json", retBody)
 			if err != nil {
 				log.Error("sync tx status error ", err)
 				return dataservice.TX_STATUS_PEND
@@ -186,87 +132,149 @@ func Start(port string, db *dataservice.DataService) {
 			}
 			return dataservice.TX_STATUS_PEND
 		}
+
+		duration := time.Minute
+		timer := time.NewTimer(duration)
 		for {
 			select {
-			case <-uploadBill:
+			case <-timer.C:
 				var items []*dataservice.BillStorage
 				db.Find(&dataservice.BillStorage{}).Where("status = ?", dataservice.TX_STATUS_PEND).Find(&items)
-				for _, item := range items {
-					item.Status = txStatusFunc(item.Hash)
-					if err := db.Transaction(func(tx *gorm.DB) error {
-						if item.Status == dataservice.TX_STATUS_SUCCESS {
-							var user dataservice.User
-							if ret := tx.Model(&dataservice.User{}).Where("id = ?", item.UserID).Find(&user); ret.Error != nil {
-								return ret.Error
-							} else if ret.RowsAffected == 0 {
-								return fmt.Errorf("not found user")
-							}
-							user.TotalStorage += item.Size
-							if err := tx.Save(&user).Error; err != nil {
-								return err
-							}
-						}
-						return tx.Save(&item).Error
-					}); err != nil {
-						log.Error("upload bill error ", err)
-					}
-				}
 
 				var items2 []*dataservice.BillTraffic
 				db.Find(&dataservice.BillTraffic{}).Where("status = ?", dataservice.TX_STATUS_PEND).Find(&items2)
+
+				var hashes []string
+				for _, item := range items {
+					hashes = append(hashes, item.Hash)
+				}
 				for _, item := range items2 {
-					item.Status = txStatusFunc(item.Hash)
-					if err := db.Transaction(func(tx *gorm.DB) error {
-						if item.Status == dataservice.TX_STATUS_SUCCESS {
-							var user dataservice.User
-							if ret := tx.Model(&dataservice.User{}).Where("id = ?", item.UserID).Find(&user); ret.Error != nil {
-								return ret.Error
-							} else if ret.RowsAffected == 0 {
-								return fmt.Errorf("not found user")
-							}
-							user.TotalTraffic += item.Size
-							if err := tx.Save(&user).Error; err != nil {
-								return err
-							}
+					hashes = append(hashes, item.Hash)
+				}
+				if len(hashes) > 0 {
+					select {
+					case uploadedTx <- hashes:
+					default:
+					}
+				}
+				timer.Reset(duration)
+			case hashes := <-uploadedTx:
+				for _, hash := range hashes {
+					var t1 dataservice.BillStorage
+					var t2 dataservice.BillTraffic
+					if ret := db.Find(&t1, "hash = ?", hash); ret.Error != nil {
+						log.Error("upload tx status error ", ret.Error)
+					} else if ret.RowsAffected > 0 {
+						status := dataservice.TX_STATUS_PEND
+						if t1.Status == dataservice.TX_STATUS_PEND {
+							status = txStatusFunc(hash)
 						}
-						return tx.Save(&item).Error
-					}); err != nil {
-						log.Error("upload bill error ", err)
+						if status == dataservice.TX_STATUS_PEND {
+							continue
+						}
+						t1.Status = status
+						if err := db.Transaction(func(tx *gorm.DB) error {
+							if t1.Status == dataservice.TX_STATUS_SUCCESS {
+								var user dataservice.User
+								if ret := tx.Model(&dataservice.User{}).Where("id = ?", t1.UserID).Find(&user); ret.Error != nil {
+									return ret.Error
+								} else if ret.RowsAffected == 0 {
+									return fmt.Errorf("not found user")
+								}
+								user.TotalStorage += t1.Size
+								if err := tx.Save(&user).Error; err != nil {
+									return err
+								}
+							}
+							return tx.Save(&t1).Error
+						}); err != nil {
+							log.Error("upload tx status error ", err)
+						}
+					} else if ret := db.Find(&t2, "hash = ?", hash); ret.Error != nil {
+						log.Error("upload tx status error ", ret.Error)
+					} else if ret.RowsAffected > 0 {
+						status := dataservice.TX_STATUS_PEND
+						if t2.Status == dataservice.TX_STATUS_PEND {
+							status = txStatusFunc(hash)
+						}
+						if status == dataservice.TX_STATUS_PEND {
+							continue
+						}
+						if err := db.Transaction(func(tx *gorm.DB) error {
+							if t2.Status == dataservice.TX_STATUS_SUCCESS {
+								var user dataservice.User
+								if ret := tx.Model(&dataservice.User{}).Where("id = ?", t2.UserID).Find(&user); ret.Error != nil {
+									return ret.Error
+								} else if ret.RowsAffected == 0 {
+									return fmt.Errorf("not found user")
+								}
+								user.TotalTraffic += t2.Size
+								if err := tx.Save(&user).Error; err != nil {
+									return err
+								}
+							}
+							return tx.Save(&t2).Error
+						}); err != nil {
+							log.Error("upload tx status error ", err)
+						}
 					}
 				}
 			}
 		}
 	}()
+	go func() {
+		duration := 10 * time.Minute
+		timer := time.NewTicker(duration)
+		for {
+			select {
+			case <-timer.C:
+				var vouchers []*dataservice.Voucher
+				if err := db.Model(&dataservice.Voucher{}).Where("usable = true").Find(&vouchers).Error; err != nil {
+					log.WithField("error", err).Errorf("load vouchers")
+				}
+				for _, voucher := range vouchers {
+					usable, err := voucherUsable(voucher.Node, voucher.Voucher)
+					if err != nil {
+						log.WithField("error", err).Errorf("find voucher usable")
+						continue
+					}
+					if voucher.Usable != usable {
+						voucher.Usable = usable
+						if err := db.Save(&voucher).Error; err != nil {
+							log.WithField("error", err).Errorf("save voucher")
+						}
+					}
+				}
 
-	scheduler := gocron.NewScheduler(time.UTC)
-	scheduler.Every(1).Day().At("00:00;12:00").Do(func() {
+				var assets []string
+				db.Transaction(func(tx *gorm.DB) error {
+					var items []*dataservice.BucketObject
+					tx.Find(&dataservice.BucketObject{}).Where("size > 0").Where("c_id = ''").Where("status = ?", dataservice.STATUS_UPLOADED).Find(&items)
 
-	})
-	scheduler.Every(10).Minute().Do(func() {
-		var vouchers []*dataservice.Voucher
-		if err := db.Model(&dataservice.Voucher{}).Where("usable = true").Find(&vouchers).Error; err != nil {
-			log.WithField("error", err).Errorf("load vouchers")
-			return
-		}
-		for _, voucher := range vouchers {
-			usable, err := voucherUsable(voucher.Node, voucher.Voucher)
-			if err != nil {
-				log.WithField("error", err).Errorf("find voucher usable")
-				continue
-			}
-			if voucher.Usable != usable {
-				voucher.Usable = usable
-				if err := db.Save(&voucher).Error; err != nil {
-					log.WithField("error", err).Errorf("save voucher")
+					for _, item := range items {
+						item.UplinkProgress = 10
+						assets = append(assets, item.AssetID)
+					}
+					return tx.Save(&items).Error
+				})
+
+				if len(assets) > 0 {
+					select {
+					case uploadedAsset <- assets:
+					default:
+					}
+				}
+				timer.Reset(duration)
+			case assets := <-uploadedAsset:
+				for _, asset := range assets {
+					dispatcher.JobQueue <- &AsssetJob{
+						asset: asset,
+						db:    db,
+					}
 				}
 			}
 		}
-		uploadChan <- "scheduler"
-	})
-	scheduler.Every(15).Second().Do(func() {
-		uploadBill <- "bill"
-	})
-	scheduler.StartAsync()
+	}()
 
 	log.Info("starting server at port ", port)
 	log.Fatal("starting server error: ", router.Run(port))
@@ -293,4 +301,69 @@ func voucherUsable(node string, voucher string) (bool, error) {
 		return false, err
 	}
 	return ret["usable"].(bool), nil
+}
+
+type AsssetJob struct {
+	asset string
+	db    *dataservice.DataService
+}
+
+func (job *AsssetJob) Do() error {
+	var item *dataservice.BucketObject
+	if err := job.db.Transaction(func(tx *gorm.DB) error {
+		if ret := tx.Find(&item, "asset_id = ?", job.asset); ret.Error != nil {
+			return ret.Error
+		} else if ret.RowsAffected == 0 {
+			return nil
+		}
+		item.UplinkProgress = 50
+		return tx.Save(item).Error
+	}); err != nil {
+		log.Errorf("upload file %s error %v", job.asset, err)
+		return err
+	}
+
+	var vouchers []*dataservice.Voucher
+	if err := job.db.Model(&dataservice.Voucher{}).Order("area desc").Where("usable = true").Find(&vouchers).Error; err != nil {
+		log.Errorf("upload file %s error %v", job.asset, err)
+		return err
+	}
+	if len(vouchers) == 0 {
+		err := fmt.Errorf("no usable vouchers")
+		log.Errorf("upload file %s error %v", job.asset, err)
+		return err
+	}
+
+	voucherCnt := len(vouchers)
+	voucherIndex := 0
+	hash := ""
+	for i := 0; i < voucherCnt; i++ {
+		voucherIndex += i
+		voucher := vouchers[voucherIndex%voucherCnt]
+		t := time.Now()
+		cid, err := uploadFiles(voucher.Node, voucher.Voucher, item.AssetID, item.Name)
+		if err != nil {
+			log.Errorf("upload file %s error %v", job.asset, err)
+			return err
+		}
+		hash = cid
+		log.Infof("upload file %s, size %d, cid %s, elapse %v", item.AssetID, item.Size, cid, time.Now().Sub(t))
+		break
+	}
+
+	if err := job.db.Transaction(func(tx *gorm.DB) error {
+		if ret := tx.Find(&item, "asset_id = ?", job.asset); ret.Error != nil {
+			return ret.Error
+		} else if ret.RowsAffected == 0 {
+			return nil
+		}
+		item.Status = dataservice.STATUS_PIN
+		item.UplinkProgress = 100
+		item.CID = hash
+		return tx.Save(item).Error
+	}); err != nil {
+		log.Errorf("upload file %s error %v", job.asset, err)
+		return err
+	}
+	return nil
 }

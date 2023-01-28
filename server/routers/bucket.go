@@ -129,11 +129,10 @@ func AddBucketHandler(db *dataservice.DataService) func(c *gin.Context) {
 		if ret := db.Model(&dataservice.Bucket{}).Where("user_id = ?", userID).Where("name = ?", req.Name).Find(&item); ret.Error != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
 			return
+		} else if ret.RowsAffected > 0 {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "bucket already exist"))
+			return
 		}
-		//else if ret.RowsAffected > 0 {
-		//	c.JSON(http.StatusOK, NewResponse(ExecuteCode, "bucket already exist"))
-		//	return
-		//}
 
 		item.Name = req.Name
 		item.Area = req.Area

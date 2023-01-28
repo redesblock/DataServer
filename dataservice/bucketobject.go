@@ -39,7 +39,6 @@ type BucketObject struct {
 	UpdatedAt time.Time `json:"-"`
 	CreatedAt time.Time `json:"-"`
 	BucketID  uint      `json:"-"`
-	Traffic   uint64    `json:"traffic"`
 
 	Created        string    `json:"created_at" gorm:"-"`
 	Updated        string    `json:"updated_at" gorm:"-"`

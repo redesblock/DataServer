@@ -8,8 +8,8 @@ type Voucher struct {
 	Usable  bool   `json:"usable"`
 }
 
-func (s *DataService) FindVouchers() (items []*Voucher, err error) {
-	err = s.Model(&Voucher{}).Where("usable = true").Order("id DESC").Find(&items).Error
+func (s *DataService) FindVouchers(area string) (items []*Voucher, err error) {
+	err = s.Model(&Voucher{}).Where("usable = true").Where("area = ?", area).Order("id DESC").Find(&items).Error
 	return
 }
 

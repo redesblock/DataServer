@@ -44,7 +44,7 @@ func BuyTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 			return
 		}
 
-		size, err := decimal.NewFromString(c.DefaultQuery("size", "0"))
+		size, err := decimal.NewFromString(c.DefaultQuery("size", "1024"))
 		if err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
@@ -75,7 +75,7 @@ func BuyStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 			return
 		}
 
-		size, err := decimal.NewFromString(c.DefaultQuery("size", "0"))
+		size, err := decimal.NewFromString(c.DefaultQuery("size", "1024"))
 		if err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return

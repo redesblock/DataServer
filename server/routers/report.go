@@ -13,8 +13,8 @@ type ReportTrafficReq struct {
 	Address       string           `json:"address"`
 	Uploaded      map[string]int64 `json:"uploaded"`
 	Downloaded    map[string]int64 `json:"downloaded"`
-	UploadedCnt   int64            `json:"uploaded_cnt"`
-	DownloadedCnt int64            `json:"downloaded_cnt"`
+	UploadedCnt   map[string]int64 `json:"uploaded_cnt"`
+	DownloadedCnt map[string]int64 `json:"downloaded_cnt"`
 	Signed        string           `json:"signed"`
 	NATAddr       string           `json:"nat_addr"`
 }
@@ -60,6 +60,7 @@ func AddReportTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 					continue
 				}
 				traffic.Uploaded += size
+				traffic.UploadedCnt += req.UploadedCnt[key]
 			}
 
 			for key, size := range req.Downloaded {
@@ -68,6 +69,7 @@ func AddReportTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 					continue
 				}
 				traffic.Downloaded += size
+				traffic.DownloadedCnt += req.DownloadedCnt[key]
 			}
 
 			if cnt := len(items); cnt > 0 {

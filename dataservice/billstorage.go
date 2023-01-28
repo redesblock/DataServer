@@ -43,7 +43,7 @@ func (u *BillStorage) AfterFind(tx *gorm.DB) (err error) {
 	u.Created = u.CreatedAt.Format(TIME_FORMAT)
 	u.SizeStr = ByteSize(u.Size)
 	u.StatusStr = TxStatuses[u.Status]
-	u.URL = viper.GetString("browser") + "tx/" + u.Hash
+	u.URL = viper.GetString("bsc.browser") + "tx/" + u.Hash
 	return
 }
 
