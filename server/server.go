@@ -250,7 +250,9 @@ func Start(port string, db *dataservice.DataService) {
 				db.Transaction(func(tx *gorm.DB) error {
 					var items []*dataservice.BucketObject
 					tx.Find(&dataservice.BucketObject{}).Where("size > 0").Where("c_id = ''").Where("status = ?", dataservice.STATUS_UPLOADED).Find(&items)
-
+					if len(items) == 0 {
+						return nil
+					}
 					for _, item := range items {
 						item.UplinkProgress = 10
 						assets = append(assets, item.AssetID)
