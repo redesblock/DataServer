@@ -52,8 +52,8 @@ func New(mode string, dsn string, opts ...gorm.Option) *DataService {
 
 	if err := db.Save(&Voucher{
 		ID:      1,
-		Node:    "183.131.181.163",
-		Voucher: "4bce42199a8c300fac0564703bec157895f240aa9062cef7951e773e434d8e1f",
+		Node:    "182.140.245.81",
+		Voucher: "e8132426ad06832d38eb5fa9b757b7351811ea9910ff7c2c3736c4c8b59dd5cc",
 		Area:    "China",
 		Usable:  true,
 	}).Error; err != nil {
