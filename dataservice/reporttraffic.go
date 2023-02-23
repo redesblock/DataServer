@@ -12,12 +12,12 @@ type ReportTraffic struct {
 	UploadedCnt   int64  `json:"uploaded_cnt"`
 	Downloaded    int64  `json:"-"`
 	DownloadedCnt int64  `json:"downloaded_cnt"`
-	Timestamp     int64  `json:"timestamp"`
+	Timestamp     int64  `json:"-"`
 	NATAddr       string `json:"nat_addr"`
 
 	UploadedStr   string `json:"uploaded" gorm:"-"`
 	DownloadedStr string `json:"downloaded" gorm:"-"`
-	TimestampStr  string `json:"timestamp_str" gorm:"-"`
+	TimestampStr  string `json:"timestamp" gorm:"-"`
 }
 
 func (u *ReportTraffic) AfterFind(tx *gorm.DB) (err error) {

@@ -2,11 +2,12 @@ package routers
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/dataservice"
 	"gorm.io/gorm"
-	"net/http"
-	"time"
 )
 
 // @Summary list traffics
@@ -49,6 +50,7 @@ func GetReportTrafficsHandler(db *dataservice.DataService) func(c *gin.Context) 
 // @Tags bucket
 // @Accept json
 // @Produce json
+// @Param   ip     query    string     false        "ip"
 // @Param   date     path    int     true        "date"
 // @Success 200 {object} dataservice.Bucket
 // @Router /buckets/{date} [get]
@@ -61,7 +63,11 @@ func GetReportTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 		}
 
 		var items []*dataservice.ReportTraffic
-		err = db.Model(&dataservice.ReportTraffic{}).Order("nat_addr, timestamp ASC").Where("timestamp >= ? AND timestamp < ?", start.Unix(), start.Add(time.Hour*24).Unix()).Find(&items).Error
+		tx := db.Model(&dataservice.ReportTraffic{}).Order("nat_addr, timestamp DESC").Where("timestamp >= ? AND timestamp < ?", start.Unix(), start.Add(time.Hour*24).Unix())
+		if ip := c.Query("ip"); len(ip) > 0 {
+			tx = tx.Where("nat_addr LIKE ?", fmt.Sprintf("%s%%", ip))
+		}
+		err = tx.Find(&items).Error
 		if err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err.Error()))
 			return

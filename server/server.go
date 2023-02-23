@@ -54,7 +54,7 @@ func Start(port string, db *dataservice.DataService) {
 	v1 := router.Group("/api/v1")
 	v1.POST("/traffic", routers.AddReportTrafficHandler(db))
 	v1.GET("/traffics", routers.GetReportTrafficsHandler(db))
-	v1.GET("/traffics/{date}", routers.GetReportTrafficHandler(db))
+	v1.GET("/traffics/:date", routers.GetReportTrafficHandler(db))
 
 	// v1.POST("/receipt", routers.AddReportReceiptHandler(db))
 
