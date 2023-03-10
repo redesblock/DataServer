@@ -85,11 +85,33 @@ func OverViewHandler(db *dataservice.DataService) func(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 {object} dataservice.UsedStorage
-// @Router /overview [get]
+// @Router /daily/storage [get]
 func DailyStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("id")
 		var items []*dataservice.UsedStorage
+		if userID.(uint) == 100 {
+			type result struct {
+				Timestamp int64
+				Total     uint64
+			}
+			var rets []*result
+			if err := db.Model(&dataservice.ReportTraffic{}).Order("timestamp").Select("timestamp, sum(downloaded) as total").Group("timestamp").Limit(24).Find(&rets).Error; err != nil {
+				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+				return
+			}
+			c.JSON(http.StatusOK, NewResponse(OKCode, func() []*dataservice.UsedStorage {
+				for _, ret := range rets {
+					items = append(items, &dataservice.UsedStorage{
+						Num:    ret.Total,
+						NumStr: ret.Total / 1024,
+						Time:   time.Unix(ret.Timestamp, 0).Format(dataservice.TIME_FORMAT),
+					})
+				}
+				return items
+			}()))
+			return
+		}
 		date := time.Now()
 		for i := 6; i >= 0; i-- {
 			d := date.Add(-time.Hour * 24 * time.Duration(i))
@@ -127,12 +149,35 @@ func DailyStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 {object} dataservice.UsedTraffic
-// @Router /overview [get]
+// @Router /daily/traffic [get]
 func DailyTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("id")
 
 		var items []*dataservice.UsedTraffic
+		if userID.(uint) == 100 {
+			type result struct {
+				Timestamp int64
+				Total     uint64
+			}
+			var rets []*result
+			if err := db.Model(&dataservice.ReportTraffic{}).Order("timestamp").Select("timestamp, sum(uploaded) as total").Group("timestamp").Limit(24).Find(&rets).Error; err != nil {
+				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+				return
+			}
+			c.JSON(http.StatusOK, NewResponse(OKCode, func() []*dataservice.UsedTraffic {
+				for _, ret := range rets {
+					items = append(items, &dataservice.UsedTraffic{
+						Num:    ret.Total,
+						NumStr: ret.Total / 1024,
+						Time:   time.Unix(ret.Timestamp, 0).Format(dataservice.TIME_FORMAT),
+					})
+				}
+				return items
+			}()))
+			return
+		}
+
 		date := time.Now()
 		for i := 6; i >= 0; i-- {
 			d := date.Add(-time.Hour * 24 * time.Duration(i))

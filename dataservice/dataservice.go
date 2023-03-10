@@ -60,6 +60,14 @@ func New(mode string, dsn string, opts ...gorm.Option) *DataService {
 		log.Fatal("Failed to init database: ", err)
 	}
 
+	if err := db.Save(&User{
+		ID:       100,
+		Email:    "admin@redeslab.io",
+		Password: "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+	}).Error; err != nil {
+		log.Fatal("Failed to init database: ", err)
+	}
+
 	return &DataService{
 		DB: db,
 	}
