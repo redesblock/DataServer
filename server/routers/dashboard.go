@@ -96,12 +96,14 @@ func DailyStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
 				Total     uint64
 			}
 			var rets []*result
-			if err := db.Model(&dataservice.ReportTraffic{}).Order("timestamp desc").Select("timestamp, sum(downloaded) as total").Group("timestamp").Limit(24).Find(&rets).Error; err != nil {
+			if err := db.Model(&dataservice.ReportTraffic{}).Order("timestamp desc").Select("timestamp, sum(uploaded) as total").Group("timestamp").Limit(24).Find(&rets).Error; err != nil {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 				return
 			}
 			c.JSON(http.StatusOK, NewResponse(OKCode, func() []*dataservice.UsedStorage {
-				for _, ret := range rets {
+				cnt := len(rets)
+				for ; cnt > 0; cnt-- {
+					ret := rets[cnt-1]
 					items = append(items, &dataservice.UsedStorage{
 						Num:    ret.Total,
 						NumStr: ret.Total / 1024,
@@ -161,12 +163,14 @@ func DailyTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 				Total     uint64
 			}
 			var rets []*result
-			if err := db.Model(&dataservice.ReportTraffic{}).Order("timestamp desc").Select("timestamp, sum(uploaded) as total").Group("timestamp").Limit(24).Find(&rets).Error; err != nil {
+			if err := db.Model(&dataservice.ReportTraffic{}).Order("timestamp desc").Select("timestamp, sum(downloaded) as total").Group("timestamp").Limit(24).Find(&rets).Error; err != nil {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 				return
 			}
 			c.JSON(http.StatusOK, NewResponse(OKCode, func() []*dataservice.UsedTraffic {
-				for _, ret := range rets {
+				cnt := len(rets)
+				for ; cnt > 0; cnt-- {
+					ret := rets[cnt-1]
 					items = append(items, &dataservice.UsedTraffic{
 						Num:    ret.Total,
 						NumStr: ret.Total / 1024,
