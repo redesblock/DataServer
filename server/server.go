@@ -143,7 +143,7 @@ func Start(port string, db *dataservice.DataService) {
 			return dataservice.TX_STATUS_PEND
 		}
 
-		duration := time.Minute
+		duration := time.Second*10
 		timer := time.NewTimer(duration)
 		for {
 			select {
@@ -169,6 +169,7 @@ func Start(port string, db *dataservice.DataService) {
 				}
 				timer.Reset(duration)
 			case hashes := <-uploadedTx:
+				time.Sleep(3 * time.Second)
 				for _, hash := range hashes {
 					var t1 dataservice.BillStorage
 					var t2 dataservice.BillTraffic
@@ -200,7 +201,8 @@ func Start(port string, db *dataservice.DataService) {
 						}); err != nil {
 							log.Error("upload tx status error ", err)
 						}
-					} else if ret := db.Find(&t2, "hash = ?", hash); ret.Error != nil {
+					}
+					if ret := db.Find(&t2, "hash = ?", hash); ret.Error != nil {
 						log.Error("upload tx status error ", ret.Error)
 					} else if ret.RowsAffected > 0 {
 						status := dataservice.TX_STATUS_PEND
