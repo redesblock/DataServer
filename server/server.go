@@ -212,6 +212,7 @@ func Start(port string, db *dataservice.DataService) {
 						if status == dataservice.TX_STATUS_PEND {
 							continue
 						}
+						t2.Status = status
 						if err := db.Transaction(func(tx *gorm.DB) error {
 							if t2.Status == dataservice.TX_STATUS_SUCCESS {
 								var user dataservice.User
