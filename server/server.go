@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -8,7 +9,6 @@ import (
 	"github.com/spf13/viper"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Jeffail/gabs/v2"
@@ -82,7 +82,7 @@ func Start(port string, db *dataservice.DataService) {
 	v1.DELETE("/buckets/:id/objects/:fid", routers.DeleteBucketObjectHandler(db))
 	v1.POST("/buckets/:id/objects/:name", routers.AddBucketObjectHandler(db))
 
-	uploadedTx := make(chan []string)
+	uploadedTx := make(chan []string, 10)
 	v1.GET("/contract", routers.GetContractHandler(db))
 	v1.GET("/buy/storage", routers.BuyStorageHandler(db))
 	v1.GET("/buy/traffic", routers.BuyTrafficHandler(db))
@@ -102,8 +102,15 @@ func Start(port string, db *dataservice.DataService) {
 	// update tx status
 	go func() {
 		txStatusFunc := func(hash string) int {
-			retBody := strings.NewReader(fmt.Sprintf("{\"jsonrpc\":\"2.0\",\"method\":\"eth_getTransactionReceipt\",\"params\":[\"%s\"],\"id\":1}", hash))
-			resp, err := http.Post(viper.GetString("bsc.rpc"), "application/json", retBody)
+			hashes := []string{hash}
+			request := map[string]interface{}{
+				"jsonrpc": "2.0",
+				"method":  "eth_getTransactionReceipt",
+				"params":  hashes,
+				"id":      1,
+			}
+			body, _ := json.Marshal(request)
+			resp, err := http.Post(viper.GetString("bsc.rpc"), "application/json", bytes.NewBuffer(body))
 			if err != nil {
 				log.Error("sync tx status error ", err)
 				return dataservice.TX_STATUS_PEND
