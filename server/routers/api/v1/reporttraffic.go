@@ -1,32 +1,59 @@
-package routers
+package v1
 
 import (
 	"fmt"
-	"net/http"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/dataservice"
+	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
+	"net/http"
+	"time"
 )
 
-// @Summary list traffics
+// @Summary Get multiple traffics
 // @Schemes
-// @Description pagination list traffics
-// @Tags report
+// @Tags report traffic
 // @Accept json
 // @Produce json
+// @Param   ip     query    string     false        "ip"
+// @Param   start   query    string     true        "start"
+// @Param   end   query    string     true        "end"
 // @Param   page_num     query    int     false        "page number"
 // @Param   page_size    query    int     false        "page size"
-// @Success 200 {object} dataservice.ReportTraffic
-// @Router /traffics [get]
-func GetReportTrafficsHandler(db *dataservice.DataService) func(c *gin.Context) {
+// @Success 200 {object} Response
+// @Router /api/v1/traffics [get]
+func GetReportTraffics(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
+		var total int64
 		pageNum, pageSize := page(c)
 		offset := (pageNum - 1) * pageSize
+		tx := db.Model(&models.ReportTraffic{}).Order("timestamp DESC, nat_addr").Count(&total).Offset(int(offset)).Limit(int(pageSize))
 
-		total, items, err := db.FindTraffics(offset, pageSize)
-		if err != nil {
+		start := c.Query("start")
+		end := c.Query("end")
+		if len(start) > 0 && len(end) > 0 {
+			startTime, err := time.Parse("2006-01-02", start)
+			if err != nil {
+				c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+				return
+			}
+			endTime, err := time.Parse("2006-01-02", end)
+			if err != nil {
+				c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+				return
+			}
+			if startTime.After(endTime) {
+				tx = tx.Where("timestamp >= ? AND timestamp < ?", endTime.Unix(), startTime.Unix())
+			} else {
+				tx = tx.Where("timestamp >= ? AND timestamp < ?", startTime, endTime.Unix())
+			}
+		}
+		if ip := c.Query("ip"); len(ip) > 0 {
+			tx = tx.Where("nat_addr LIKE ?", fmt.Sprintf("%s%%", ip))
+		}
+
+		var items []models.ReportTraffic
+		if err := tx.Find(&items).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
@@ -43,65 +70,6 @@ func GetReportTrafficsHandler(db *dataservice.DataService) func(c *gin.Context) 
 	}
 }
 
-// @Summary traffic info
-// @Schemes
-// @Description traffic info
-// @Security ApiKeyAuth
-// @Tags bucket
-// @Accept json
-// @Produce json
-// @Param   ip     query    string     false        "ip"
-// @Param   date     path    int     true        "date"
-// @Success 200 {object} dataservice.Bucket
-// @Router /buckets/{date} [get]
-func GetReportTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		start, err := time.Parse("2006-01-02", c.Param("date"))
-		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
-			return
-		}
-
-		var items []*dataservice.ReportTraffic
-		tx := db.Model(&dataservice.ReportTraffic{}).Order("nat_addr, timestamp DESC").Where("timestamp >= ? AND timestamp < ?", start.Unix(), start.Add(time.Hour*24).Unix())
-		if ip := c.Query("ip"); len(ip) > 0 {
-			tx = tx.Where("nat_addr LIKE ?", fmt.Sprintf("%s%%", ip))
-		}
-		err = tx.Find(&items).Error
-		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err.Error()))
-			return
-		}
-		//csv_upload := ""
-		//csv_download := ""
-		//nat_addr := ""
-		//uploaded := int64(0)
-		//uploadedCnt := int64(0)
-		//downloaded := int64(0)
-		//downloadedCnt := int64(0)
-		//i := 0
-		//for _, item := range items {
-		//	t := time.Unix(item.Timestamp, 0)
-		//	if nat_addr != item.NATAddr {
-		//		nat_addr = item.NATAddr
-		//		csv_upload += fmt.Sprintf("\n%s", nat_addr)
-		//		csv_download += fmt.Sprintf("\n%s", nat_addr)
-		//	}
-		//	for i < t.Hour() {
-		//
-		//	}
-		//	uploaded += item.Uploaded
-		//	uploadedCnt += item.UploadedCnt
-		//	downloaded += item.Downloaded
-		//	downloadedCnt += item.DownloadedCnt
-		//	csv_download += fmt.Sprintf(",%s")
-		//	csv_upload += fmt.Sprintf(",%s")
-		//}
-
-		c.JSON(http.StatusOK, NewResponse(OKCode, items))
-	}
-}
-
 type ReportTrafficReq struct {
 	Timestamp     int64            `json:"timestamp"`
 	Address       string           `json:"address"`
@@ -113,15 +81,15 @@ type ReportTrafficReq struct {
 	NATAddr       string           `json:"nat_addr"`
 }
 
-// @Summary report traffic
+// @Summary add report traffic
 // @Schemes
-// @Description add report traffic
-// @Tags report
+// @Tags report traffic
 // @Accept json
 // @Produce json
-// @Success 200 {object} dataservice.ReportTraffic
-// @Router /traffic [post]
-func AddReportTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
+// @Param data body ReportTrafficReq true "data"
+// @Success 200 {object} Response
+// @Router /api/v1/traffic [post]
+func AddReportTraffic(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req ReportTrafficReq
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -180,20 +148,6 @@ func AddReportTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err.Error()))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, "ok"))
-	}
-}
-
-// @Summary report receipt
-// @Schemes
-// @Description add report receipt
-// @Tags report
-// @Accept json
-// @Produce json
-// @Success 200 {string} ok
-// @Router /receipt [post]
-func AddReportReceiptHandler(db *dataservice.DataService) func(c *gin.Context) {
-	return func(c *gin.Context) {
 		c.JSON(http.StatusOK, NewResponse(OKCode, "ok"))
 	}
 }

@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/redesblock/dataserver/dataservice"
+	"github.com/redesblock/dataserver/models"
 	"github.com/redesblock/dataserver/server"
 	"os"
 	"strings"
@@ -24,7 +24,7 @@ var rootCmd = &cobra.Command{
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	RunE: func(cmd *cobra.Command, args []string) error {
-		db := dataservice.New(viper.GetString("db.mode"), viper.GetString("db.dsn"))
+		db := models.New(viper.GetString("db.mode"), viper.GetString("db.dsn"))
 		server.Start(viper.GetString("port"), db)
 		return nil
 	},

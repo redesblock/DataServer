@@ -1,4 +1,3 @@
-basePath: /api/v1
 definitions:
   dataservice.BillStorage:
     properties:
@@ -70,8 +69,6 @@ definitions:
     properties:
       asset_id:
         type: string
-      chunks:
-        type: integer
       cid:
         type: string
       created_at:
@@ -98,8 +95,6 @@ definitions:
         type: integer
       total_size_str:
         type: string
-      traffic:
-        type: integer
       updated_at:
         type: string
       uplinkProgress:
@@ -112,6 +107,29 @@ definitions:
       id:
         type: integer
       name:
+        type: string
+    type: object
+  dataservice.ReportTraffic:
+    properties:
+      downloaded:
+        type: integer
+      downloaded_cnt:
+        type: integer
+      downloaded_str:
+        type: string
+      id:
+        type: integer
+      nat_addr:
+        type: string
+      timestamp:
+        type: string
+      token:
+        type: string
+      uploaded:
+        type: integer
+      uploaded_cnt:
+        type: integer
+      uploaded_str:
         type: string
     type: object
   dataservice.UsedStorage:
@@ -221,6 +239,175 @@ definitions:
       password:
         type: string
     type: object
+  v1.AddBucketReq:
+    properties:
+      cid:
+        type: string
+      fid:
+        type: integer
+    type: object
+  v1.AddCouponReq:
+    properties:
+      coupon_type:
+        type: integer
+      discount:
+        type: number
+      end_time:
+        type: integer
+      max_claim:
+        type: integer
+      name:
+        type: string
+      product_type:
+        type: integer
+      reserve:
+        type: integer
+      start_time:
+        type: integer
+      storage_quantity_max:
+        type: integer
+      storage_quantity_min:
+        type: integer
+      traffic_quantity_max:
+        type: integer
+      traffic_quantity_min:
+        type: integer
+    type: object
+  v1.AddNodeReq:
+    properties:
+      ip:
+        type: string
+      name:
+        type: string
+      port:
+        type: integer
+      voucher_id:
+        type: string
+      zone:
+        type: string
+    type: object
+  v1.AddOrderReq:
+    type: object
+  v1.AddSpecialProductReq:
+    properties:
+      discount:
+        type: number
+      name:
+        type: string
+      quantity:
+        type: integer
+      reserve:
+        type: integer
+      type:
+        type: integer
+    type: object
+  v1.AddUserReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  v1.Bucket:
+    properties:
+      access:
+        type: boolean
+      area:
+        type: string
+      name:
+        type: string
+      network:
+        type: string
+    type: object
+  v1.EditCouponReq:
+    properties:
+      max_claim:
+        type: integer
+      reserve:
+        type: integer
+    type: object
+  v1.EditCurrencyReq:
+    properties:
+      rate:
+        type: number
+    type: object
+  v1.EditNodeReq:
+    properties:
+      ip:
+        type: string
+      name:
+        type: string
+      voucher_id:
+        type: string
+      zone:
+        description: Port      int    `json:"port"`
+        type: string
+    type: object
+  v1.EditOrderReq:
+    type: object
+  v1.EditProductReq:
+    properties:
+      price:
+        type: number
+    type: object
+  v1.EditSignInReq:
+    properties:
+      period:
+        type: integer
+      quantity:
+        type: integer
+    type: object
+  v1.EditSpecialProductReq:
+    properties:
+      name:
+        type: string
+      reserve:
+        type: integer
+    type: object
+  v1.EditUserReq:
+    properties:
+      password:
+        type: string
+      status:
+        type: integer
+    type: object
+  v1.ReportTrafficReq:
+    properties:
+      address:
+        type: string
+      downloaded:
+        additionalProperties:
+          type: integer
+        type: object
+      downloaded_cnt:
+        additionalProperties:
+          type: integer
+        type: object
+      nat_addr:
+        type: string
+      signed:
+        type: string
+      timestamp:
+        type: integer
+      uploaded:
+        additionalProperties:
+          type: integer
+        type: object
+      uploaded_cnt:
+        additionalProperties:
+          type: integer
+        type: object
+    type: object
+  v1.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      detail:
+        type: string
+      message:
+        type: string
+    type: object
 host: 127.0.0.1:8080
 info:
   contact:
@@ -235,6 +422,1125 @@ info:
   title: DataServer Swagger API
   version: "1.0"
 paths:
+  /api/v1/articles:
+    post:
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AddOrderReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Add order
+  /api/v1/buckets:
+    get:
+      consumes:
+      - application/json
+      description: pagination list buckets
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.Bucket'
+      security:
+      - ApiKeyAuth: []
+      summary: list buckets
+      tags:
+      - bucket
+    post:
+      consumes:
+      - application/json
+      description: add bucket
+      parameters:
+      - description: bucket info
+        in: body
+        name: bucket
+        required: true
+        schema:
+          $ref: '#/definitions/v1.Bucket'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.Bucket'
+      security:
+      - ApiKeyAuth: []
+      summary: add bucket
+      tags:
+      - bucket
+  /api/v1/buckets/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: remove bucket
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.Bucket'
+      security:
+      - ApiKeyAuth: []
+      summary: remove bucket
+      tags:
+      - bucket
+    get:
+      consumes:
+      - application/json
+      description: bucket info
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.Bucket'
+      security:
+      - ApiKeyAuth: []
+      summary: bucket info
+      tags:
+      - bucket
+    post:
+      consumes:
+      - application/json
+      description: update bucket
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: update bucket info
+        in: body
+        name: bucket
+        required: true
+        schema:
+          $ref: '#/definitions/v1.Bucket'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.Bucket'
+      security:
+      - ApiKeyAuth: []
+      summary: update bucket
+      tags:
+      - bucket
+  /api/v1/buckets/{id}/objects:
+    get:
+      consumes:
+      - application/json
+      description: pagination query bucket objects
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: folder id
+        in: query
+        name: fid
+        type: integer
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.BucketObject'
+      security:
+      - ApiKeyAuth: []
+      summary: list bucket objects
+      tags:
+      - bucket object
+  /api/v1/buckets/{id}/objects/{fid}:
+    delete:
+      consumes:
+      - application/json
+      description: remove bucket object
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: folder id
+        in: path
+        name: fid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.BucketObject'
+      security:
+      - ApiKeyAuth: []
+      summary: remove bucket object
+      tags:
+      - bucket object
+    get:
+      consumes:
+      - application/json
+      description: bucket object info
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: folder id
+        in: path
+        name: fid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.BucketObject'
+      security:
+      - ApiKeyAuth: []
+      summary: bucket object info
+      tags:
+      - bucket object
+  /api/v1/buckets/{id}/objects/{name}:
+    post:
+      consumes:
+      - application/json
+      description: add bucket folder
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: folder id
+        in: path
+        name: fid
+        type: integer
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: cid
+        in: path
+        name: cid
+        type: string
+      - description: object info
+        in: body
+        name: object
+        schema:
+          $ref: '#/definitions/v1.AddBucketReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.BucketObject'
+      security:
+      - ApiKeyAuth: []
+      summary: add bucket object
+      tags:
+      - bucket object
+  /api/v1/coupons:
+    get:
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get multiple coupons
+      tags:
+      - coupon
+    post:
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AddCouponReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Add coupon
+      tags:
+      - coupon
+  /api/v1/coupons/{id}:
+    delete:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Delete article
+      tags:
+      - coupon
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get a single coupon
+      tags:
+      - coupon
+    put:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/v1.EditCouponReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Update coupon
+      tags:
+      - coupon
+  /api/v1/currencies:
+    get:
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get multiple currencies
+      tags:
+      - currency
+  /api/v1/currencies/{id}:
+    delete:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Delete article
+      tags:
+      - currency
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get a single currency
+      tags:
+      - currency
+    put:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/v1.EditCurrencyReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Update currency
+      tags:
+      - currency
+  /api/v1/nodes:
+    get:
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get multiple nodes
+      tags:
+      - node
+    post:
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AddNodeReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Add node
+      tags:
+      - node
+  /api/v1/nodes/{id}:
+    delete:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Delete article
+      tags:
+      - node
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get a single node
+      tags:
+      - node
+    put:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/v1.EditNodeReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Update node
+      tags:
+      - node
+  /api/v1/operators:
+    get:
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get multiple users
+      tags:
+      - user
+  /api/v1/orders:
+    get:
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get multiple orders
+      tags:
+      - order
+  /api/v1/orders/{id}:
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get a single order
+      tags:
+      - order
+    put:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/v1.EditOrderReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Update order
+  /api/v1/products:
+    get:
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get multiple products
+      tags:
+      - product
+  /api/v1/products/{id}:
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get a single product
+      tags:
+      - product
+    put:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/v1.EditProductReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Update product
+      tags:
+      - product
+  /api/v1/signIns:
+    get:
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get multiple signIns
+      tags:
+      - signIn
+  /api/v1/signIns/{id}:
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get a single signIn
+      tags:
+      - signIn
+    put:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/v1.EditSignInReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Update signIn
+      tags:
+      - signIn
+  /api/v1/signIns/switch:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get signIn Switch
+      tags:
+      - signIn
+    put:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Set signIn switch
+      tags:
+      - signIn
+  /api/v1/special_products:
+    get:
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get multiple special_products
+      tags:
+      - special product
+    post:
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AddSpecialProductReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Add special product
+      tags:
+      - special product
+  /api/v1/special_products/{id}:
+    delete:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Delete article
+      tags:
+      - special product
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get a single special product
+      tags:
+      - special product
+    put:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/v1.EditSpecialProductReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Update special product
+      tags:
+      - special product
+  /api/v1/traffic:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/v1.ReportTrafficReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: add report traffic
+      tags:
+      - report traffic
+  /api/v1/traffics:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ip
+        in: query
+        name: ip
+        type: string
+      - description: start
+        in: query
+        name: start
+        required: true
+        type: string
+      - description: end
+        in: query
+        name: end
+        required: true
+        type: string
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get multiple traffics
+      tags:
+      - report traffic
+  /api/v1/users:
+    get:
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get multiple users
+      tags:
+      - user
+    post:
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AddUserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Add user
+      tags:
+      - user
+  /api/v1/users/{id}:
+    delete:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Delete article
+      tags:
+      - user
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get a single user
+      tags:
+      - user
+    put:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/v1.EditUserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Update user
+      tags:
+      - user
   /asset/{id}:
     get:
       consumes:
@@ -389,6 +1695,33 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: add bucket
+      tags:
+      - bucket
+  /buckets/{date}:
+    get:
+      consumes:
+      - application/json
+      description: traffic info
+      parameters:
+      - description: ip
+        in: query
+        name: ip
+        type: string
+      - description: date
+        in: path
+        name: date
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.Bucket'
+      security:
+      - ApiKeyAuth: []
+      summary: traffic info
       tags:
       - bucket
   /buckets/{id}:
@@ -637,6 +1970,40 @@ paths:
       summary: traffic price
       tags:
       - bills
+  /daily/storage:
+    get:
+      consumes:
+      - application/json
+      description: used storage
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.UsedStorage'
+      security:
+      - ApiKeyAuth: []
+      summary: used storage
+      tags:
+      - dashboard
+  /daily/traffic:
+    get:
+      consumes:
+      - application/json
+      description: used storage
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.UsedTraffic'
+      security:
+      - ApiKeyAuth: []
+      summary: used storage
+      tags:
+      - dashboard
   /download/{cid}/{path}:
     get:
       consumes:
@@ -707,19 +2074,73 @@ paths:
     get:
       consumes:
       - application/json
-      description: used storage
+      description: overview
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dataservice.UsedTraffic'
+            $ref: '#/definitions/routers.OverView'
       security:
       - ApiKeyAuth: []
-      summary: used storage
+      summary: overview
       tags:
       - dashboard
+  /receipt:
+    post:
+      consumes:
+      - application/json
+      description: add report receipt
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: report receipt
+      tags:
+      - report
+  /traffic:
+    post:
+      consumes:
+      - application/json
+      description: add report traffic
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.ReportTraffic'
+      summary: report traffic
+      tags:
+      - report
+  /traffics:
+    get:
+      consumes:
+      - application/json
+      description: pagination list traffics
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dataservice.ReportTraffic'
+      summary: list traffics
+      tags:
+      - report
   /user:
     get:
       consumes:

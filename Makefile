@@ -5,7 +5,7 @@ go.sum: go.mod
 	@go mod verify
 
 build: go.sum
-#	@swag init
+	@swag init
 	@go mod tidy
 	@go fmt ./...
 	@go build  -o build/dataserver .
