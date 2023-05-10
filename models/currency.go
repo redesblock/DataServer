@@ -25,10 +25,11 @@ var PaymentChannelMsgs = map[PaymentChannel]string{
 
 type Currency struct {
 	gorm.Model
-	Symbol  string          `json:"symbol" gorm:"unique"`
-	Rate    decimal.Decimal `json:"rate"`
-	Base    bool            `json:"base" gorm:"default: false"`
-	Payment PaymentChannel  `json:"payment_channel"`
+	Symbol    string          `json:"symbol" gorm:"unique"`
+	Rate      decimal.Decimal `json:"rate"`
+	Base      bool            `json:"base" gorm:"default: false"`
+	Payment   PaymentChannel  `json:"payment_channel"`
+	Receiptor string          `json:"receiptor"`
 
 	PaymentStr []string `json:"payment_channel_str" gorm:"-"`
 	Created    string   `json:"created_at" gorm:"-"`

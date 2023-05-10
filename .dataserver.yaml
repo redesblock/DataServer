@@ -6,6 +6,18 @@ db:
   mode: "sqlite" # sqlite、 mysql、 postgres
   dsn: "dataserver.db" # Data Source Name
 
+#email:
+#  host: smtp.gmail.com
+#  port: 587
+#  user: dev@redeslab.io
+#  pwd: thop24680
+
+email:
+  host: smtp.qq.com
+  port: 465
+  user: 342529499@qq.com
+  pwd: guzqxmphgdlfbhjg
+
 # rabbit mq
 rabbitmq: 
 

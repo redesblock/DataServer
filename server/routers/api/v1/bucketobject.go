@@ -2,7 +2,6 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/redesblock/dataserver/dataservice"
 	"github.com/redesblock/dataserver/models"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -11,17 +10,15 @@ import (
 )
 
 // @Summary list bucket objects
-// @Schemes
-// @Description pagination query bucket objects
 // @Security ApiKeyAuth
 // @Tags bucket object
 // @Accept json
-// @Produce json
 // @Param   id     path    int     true        "bucket id"
 // @Param   fid     query    int     false        "folder id"
 // @Param   page_num     query    int     false        "page number"
 // @Param   page_size    query    int     false        "page size"
-// @Success 200 {object} dataservice.BucketObject
+// @Produce json
+// @Success 200 {object} Response
 // @Router /api/v1/buckets/{id}/objects [get]
 func GetBucketObjectsHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
@@ -59,15 +56,13 @@ func GetBucketObjectsHandler(db *gorm.DB) func(c *gin.Context) {
 }
 
 // @Summary bucket object info
-// @Schemes
-// @Description bucket object info
 // @Security ApiKeyAuth
 // @Tags bucket object
 // @Accept json
 // @Produce json
 // @Param   id     path    int     true        "bucket id"
 // @Param   fid    path    int     true        "folder id"
-// @Success 200 {object} dataservice.BucketObject
+// @Success 200 {object} Response
 // @Router /api/v1/buckets/{id}/objects/{fid} [get]
 func GetBucketObjectHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
@@ -94,17 +89,15 @@ func GetBucketObjectHandler(db *gorm.DB) func(c *gin.Context) {
 }
 
 // @Summary remove bucket object
-// @Schemes
-// @Description remove bucket object
 // @Security ApiKeyAuth
 // @Tags bucket object
 // @Accept json
 // @Produce json
 // @Param   id     path    int     true     "bucket id"
 // @Param   fid     path    int     true        "folder id"
-// @Success 200 {object} dataservice.BucketObject
+// @Success 200 {object} Response
 // @Router /api/v1/buckets/{id}/objects/{fid} [delete]
-func DeleteBucketObjectHandler(db *dataservice.DataService) func(c *gin.Context) {
+func DeleteBucketObjectHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
@@ -118,7 +111,7 @@ func DeleteBucketObjectHandler(db *dataservice.DataService) func(c *gin.Context)
 			return
 		}
 
-		if err := db.Where("bucket_id = ?", id).Where("id = ?", fid).Delete(&dataservice.BucketObject{}).Error; err != nil {
+		if err := db.Where("bucket_id = ?", id).Where("id = ?", fid).Delete(&models.BucketObject{}).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
@@ -133,8 +126,6 @@ type AddBucketReq struct {
 }
 
 // @Summary add bucket object
-// @Schemes
-// @Description add bucket folder
 // @Security ApiKeyAuth
 // @Tags bucket object
 // @Accept json
@@ -144,7 +135,7 @@ type AddBucketReq struct {
 // @Param   name   path    string  true        "name"
 // @Param   cid     path    string    false     "cid"
 // @Param object body AddBucketReq false "object info"
-// @Success 200 {object} dataservice.BucketObject
+// @Success 200 {object} Response
 // @Router /api/v1/buckets/{id}/objects/{name} [post]
 func AddBucketObjectHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
@@ -163,8 +154,8 @@ func AddBucketObjectHandler(db *gorm.DB) func(c *gin.Context) {
 		name := c.Param("name")
 		cid := req.CID
 
-		var t *dataservice.BucketObject
-		if ret := db.Model(&dataservice.BucketObject{}).Where("bucket_id = ?", id).Where("parent_id = ?", fid).Where("name = ?", name).Find(&t); ret.Error != nil {
+		var t *models.BucketObject
+		if ret := db.Model(&models.BucketObject{}).Where("bucket_id = ?", id).Where("parent_id = ?", fid).Where("name = ?", name).Find(&t); ret.Error != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
 			return
 		} else if ret.RowsAffected > 0 {
@@ -172,20 +163,20 @@ func AddBucketObjectHandler(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 
-		var item = &dataservice.BucketObject{
+		var item = &models.BucketObject{
 			Name:     name,
 			CID:      cid,
 			ParentID: uint(fid),
 			BucketID: uint(id),
 		}
 		if len(item.CID) > 0 {
-			item.Status = dataservice.STATUS_PINED
+			item.Status = models.STATUS_PINED
 			response, err := http.Get(viper.GetString("gateway") + "/mop/" + cid + "/")
 			if err == nil {
 				size, _ := strconv.ParseUint(response.Header.Get("Decompressed-Content-Length"), 10, 64)
 				item.Size = size
 			} else {
-				item.Status = dataservice.STATUS_FAIL_PINED
+				item.Status = models.STATUS_FAIL_PINED
 			}
 			item.UplinkProgress = 100
 		}

@@ -2,7 +2,7 @@ package models
 
 import "gorm.io/gorm"
 
-type DailyUsedStorage struct {
+type UsedStorage struct {
 	ID     uint   `json:"-" gorm:"primaryKey"`
 	Num    uint64 `json:"-"`
 	Time   string `json:"timestamp"`
@@ -10,12 +10,12 @@ type DailyUsedStorage struct {
 	NumStr uint64 `json:"num" gorm:"-"`
 }
 
-func (item *DailyUsedStorage) AfterFind(tx *gorm.DB) (err error) {
+func (item *UsedStorage) AfterFind(tx *gorm.DB) (err error) {
 	item.NumStr = item.Num / 1024
 	return
 }
 
-type DailyUsedTraffic struct {
+type UsedTraffic struct {
 	ID     uint   `json:"-" gorm:"primaryKey"`
 	Num    uint64 `json:"-"`
 	Time   string `json:"timestamp"`
@@ -24,7 +24,7 @@ type DailyUsedTraffic struct {
 	NumStr uint64 `json:"num" gorm:"-"`
 }
 
-func (item *DailyUsedTraffic) AfterFind(tx *gorm.DB) (err error) {
+func (item *UsedTraffic) AfterFind(tx *gorm.DB) (err error) {
 	item.NumStr = item.Num / 1024
 	return
 }

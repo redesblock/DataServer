@@ -39,6 +39,48 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 
 	apiv1 := r.Group("/api/v1")
 	{
+		apiv1.POST("/traffic", v1.AddReportTraffic(db))
+		apiv1.GET("/traffics", v1.GetReportTraffics(db))
+		apiv1.POST("/login", v1.Login(db))
+		apiv1.POST("/forgot", v1.Forgot(db))
+		apiv1.POST("/reset", v1.Reset(db))
+
+		apiv1.Use(v1.JWTAuthMiddleware())
+		apiv1.GET("/user", v1.GetUserHandler(db))
+		apiv1.POST("/user", v1.AddUserHandler(db))
+		apiv1.GET("/user/actions", v1.UserActionsHandler(db))
+		apiv1.GET("/overview", v1.OverViewHandler(db))
+		apiv1.GET("/daily/storage", v1.DailyStorageHandler(db))
+		apiv1.GET("/daily/traffic", v1.DailyTrafficHandler(db))
+		apiv1.GET("/networks", v1.GetNetWorksHandler(db))
+		apiv1.GET("/areas", v1.GetAreasHandler(db))
+
+		apiv1.GET("/buckets", v1.GetBucketsHandler(db))
+		apiv1.GET("/buckets/:id", v1.GetBucketHandler(db))
+		apiv1.DELETE("/buckets/:id", v1.DeleteBucketHandler(db))
+		apiv1.POST("/buckets/:id", v1.UpdateBucketHandler(db))
+		apiv1.POST("/buckets", v1.AddBucketHandler(db))
+		apiv1.GET("/buckets/:id/objects", v1.GetBucketObjectsHandler(db))
+		apiv1.GET("/buckets/:id/objects/:fid", v1.GetBucketObjectHandler(db))
+		apiv1.DELETE("/buckets/:id/objects/:fid", v1.DeleteBucketObjectHandler(db))
+		apiv1.POST("/buckets/:id/objects/:name", v1.AddBucketObjectHandler(db))
+
+		apiv1.GET("/asset/:id", v1.GetAssetHandler(db))
+		apiv1.GET("/upload/:asset_id", v1.GetFileUploadHandler(db))
+		apiv1.POST("/upload/:asset_id", v1.FileUploadHandler(db))
+		apiv1.POST("/finish/:asset_id", v1.FinishFileUploadHandler(db))
+
+		apiv1.GET("/download/:cid", v1.GetFileDownloadHandler(db))
+
+		apiv1.GET("/contract", v1.GetERC20ContractHandler(db))
+		apiv1.GET("/buy/storage", v1.BuyStorageHandler(db))
+		apiv1.GET("/buy/traffic", v1.BuyTrafficHandler(db))
+		apiv1.GET("/bills/storage", v1.GetBillsStorageHandler(db))
+		apiv1.GET("/bills/traffic", v1.GetBillsTrafficHandler(db))
+		apiv1.POST("/bills/storage", v1.AddBillsStorageHandler(db))
+		apiv1.POST("/bills/traffic", v1.AddBillsTrafficHandler(db))
+
+		apiv1.Use(v1.JWTAuthMiddleware2())
 		apiv1.GET("/currencies", v1.GetCurrencies(db))
 		apiv1.GET("/currencies/:id", v1.GetCurrency(db))
 		apiv1.PUT("/currencies/:id", v1.EditCurrency(db))
@@ -53,8 +95,6 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 
 		apiv1.GET("/orders", v1.GetOrders(db))
 		apiv1.GET("/orders/:id", v1.GetOrder(db))
-		apiv1.POST("/orders", v1.AddOrder(db))
-		apiv1.PUT("/orders/:id", v1.EditOrder(db))
 
 		apiv1.GET("/nodes", v1.GetNodes(db))
 		apiv1.GET("/nodes/:id", v1.GetNode(db))
@@ -84,9 +124,6 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 
 		apiv1.GET("/signIns/switch", v1.GetSignInSwitch(db))
 		apiv1.PUT("/signIns/switch", v1.SetSignInSwitch(db))
-
-		apiv1.POST("/traffic", v1.AddReportTraffic(db))
-		apiv1.GET("/traffics", v1.GetReportTraffics(db))
 	}
 
 	return r

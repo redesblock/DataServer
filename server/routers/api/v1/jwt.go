@@ -1,7 +1,8 @@
-package routers
+package v1
 
 import (
 	"errors"
+	"github.com/redesblock/dataserver/models"
 	"github.com/spf13/viper"
 	"net/http"
 	"strings"
@@ -20,8 +21,9 @@ const (
 var MySecret = []byte("JWT SECRET")
 
 type UserInfo struct {
-	ID    uint   `json:"id"`
-	Email string `json:"email"`
+	ID    uint            `json:"id"`
+	Role  models.UserRole `json:"role"`
+	Email string          `json:"email"`
 }
 
 type MyClaims struct {
@@ -92,11 +94,24 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 		}
 		// 将当前请求的username信息保存到请求的上下文c上
 		c.Set("id", mc.ID)
+		c.Set("role", mc.Role)
 		c.Set("email", mc.Email)
 
 		// 更新过期时间
 		if token, err := GenToken(mc.UserInfo); err == nil {
 			c.Header(HeaderTokenKey, "Bearer "+token)
+		}
+		c.Next() // 后续的处理函数可以用过c.Get("user")来获取当前请求的用户信
+	}
+}
+
+func JWTAuthMiddleware2() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		val, _ := c.Get("role")
+		role := val.(models.UserRole)
+		if role != models.UserRole_Admin && role != models.UserRole_Oper {
+			c.JSON(http.StatusUnauthorized, NewResponse(AuthCode, "Unauthorized roles"))
+			c.Abort()
 		}
 		c.Next() // 后续的处理函数可以用过c.Get("user")来获取当前请求的用户信
 	}

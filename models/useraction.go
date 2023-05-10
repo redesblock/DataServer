@@ -2,20 +2,37 @@ package models
 
 import "gorm.io/gorm"
 
+type UserActionType uint
+
+const (
+	UserActionType_Login = iota
+	UserActionType_Forgot
+	UserActionType_Reset
+)
+
+var UserActionTypeMsgs = []string{
+	"Login",
+	"Forgot",
+	"Reset",
+}
+
 type UserAction struct {
 	gorm.Model
-	Action string `json:"action"`
-	IP     string `json:"ip"`
+	ActionType UserActionType `json:"action_type"`
+	Email      string         `json:"email" gorm:"index"`
+	IP         string         `json:"ip"`
 
 	UserID uint `json:"-"`
 	User   User
 
-	Created string `json:"created_at" gorm:"-"`
-	Updated string `json:"updated_at" gorm:"-"`
+	ActionTypeStr string `json:"action" gorm:"-"`
+	Created       string `json:"created_at" gorm:"-"`
+	Updated       string `json:"updated_at" gorm:"-"`
 }
 
 func (item *UserAction) AfterFind(tx *gorm.DB) (err error) {
 	item.Created = item.CreatedAt.Format(TIME_FORMAT)
 	item.Updated = item.UpdatedAt.Format(TIME_FORMAT)
+	item.ActionTypeStr = UserActionTypeMsgs[item.ActionType]
 	return
 }

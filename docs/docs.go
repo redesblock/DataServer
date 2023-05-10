@@ -32,47 +32,14 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/articles": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Add order",
-                "parameters": [
-                    {
-                        "description": "data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.AddOrderReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/v1.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/buckets": {
+        "/api/v1/asset/{id}": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "pagination list buckets",
+                "description": "asset",
                 "consumes": [
                     "application/json"
                 ],
@@ -80,9 +47,52 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "bucket"
+                    "bucket object"
                 ],
-                "summary": "list buckets",
+                "summary": "asset",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "bucket id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "folder id",
+                        "name": "fid",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/bills/storage": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "pagination query storage bills",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bills"
+                ],
+                "summary": "list storage bills",
                 "parameters": [
                     {
                         "type": "integer",
@@ -101,7 +111,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dataservice.Bucket"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -112,7 +122,131 @@ var doc = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "add bucket",
+                "description": "add storage bill",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bills"
+                ],
+                "summary": "add storage bill",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/bills/traffic": {
+            "get": {
+                "description": "pagination query traffic bills",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bills"
+                ],
+                "summary": "list traffic bills",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "page number",
+                        "name": "page_num",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "add traffic bill",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bills"
+                ],
+                "summary": "add traffic bill",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/buckets": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bucket"
+                ],
+                "summary": "Get multiple buckets",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "page number",
+                        "name": "page_num",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -138,7 +272,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dataservice.Bucket"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -151,7 +285,6 @@ var doc = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "bucket info",
                 "consumes": [
                     "application/json"
                 ],
@@ -161,7 +294,7 @@ var doc = `{
                 "tags": [
                     "bucket"
                 ],
-                "summary": "bucket info",
+                "summary": "Get a single bucket",
                 "parameters": [
                     {
                         "type": "integer",
@@ -175,7 +308,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dataservice.Bucket"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -186,7 +319,6 @@ var doc = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "update bucket",
                 "consumes": [
                     "application/json"
                 ],
@@ -219,7 +351,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dataservice.Bucket"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -230,7 +362,6 @@ var doc = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "remove bucket",
                 "consumes": [
                     "application/json"
                 ],
@@ -254,7 +385,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dataservice.Bucket"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -267,7 +398,6 @@ var doc = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "pagination query bucket objects",
                 "consumes": [
                     "application/json"
                 ],
@@ -309,7 +439,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dataservice.BucketObject"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -322,7 +452,6 @@ var doc = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "bucket object info",
                 "consumes": [
                     "application/json"
                 ],
@@ -353,7 +482,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dataservice.BucketObject"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -364,7 +493,6 @@ var doc = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "remove bucket object",
                 "consumes": [
                     "application/json"
                 ],
@@ -395,7 +523,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dataservice.BucketObject"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -408,7 +536,6 @@ var doc = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "add bucket folder",
                 "consumes": [
                     "application/json"
                 ],
@@ -459,7 +586,71 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dataservice.BucketObject"
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/buy/storage": {
+            "get": {
+                "description": "traffic price",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bills"
+                ],
+                "summary": "traffic price",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "buy size",
+                        "name": "size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/buy/traffic": {
+            "get": {
+                "description": "traffic price",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bills"
+                ],
+                "summary": "traffic price",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "buy size",
+                        "name": "size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -773,6 +964,199 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/daily/storage": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "used storage",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "used storage",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UsedStorage"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/daily/traffic": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "used storage",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "used storage",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UsedTraffic"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/download/{cid}/{path}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "asset",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bucket object"
+                ],
+                "summary": "asset",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "cid",
+                        "name": "cid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "path",
+                        "name": "path",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/finish/{asset_id}": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "asset finish",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bucket object"
+                ],
+                "summary": "asset finish",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/forgot": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "login"
+                ],
+                "summary": "user forgot password",
+                "parameters": [
+                    {
+                        "description": "user info",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.ForgotReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "login"
+                ],
+                "summary": "user login",
+                "parameters": [
+                    {
+                        "description": "user info",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.LoginReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/nodes": {
             "get": {
                 "produces": [
@@ -992,6 +1376,12 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "description": "folder id",
+                        "name": "p_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
                         "description": "page number",
                         "name": "page_num",
                         "in": "query"
@@ -1045,41 +1435,31 @@ var doc = `{
                         }
                     }
                 }
-            },
-            "put": {
+            }
+        },
+        "/api/v1/overview": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "overview",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Update order",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.EditOrderReq"
-                        }
-                    }
+                "tags": [
+                    "dashboard"
                 ],
+                "summary": "overview",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/v1.Response"
+                            "$ref": "#/definitions/v1.OverView"
                         }
                     }
                 }
@@ -1188,6 +1568,39 @@ var doc = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/reset": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "login"
+                ],
+                "summary": "user reset password",
+                "parameters": [
+                    {
+                        "description": "user info",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.ResetReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -1600,6 +2013,113 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/user": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "user info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "setting"
+                ],
+                "summary": "user info",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "update user info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "setting"
+                ],
+                "summary": "update user info",
+                "parameters": [
+                    {
+                        "description": "user setting",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.UserReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/actions": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "pagination query user actions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "list user actions",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "page number",
+                        "name": "page_num",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/users": {
             "get": {
                 "produces": [
@@ -1767,1266 +2287,10 @@ var doc = `{
                     }
                 }
             }
-        },
-        "/asset/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "asset",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bucket object"
-                ],
-                "summary": "asset",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "bucket id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "folder id",
-                        "name": "fid",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/bills/storage": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "pagination query storage bills",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bills"
-                ],
-                "summary": "list storage bills",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "page number",
-                        "name": "page_num",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "page size",
-                        "name": "page_size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.BillStorage"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "add storage bill",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bills"
-                ],
-                "summary": "add storage bill",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.BillStorage"
-                        }
-                    }
-                }
-            }
-        },
-        "/bills/traffic": {
-            "get": {
-                "description": "pagination query traffic bills",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bills"
-                ],
-                "summary": "list traffic bills",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "page number",
-                        "name": "page_num",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "page size",
-                        "name": "page_size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.BillTraffic"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "add traffic bill",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bills"
-                ],
-                "summary": "add traffic bill",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.BillTraffic"
-                        }
-                    }
-                }
-            }
-        },
-        "/buckets": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "pagination list buckets",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bucket"
-                ],
-                "summary": "list buckets",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "page number",
-                        "name": "page_num",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "page size",
-                        "name": "page_size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.Bucket"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "add bucket",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bucket"
-                ],
-                "summary": "add bucket",
-                "parameters": [
-                    {
-                        "description": "bucket info",
-                        "name": "bucket",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/routers.Bucket"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.Bucket"
-                        }
-                    }
-                }
-            }
-        },
-        "/buckets/{date}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "traffic info",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bucket"
-                ],
-                "summary": "traffic info",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ip",
-                        "name": "ip",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "date",
-                        "name": "date",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.Bucket"
-                        }
-                    }
-                }
-            }
-        },
-        "/buckets/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "bucket info",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bucket"
-                ],
-                "summary": "bucket info",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "bucket id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.Bucket"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "update bucket",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bucket"
-                ],
-                "summary": "update bucket",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "bucket id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "update bucket info",
-                        "name": "bucket",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/routers.Bucket"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.Bucket"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "remove bucket",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bucket"
-                ],
-                "summary": "remove bucket",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "bucket id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.Bucket"
-                        }
-                    }
-                }
-            }
-        },
-        "/buckets/{id}/objects": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "pagination query bucket objects",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bucket object"
-                ],
-                "summary": "list bucket objects",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "bucket id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "folder id",
-                        "name": "fid",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "page number",
-                        "name": "page_num",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "page size",
-                        "name": "page_size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.BucketObject"
-                        }
-                    }
-                }
-            }
-        },
-        "/buckets/{id}/objects/{fid}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "bucket object info",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bucket object"
-                ],
-                "summary": "bucket object info",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "bucket id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "folder id",
-                        "name": "fid",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.BucketObject"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "remove bucket object",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bucket object"
-                ],
-                "summary": "remove bucket object",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "bucket id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "folder id",
-                        "name": "fid",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.BucketObject"
-                        }
-                    }
-                }
-            }
-        },
-        "/buckets/{id}/objects/{name}": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "add bucket folder",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bucket object"
-                ],
-                "summary": "add bucket object",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "bucket id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "folder id",
-                        "name": "fid",
-                        "in": "path"
-                    },
-                    {
-                        "type": "string",
-                        "description": "name",
-                        "name": "name",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "cid",
-                        "name": "cid",
-                        "in": "path"
-                    },
-                    {
-                        "description": "object info",
-                        "name": "object",
-                        "in": "body",
-                        "schema": {
-                            "$ref": "#/definitions/routers.AddBucketReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.BucketObject"
-                        }
-                    }
-                }
-            }
-        },
-        "/buy/storage": {
-            "get": {
-                "description": "traffic price",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bills"
-                ],
-                "summary": "traffic price",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "buy size",
-                        "name": "size",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/buy/traffic": {
-            "get": {
-                "description": "traffic price",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bills"
-                ],
-                "summary": "traffic price",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "buy size",
-                        "name": "size",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/daily/storage": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "used storage",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dashboard"
-                ],
-                "summary": "used storage",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.UsedStorage"
-                        }
-                    }
-                }
-            }
-        },
-        "/daily/traffic": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "used storage",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dashboard"
-                ],
-                "summary": "used storage",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.UsedTraffic"
-                        }
-                    }
-                }
-            }
-        },
-        "/download/{cid}/{path}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "asset",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bucket object"
-                ],
-                "summary": "asset",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "cid",
-                        "name": "cid",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "path",
-                        "name": "path",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/finish/{asset_id}": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "asset finish",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bucket object"
-                ],
-                "summary": "asset finish",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/login": {
-            "post": {
-                "description": "user login",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "login"
-                ],
-                "summary": "user login",
-                "parameters": [
-                    {
-                        "description": "user info",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/routers.LoginReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/overview": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "overview",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dashboard"
-                ],
-                "summary": "overview",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/routers.OverView"
-                        }
-                    }
-                }
-            }
-        },
-        "/receipt": {
-            "post": {
-                "description": "add report receipt",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "report"
-                ],
-                "summary": "report receipt",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/traffic": {
-            "post": {
-                "description": "add report traffic",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "report"
-                ],
-                "summary": "report traffic",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.ReportTraffic"
-                        }
-                    }
-                }
-            }
-        },
-        "/traffics": {
-            "get": {
-                "description": "pagination list traffics",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "report"
-                ],
-                "summary": "list traffics",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "page number",
-                        "name": "page_num",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "page size",
-                        "name": "page_size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.ReportTraffic"
-                        }
-                    }
-                }
-            }
-        },
-        "/user": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "user info",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "setting"
-                ],
-                "summary": "user info",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.User"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "update user info",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "setting"
-                ],
-                "summary": "update user info",
-                "parameters": [
-                    {
-                        "description": "user setting",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/routers.UserReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.User"
-                        }
-                    }
-                }
-            }
-        },
-        "/user/actions": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "pagination query user actions",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dashboard"
-                ],
-                "summary": "list user actions",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "page number",
-                        "name": "page_num",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "page size",
-                        "name": "page_size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dataservice.UserAction"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
-        "dataservice.BillStorage": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "hash": {
-                    "description": "Email       string    ` + "`" + `json:\"email\" gorm:\"index\"` + "`" + `",
-                    "type": "string"
-                },
-                "size": {
-                    "type": "integer"
-                },
-                "size_str": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "status_str": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                }
-            }
-        },
-        "dataservice.BillTraffic": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "hash": {
-                    "description": "Email       string    ` + "`" + `json:\"email\" gorm:\"index\"` + "`" + `",
-                    "type": "string"
-                },
-                "size": {
-                    "type": "integer"
-                },
-                "size_str": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "status_str": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                }
-            }
-        },
-        "dataservice.Bucket": {
-            "type": "object",
-            "properties": {
-                "access": {
-                    "type": "boolean"
-                },
-                "area": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "description": "Email     string    ` + "`" + `json:\"email\" gorm:\"index\"` + "`" + `",
-                    "type": "string"
-                },
-                "network": {
-                    "type": "string"
-                },
-                "total_num": {
-                    "type": "integer"
-                },
-                "total_size": {
-                    "type": "integer"
-                },
-                "total_size_str": {
-                    "type": "string"
-                }
-            }
-        },
-        "dataservice.BucketObject": {
-            "type": "object",
-            "properties": {
-                "asset_id": {
-                    "type": "string"
-                },
-                "cid": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_folder": {
-                    "type": "boolean"
-                },
-                "level": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dataservice.Parent"
-                    }
-                },
-                "name": {
-                    "type": "string"
-                },
-                "size": {
-                    "type": "integer"
-                },
-                "size_str": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "total_num": {
-                    "type": "integer"
-                },
-                "total_size": {
-                    "type": "integer"
-                },
-                "total_size_str": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "uplinkProgress": {
-                    "type": "integer"
-                },
-                "url": {
-                    "type": "string"
-                }
-            }
-        },
-        "dataservice.Parent": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "dataservice.ReportTraffic": {
-            "type": "object",
-            "properties": {
-                "downloaded": {
-                    "type": "integer"
-                },
-                "downloaded_cnt": {
-                    "type": "integer"
-                },
-                "downloaded_str": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "nat_addr": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                },
-                "uploaded": {
-                    "type": "integer"
-                },
-                "uploaded_cnt": {
-                    "type": "integer"
-                },
-                "uploaded_str": {
-                    "type": "string"
-                }
-            }
-        },
-        "dataservice.UsedStorage": {
+        "models.UsedStorage": {
             "type": "object",
             "properties": {
                 "num": {
@@ -3037,156 +2301,13 @@ var doc = `{
                 }
             }
         },
-        "dataservice.UsedTraffic": {
+        "models.UsedTraffic": {
             "type": "object",
             "properties": {
                 "num": {
                     "type": "integer"
                 },
                 "timestamp": {
-                    "type": "string"
-                }
-            }
-        },
-        "dataservice.User": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "total_storage": {
-                    "type": "integer"
-                },
-                "total_storage_str": {
-                    "type": "string"
-                },
-                "total_traffic": {
-                    "type": "integer"
-                },
-                "total_traffic_str": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "dataservice.UserAction": {
-            "type": "object",
-            "properties": {
-                "action": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "ip": {
-                    "type": "string"
-                }
-            }
-        },
-        "routers.AddBucketReq": {
-            "type": "object",
-            "properties": {
-                "cid": {
-                    "type": "string"
-                },
-                "fid": {
-                    "type": "integer"
-                }
-            }
-        },
-        "routers.Bucket": {
-            "type": "object",
-            "properties": {
-                "access": {
-                    "type": "boolean"
-                },
-                "area": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "network": {
-                    "type": "string"
-                }
-            }
-        },
-        "routers.LoginReq": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "routers.OverView": {
-            "type": "object",
-            "properties": {
-                "buckets": {
-                    "type": "integer"
-                },
-                "objects": {
-                    "type": "integer"
-                },
-                "total_storage": {
-                    "type": "integer"
-                },
-                "total_storage_str": {
-                    "type": "string"
-                },
-                "total_traffic": {
-                    "type": "integer"
-                },
-                "total_traffic_str": {
-                    "type": "string"
-                },
-                "used_storage": {
-                    "type": "integer"
-                },
-                "used_storage_str": {
-                    "type": "string"
-                },
-                "used_traffic": {
-                    "type": "integer"
-                },
-                "used_traffic_str": {
-                    "type": "string"
-                }
-            }
-        },
-        "routers.UserReq": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "new_password": {
-                    "type": "string"
-                },
-                "password": {
                     "type": "string"
                 }
             }
@@ -3262,9 +2383,6 @@ var doc = `{
                     "type": "string"
                 }
             }
-        },
-        "v1.AddOrderReq": {
-            "type": "object"
         },
         "v1.AddSpecialProductReq": {
             "type": "object",
@@ -3351,9 +2469,6 @@ var doc = `{
                 }
             }
         },
-        "v1.EditOrderReq": {
-            "type": "object"
-        },
         "v1.EditProductReq": {
             "type": "object",
             "properties": {
@@ -3392,6 +2507,60 @@ var doc = `{
                 },
                 "status": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.ForgotReq": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.LoginReq": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.OverView": {
+            "type": "object",
+            "properties": {
+                "buckets": {
+                    "type": "integer"
+                },
+                "objects": {
+                    "type": "integer"
+                },
+                "total_storage": {
+                    "type": "integer"
+                },
+                "total_storage_str": {
+                    "type": "string"
+                },
+                "total_traffic": {
+                    "type": "integer"
+                },
+                "total_traffic_str": {
+                    "type": "string"
+                },
+                "used_storage": {
+                    "type": "integer"
+                },
+                "used_storage_str": {
+                    "type": "string"
+                },
+                "used_traffic": {
+                    "type": "integer"
+                },
+                "used_traffic_str": {
+                    "type": "string"
                 }
             }
         },
@@ -3436,6 +2605,20 @@ var doc = `{
                 }
             }
         },
+        "v1.ResetReq": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "v1.Response": {
             "type": "object",
             "properties": {
@@ -3447,6 +2630,26 @@ var doc = `{
                     "type": "string"
                 },
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.UserReq": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "new_password": {
+                    "type": "string"
+                },
+                "password": {
                     "type": "string"
                 }
             }

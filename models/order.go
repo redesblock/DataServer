@@ -14,6 +14,7 @@ type OrderStatus uint
 const (
 	OrderWait OrderStatus = iota
 	OrderCancel
+	OrderPending
 	OrderSuccess
 	OrderFailed
 )
@@ -43,7 +44,7 @@ type Order struct {
 	Status         OrderStatus     `json:"status"`
 	Hash           string          `json:"hash"`
 
-	UserID int
+	UserID uint `json:"user_id"`
 	User   User
 
 	Created     string `json:"created_at" gorm:"-"`

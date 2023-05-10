@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 // @Summary Get a single node
@@ -173,4 +174,22 @@ func DeleteNode(db *gorm.DB) func(c *gin.Context) {
 		c.JSON(http.StatusOK, NewResponse(OKCode, res.RowsAffected > 0))
 	}
 
+}
+
+func GetAreasHandler(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var items []string
+		err := db.Model(&models.Node{}).Select("zone").Where("usable = true").Order("zone DESC").Find(&items).Error
+		if err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
+		}
+		c.JSON(http.StatusOK, NewResponse(OKCode, items))
+	}
+}
+
+func GetNetWorksHandler(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		c.JSON(http.StatusOK, NewResponse(OKCode, strings.Split("MOP Storage", ",")))
+	}
 }

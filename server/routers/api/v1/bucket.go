@@ -2,30 +2,27 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/redesblock/dataserver/dataservice"
 	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 )
 
-// @Summary list buckets
-// @Schemes
-// @Description pagination list buckets
-// @Security ApiKeyAuth
+// @Summary Get multiple buckets
 // @Tags bucket
+// @Security ApiKeyAuth
 // @Accept json
-// @Produce json
 // @Param   page_num     query    int     false        "page number"
 // @Param   page_size    query    int     false        "page size"
-// @Success 200 {object} dataservice.Bucket
+// @Produce json
+// @Success 200 {object} Response
 // @Router /api/v1/buckets [get]
 func GetBucketsHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
+		userID, _ := c.Get("id")
+
 		pageNum, pageSize := page(c)
 		offset := (pageNum - 1) * pageSize
-
-		userID, _ := c.Get("id")
 		total, items, err := models.FindBuckets(db, userID.(uint), offset, pageSize)
 		if err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
@@ -44,15 +41,13 @@ func GetBucketsHandler(db *gorm.DB) func(c *gin.Context) {
 	}
 }
 
-// @Summary bucket info
-// @Schemes
-// @Description bucket info
-// @Security ApiKeyAuth
+// @Summary Get a single bucket
 // @Tags bucket
+// @Security ApiKeyAuth
 // @Accept json
-// @Produce json
 // @Param   id     path    int     true        "bucket id"
-// @Success 200 {object} dataservice.Bucket
+// @Produce json
+// @Success 200 {object} Response
 // @Router /api/v1/buckets/{id} [get]
 func GetBucketHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
@@ -74,14 +69,12 @@ func GetBucketHandler(db *gorm.DB) func(c *gin.Context) {
 }
 
 // @Summary remove bucket
-// @Schemes
-// @Description remove bucket
 // @Security ApiKeyAuth
 // @Tags bucket
 // @Accept json
-// @Produce json
 // @Param   id     path    int     true        "bucket id"
-// @Success 200 {object} dataservice.Bucket
+// @Produce json
+// @Success 200 {object} Response
 // @Router /api/v1/buckets/{id} [delete]
 func DeleteBucketHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
@@ -92,7 +85,7 @@ func DeleteBucketHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		userID, _ := c.Get("id")
-		if err := db.Where("user_id = ?", userID).Where("id = ?", id).Delete(&dataservice.Bucket{}).Error; err != nil {
+		if err := db.Where("user_id = ?", userID).Where("id = ?", id).Delete(&models.Bucket{}).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
@@ -109,14 +102,12 @@ type Bucket struct {
 }
 
 // @Summary add bucket
-// @Schemes
-// @Description add bucket
 // @Security ApiKeyAuth
 // @Tags bucket
 // @Accept json
-// @Produce json
 // @Param bucket body Bucket true "bucket info"
-// @Success 200 {object} dataservice.Bucket
+// @Produce json
+// @Success 200 {object} Response
 // @Router /api/v1/buckets [post]
 func AddBucketHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
@@ -127,8 +118,8 @@ func AddBucketHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		userID, _ := c.Get("id")
-		var item *dataservice.Bucket
-		if ret := db.Model(&dataservice.Bucket{}).Where("user_id = ?", userID).Where("name = ?", req.Name).Find(&item); ret.Error != nil {
+		var item *models.Bucket
+		if ret := db.Model(&models.Bucket{}).Where("user_id = ?", userID).Where("name = ?", req.Name).Find(&item); ret.Error != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
 			return
 		} else if ret.RowsAffected > 0 {
@@ -151,15 +142,13 @@ func AddBucketHandler(db *gorm.DB) func(c *gin.Context) {
 }
 
 // @Summary update bucket
-// @Schemes
-// @Description update bucket
 // @Security ApiKeyAuth
 // @Tags bucket
 // @Accept json
 // @Produce json
 // @Param   id     path    int     true        "bucket id"
 // @Param bucket body Bucket true "update bucket info"
-// @Success 200 {object} dataservice.Bucket
+// @Success 200 {object} Response
 // @Router /api/v1/buckets/{id} [post]
 func UpdateBucketHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
@@ -170,8 +159,8 @@ func UpdateBucketHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		userID, _ := c.Get("id")
-		var item *dataservice.Bucket
-		if ret := db.Model(&dataservice.Bucket{}).Where("user_id = ?", userID).Where("id = ?", c.Param("id")).Find(&item); ret.Error != nil {
+		var item *models.Bucket
+		if ret := db.Model(&models.Bucket{}).Where("user_id = ?", userID).Where("id = ?", c.Param("id")).Find(&item); ret.Error != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
 			return
 		} else if ret.RowsAffected == 0 {

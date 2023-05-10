@@ -1,95 +1,13 @@
-package routers
+package v1
 
 import (
-	"net/http"
-	"strings"
-
 	"github.com/gin-gonic/gin"
-	"github.com/redesblock/dataserver/dataservice"
-	"github.com/shopspring/decimal"
 	"github.com/spf13/viper"
+	"gorm.io/gorm"
+	"net/http"
 )
 
-func GetAreasHandler(db *dataservice.DataService) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		items, err := db.FindAreas()
-		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
-		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, items))
-	}
-}
-
-func GetNetWorksHandler(db *dataservice.DataService) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		c.JSON(http.StatusOK, NewResponse(OKCode, strings.Split("MOP Storage", ",")))
-	}
-}
-
-// @Summary traffic price
-// @Schemes
-// @Description traffic price
-// @Tags bills
-// @Accept json
-// @Produce json
-// @Param   size     query    int     true        "buy size"
-// @Success 200 string ok
-// @Router /buy/traffic [get]
-func BuyTrafficHandler(db *dataservice.DataService) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		price, err := decimal.NewFromString(viper.GetString("price.traffic"))
-		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
-		}
-
-		size, err := decimal.NewFromString(c.DefaultQuery("size", "1024"))
-		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
-		}
-
-		c.JSON(http.StatusOK, NewResponse(OKCode, &map[string]interface{}{
-			"size":      size,
-			"amount":    price.Mul(size),
-			"receiptor": viper.GetString("price.receiptor"),
-		}))
-	}
-}
-
-// @Summary traffic price
-// @Schemes
-// @Description traffic price
-// @Tags bills
-// @Accept json
-// @Produce json
-// @Param   size     query    string     true        "buy size"
-// @Success 200 string ok
-// @Router /buy/storage [get]
-func BuyStorageHandler(db *dataservice.DataService) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		price, err := decimal.NewFromString(viper.GetString("price.storage"))
-		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
-		}
-
-		size, err := decimal.NewFromString(c.DefaultQuery("size", "1024"))
-		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
-		}
-
-		c.JSON(http.StatusOK, NewResponse(OKCode, &map[string]interface{}{
-			"size":      size,
-			"amount":    price.Mul(size),
-			"receiptor": viper.GetString("price.receiptor"),
-		}))
-	}
-}
-
-func GetContractHandler(db *dataservice.DataService) func(c *gin.Context) {
+func GetERC20ContractHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		c.JSON(http.StatusOK, NewResponse(OKCode, map[string]string{
 			"abi":     ERC20ABI,

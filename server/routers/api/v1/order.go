@@ -38,6 +38,7 @@ func GetOrder(db *gorm.DB) func(c *gin.Context) {
 // @Summary Get multiple orders
 // @Tags order
 // @Produce json
+// @Param   p_type     query    int     false        "folder id"
 // @Param   page_num     query    int     false        "page number"
 // @Param   page_size    query    int     false        "page size"
 // @Success 200 {object} Response
@@ -48,10 +49,18 @@ func GetOrders(db *gorm.DB) func(c *gin.Context) {
 		var total int64
 		pageNum, pageSize := page(c)
 		offset := (pageNum - 1) * pageSize
-		tx := db.Model(&models.Node{}).Order("id desc").Count(&total).Offset(int(offset)).Limit(int(pageSize))
+		tx := db.Model(&models.Order{}).Order("id desc")
+		if len(c.Query("p_type")) > 0 {
+			pType, err := strconv.ParseInt(c.Query("p_type"), 10, 64)
+			if err != nil {
+				c.JSON(http.StatusOK, NewResponse(RequestCode, err))
+				return
+			}
+			tx = tx.Where("p_type = ?", pType)
+		}
 
 		var items []models.Order
-		if err := tx.Find(&items).Error; err != nil {
+		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Find(&items).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
@@ -68,61 +77,61 @@ func GetOrders(db *gorm.DB) func(c *gin.Context) {
 	}
 }
 
-type AddOrderReq struct {
-}
-
-// @Summary Add order
-// @Produce  json
-// @Param data body AddOrderReq true "data"
-// @Success 200 {object} Response
-// @Failure 500 {object} Response
-// @Router /api/v1/articles [post]
-func AddOrder(db *gorm.DB) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		var req AddOrderReq
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
-			return
-		}
-
-		item := &models.Order{}
-		res := db.Model(&models.Node{}).Save(item)
-		if err := res.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
-		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
-	}
-}
-
-type EditOrderReq struct {
-}
-
-// @Summary Update order
-// @Produce  json
-// @Param id path int true "id"
-// @Param data body EditOrderReq true "data"
-// @Success 200 {object} Response
-// @Failure 500 {object} Response
-// @Router /api/v1/orders/{id} [put]
-func EditOrder(db *gorm.DB) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
-			return
-		}
-		var req EditOrderReq
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
-			return
-		}
-
-		res := db.Model(&models.Node{}).Where("id = ?", id).Updates(&models.Order{})
-		if err := res.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
-		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, res.RowsAffected > 0))
-	}
-}
+//type AddOrderReq struct {
+//}
+//
+//// @Summary Add order
+//// @Produce  json
+//// @Param data body AddOrderReq true "data"
+//// @Success 200 {object} Response
+//// @Failure 500 {object} Response
+//// @Router /api/v1/articles [post]
+//func AddOrder(db *gorm.DB) func(c *gin.Context) {
+//	return func(c *gin.Context) {
+//		var req AddOrderReq
+//		if err := c.ShouldBindJSON(&req); err != nil {
+//			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+//			return
+//		}
+//
+//		item := &models.Order{}
+//		res := db.Model(&models.Node{}).Save(item)
+//		if err := res.Error; err != nil {
+//			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+//			return
+//		}
+//		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+//	}
+//}
+//
+//type EditOrderReq struct {
+//}
+//
+//// @Summary Update order
+//// @Produce  json
+//// @Param id path int true "id"
+//// @Param data body EditOrderReq true "data"
+//// @Success 200 {object} Response
+//// @Failure 500 {object} Response
+//// @Router /api/v1/orders/{id} [put]
+//func EditOrder(db *gorm.DB) func(c *gin.Context) {
+//	return func(c *gin.Context) {
+//		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+//		if err != nil {
+//			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+//			return
+//		}
+//		var req EditOrderReq
+//		if err := c.ShouldBindJSON(&req); err != nil {
+//			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+//			return
+//		}
+//
+//		res := db.Model(&models.Node{}).Where("id = ?", id).Updates(&models.Order{})
+//		if err := res.Error; err != nil {
+//			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+//			return
+//		}
+//		c.JSON(http.StatusOK, NewResponse(OKCode, res.RowsAffected > 0))
+//	}
+//}

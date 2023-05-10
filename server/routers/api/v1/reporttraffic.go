@@ -3,7 +3,6 @@ package v1
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/redesblock/dataserver/dataservice"
 	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
 	"net/http"
@@ -98,13 +97,13 @@ func AddReportTraffic(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		if err := db.Transaction(func(tx *gorm.DB) error {
-			items := make(map[string]*dataservice.ReportTraffic)
-			getItemFunc := func(key, nat_addr string, timestamp int64) (*dataservice.ReportTraffic, error) {
+			items := make(map[string]*models.ReportTraffic)
+			getItemFunc := func(key, nat_addr string, timestamp int64) (*models.ReportTraffic, error) {
 				k := fmt.Sprintf("%s_%d", key, timestamp)
 				if item, ok := items[k]; ok {
 					return item, nil
 				}
-				var item dataservice.ReportTraffic
+				var item models.ReportTraffic
 				if result := db.Find(&item, "token = ? AND timestamp =? AND nat_addr = ?", key, timestamp, nat_addr); result.Error != nil {
 					return nil, result.Error
 				} else if result.RowsAffected == 0 {
@@ -135,7 +134,7 @@ func AddReportTraffic(db *gorm.DB) func(c *gin.Context) {
 			}
 
 			if cnt := len(items); cnt > 0 {
-				traffics := make([]*dataservice.ReportTraffic, cnt)
+				traffics := make([]*models.ReportTraffic, cnt)
 				i := 0
 				for _, item := range items {
 					traffics[i] = item

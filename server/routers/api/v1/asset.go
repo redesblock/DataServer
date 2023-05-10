@@ -1,9 +1,10 @@
-package routers
+package v1
 
 import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/redesblock/dataserver/models"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -21,7 +22,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/redesblock/dataserver/dataservice"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -35,8 +35,8 @@ import (
 // @Param   id     path    int     true        "bucket id"
 // @Param   fid     query    int     false     "folder id"
 // @Success 200 string {}
-// @Router /asset/{id} [get]
-func GetAssetHandler(db *dataservice.DataService) func(c *gin.Context) {
+// @Router /api/v1/asset/{id} [get]
+func GetAssetHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
@@ -51,7 +51,7 @@ func GetAssetHandler(db *dataservice.DataService) func(c *gin.Context) {
 		}
 
 		//userID, _ := c.Get("id")
-		//var user dataservice.User
+		//var user models.User
 		//if err := db.Find(&user, "id = ?", userID).Error; err != nil {
 		//	c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 		//	return
@@ -81,12 +81,12 @@ func GetAssetHandler(db *dataservice.DataService) func(c *gin.Context) {
 			return
 		}
 
-		if err := db.Save(&dataservice.BucketObject{
+		if err := db.Save(&models.BucketObject{
 			Name:     c.Query("name"),
 			BucketID: uint(id),
 			ParentID: uint(fid),
 			AssetID:  assetID,
-			Status:   dataservice.STATUS_WAIT,
+			Status:   models.STATUS_WAIT,
 		}).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
@@ -107,11 +107,11 @@ func GetAssetHandler(db *dataservice.DataService) func(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 string {}
-// @Router /finish/{asset_id} [post]
-func FinishFileUploadHandler(db *dataservice.DataService, uploadedAsset chan<- []string) func(c *gin.Context) {
+// @Router /api/v1/finish/{asset_id} [post]
+func FinishFileUploadHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		assetID := c.Param("asset_id")
-		var item *dataservice.BucketObject
+		var item *models.BucketObject
 		if ret := db.Find(&item, "asset_id = ?", assetID); ret.RowsAffected == 0 {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "asset not found"))
 			return
@@ -186,18 +186,17 @@ func FinishFileUploadHandler(db *dataservice.DataService, uploadedAsset chan<- [
 			return
 		} else {
 			item.UplinkProgress = 10
-			item.Status = dataservice.STATUS_UPLOADED
+			item.Status = models.STATUS_UPLOADED
 			if err := db.Save(item).Error; err != nil {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 				return
 			}
-			uploadedAsset <- []string{assetID}
 		}
 		c.JSON(http.StatusOK, NewResponse(OKCode, assetID))
 	}
 }
 
-func GetFileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
+func GetFileUploadHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		assetID := c.Param("asset_id")
 		tempFolder := "./assets/" + assetID
@@ -215,7 +214,7 @@ func GetFileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 	}
 }
 
-func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
+func FileUploadHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("id")
 
@@ -227,7 +226,7 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 		defer file.Close()
 
 		assetID := c.Param("asset_id")
-		var item *dataservice.BucketObject
+		var item *models.BucketObject
 		if ret := db.Find(&item, "asset_id = ?", assetID); ret.RowsAffected == 0 {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "asset not found"))
 			return
@@ -268,24 +267,24 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 					return fmt.Errorf("write file metadata.json error %s", err)
 				}
 			}
-			var item *dataservice.BucketObject
+			var item *models.BucketObject
 			if ret := tx.Find(&item, "asset_id = ?", assetID); ret.RowsAffected == 0 {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, fmt.Errorf("asset %s not found", assetID)))
 				return nil
 			}
 			item.Size += uint64(writeSize)
 			item.Name = strings.Split(resumableRelativePath[0], "/")[0]
-			item.Status = dataservice.STATUS_UPLOAD
+			item.Status = models.STATUS_UPLOAD
 			if err := tx.Save(item).Error; err != nil {
 				return err
 			}
 
 			time := time.Now().Format("2006-01-02")
-			var item2 *dataservice.UsedStorage
-			if ret := tx.Model(&dataservice.UsedStorage{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
+			var item2 *models.UsedStorage
+			if ret := tx.Model(&models.UsedStorage{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
 				return ret.Error
 			} else if ret.RowsAffected == 0 {
-				item2 = &dataservice.UsedStorage{
+				item2 = &models.UsedStorage{
 					Time:   time,
 					UserID: userID.(uint),
 				}
@@ -309,11 +308,11 @@ func FileUploadHandler(db *dataservice.DataService) func(c *gin.Context) {
 // @Param   cid     path    int     true        "cid"
 // @Param   path     query  string  false     "path"
 // @Success 200 string {}
-// @Router /download/{cid}/{path} [get]
-func GetFileDownloadHandler(db *dataservice.DataService) func(c *gin.Context) {
+// @Router /api/v1/download/{cid}/{path} [get]
+func GetFileDownloadHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("id")
-		var user dataservice.User
+		var user models.User
 		if err := db.Find(&user, "id = ?", userID).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
@@ -333,11 +332,11 @@ func GetFileDownloadHandler(db *dataservice.DataService) func(c *gin.Context) {
 
 			db.Transaction(func(tx *gorm.DB) error {
 				time := time.Now().Format("2006-01-02")
-				var item2 *dataservice.UsedTraffic
-				if ret := db.Model(&dataservice.UsedTraffic{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
+				var item2 *models.UsedTraffic
+				if ret := db.Model(&models.UsedTraffic{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
 					return ret.Error
 				} else if ret.RowsAffected == 0 {
-					item2 = &dataservice.UsedTraffic{
+					item2 = &models.UsedTraffic{
 						Time:   time,
 						UserID: userID.(uint),
 					}

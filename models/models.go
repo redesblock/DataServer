@@ -51,8 +51,8 @@ func Init(db *gorm.DB) error {
 	db.AutoMigrate(&UserAction{})
 	db.AutoMigrate(&Bucket{})
 	db.AutoMigrate(&BucketObject{})
-	db.AutoMigrate(&DailyUsedTraffic{})
-	db.AutoMigrate(&DailyUsedStorage{})
+	db.AutoMigrate(&UsedTraffic{})
+	db.AutoMigrate(&UsedStorage{})
 	db.AutoMigrate(&ReportTraffic{})
 	db.AutoMigrate(&Node{})
 	db.AutoMigrate(&SignIn{})
@@ -61,6 +61,7 @@ func Init(db *gorm.DB) error {
 	db.AutoMigrate(&SpecialProduct{})
 	db.AutoMigrate(&Coupon{})
 	db.AutoMigrate(&UserCoupon{})
+	db.AutoMigrate(&Order{})
 
 	signIns := []*SignIn{
 		{

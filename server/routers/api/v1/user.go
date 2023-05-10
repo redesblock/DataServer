@@ -81,7 +81,7 @@ func GetOperators(db *gorm.DB) func(c *gin.Context) {
 		var total int64
 		pageNum, pageSize := page(c)
 		offset := (pageNum - 1) * pageSize
-		tx := db.Model(&models.User{}).Order("id desc").Not("role = ?", models.UserRole_User).Count(&total).Offset(int(offset)).Limit(int(pageSize))
+		tx := db.Model(&models.User{}).Order("id desc").Where("role <> ?", models.UserRole_User).Count(&total).Offset(int(offset)).Limit(int(pageSize))
 
 		var items []models.User
 		if err := tx.Find(&items).Error; err != nil {
@@ -122,7 +122,7 @@ func AddUser(db *gorm.DB) func(c *gin.Context) {
 
 		item := &models.User{
 			Email:    req.Email,
-			Password: req.Password,
+			Password: Sha256(req.Password),
 			Role:     models.UserRole_Oper,
 		}
 		res := db.Model(&models.User{}).Save(item)
@@ -164,7 +164,7 @@ func EditUser(db *gorm.DB) func(c *gin.Context) {
 			Status: req.Status,
 		}
 		if len(req.Password) > 0 {
-			item.Password = req.Password
+			item.Password = Sha256(req.Password)
 		}
 		res := db.Model(&models.User{}).Where("id = ?", id).Updates(item)
 		if err := res.Error; err != nil {
