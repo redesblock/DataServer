@@ -656,6 +656,58 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/claim/{:id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "signIn"
+                ],
+                "summary": "user signed in",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/claimed": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "signIn"
+                ],
+                "summary": "user signed in",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "page number",
+                        "name": "page_num",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/coupons": {
             "get": {
                 "produces": [
@@ -1756,6 +1808,25 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/signedIn": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "signIn"
+                ],
+                "summary": "user signed in",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/special_products": {
             "get": {
                 "produces": [
@@ -1990,6 +2061,39 @@ var doc = `{
                         "in": "query",
                         "required": true
                     },
+                    {
+                        "type": "integer",
+                        "description": "page number",
+                        "name": "page_num",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/unclaimed": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "signIn"
+                ],
+                "summary": "user signed in",
+                "parameters": [
                     {
                         "type": "integer",
                         "description": "page number",

@@ -17,6 +17,7 @@ const (
 	OrderPending
 	OrderSuccess
 	OrderFailed
+	OrderComplete
 )
 
 var OrderStatusMsgs = []string{

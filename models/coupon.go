@@ -59,9 +59,10 @@ func (item *Coupon) AfterFind(tx *gorm.DB) (err error) {
 type UserCoupon struct {
 	gorm.Model
 
-	UserID uint
-	User   User
+	UserID uint `json:"-"`
+	User   User `json:"user"`
+	Used   bool `json:"used"`
 
-	CouponID uint
-	Coupon   Coupon
+	CouponID uint   `json:"-"`
+	Coupon   Coupon `json:"coupon"`
 }

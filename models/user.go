@@ -1,6 +1,9 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 type UserRole uint
 
@@ -38,6 +41,7 @@ type User struct {
 	Status       UserStatus `json:"status" gorm:"default:0"`
 	TotalStorage uint64     `json:"total_storage"`
 	TotalTraffic uint64     `json:"total_traffic"`
+	SignedIn     time.Time  `json:"-"`
 
 	RoleStr         string `json:"role_str" gorm:"-"`
 	StatusStr       string `json:"status_str" gorm:"-"`

@@ -642,6 +642,39 @@ paths:
       summary: traffic price
       tags:
       - bills
+  /api/v1/claim/{:id}:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: user signed in
+      tags:
+      - signIn
+  /api/v1/claimed:
+    get:
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: user signed in
+      tags:
+      - signIn
   /api/v1/coupons:
     get:
       parameters:
@@ -1348,6 +1381,18 @@ paths:
       summary: Set signIn switch
       tags:
       - signIn
+  /api/v1/signedIn:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: user signed in
+      tags:
+      - signIn
   /api/v1/special_products:
     get:
       parameters:
@@ -1515,6 +1560,27 @@ paths:
       summary: Get multiple traffics
       tags:
       - report traffic
+  /api/v1/unclaimed:
+    get:
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: user signed in
+      tags:
+      - signIn
   /api/v1/user:
     get:
       consumes:
