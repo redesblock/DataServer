@@ -20,7 +20,7 @@ func GetFiles(db *gorm.DB) func(c *gin.Context) {
 		var total int64
 		pageNum, pageSize := page(c)
 		offset := (pageNum - 1) * pageSize
-		tx := db.Model(&models.Node{}).Order("id desc").Count(&total).Offset(int(offset)).Limit(int(pageSize))
+		tx := db.Model(&models.BucketObject{}).Order("id desc").Count(&total).Offset(int(offset)).Limit(int(pageSize))
 
 		var items []models.BucketObject
 		if err := tx.Find(&items).Error; err != nil {
