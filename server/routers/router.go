@@ -102,6 +102,8 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiv1.GET("/orders", v1.GetOrders(db))
 		apiv1.GET("/orders/:id", v1.GetOrder(db))
 
+		apiv1.GET("/files", v1.GetFiles(db))
+
 		apiv1.GET("/nodes", v1.GetNodes(db))
 		apiv1.GET("/nodes/:id", v1.GetNode(db))
 		apiv1.POST("/nodes", v1.AddNode(db))

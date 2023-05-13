@@ -15,7 +15,7 @@ import (
 // @Success 200 {object} Response
 // @Failure 500 {object} Response
 // @Router /api/v1/files [get]
-func GetFilss(db *gorm.DB) func(c *gin.Context) {
+func GetFiles(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var total int64
 		pageNum, pageSize := page(c)
