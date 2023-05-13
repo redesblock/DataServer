@@ -28,13 +28,16 @@ var Statuses = []string{
 
 type BucketObject struct {
 	gorm.Model
-	Name     string `json:"name"`
-	CID      string `json:"cid"`
-	Size     uint64 `json:"size"`
-	Status   int    `json:"-"`
-	AssetID  string `json:"asset_id"`
-	ParentID uint   `json:"-"`
-	BucketID uint   `json:"-"`
+	Name       string `json:"name"`
+	CID        string `json:"cid"`
+	Size       uint64 `json:"size"`
+	Status     int    `json:"-"`
+	AssetID    string `json:"asset_id"`
+	ParentID   uint   `json:"-"`
+	BucketID   uint   `json:"-"`
+	Downloaded uint64 `json:"downloaded"`
+	UserID     uint   `json:"-"`
+	User       User
 
 	Created        string    `json:"created_at" gorm:"-"`
 	Updated        string    `json:"updated_at" gorm:"-"`

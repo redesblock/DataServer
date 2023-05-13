@@ -70,8 +70,8 @@ func GetSignIns(db *gorm.DB) func(c *gin.Context) {
 }
 
 type EditSignInReq struct {
-	Quantity uint64              `json:"quantity"`
-	Period   models.SignInPeriod `json:"period"`
+	Quantity uint64 `json:"quantity"`
+	Period   uint   `json:"period"`
 }
 
 // @Summary Update signIn
@@ -98,12 +98,13 @@ func EditSignIn(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid quantity"))
 			return
 		}
-		if req.Period < models.SignInPeriod_End {
+		period := models.SignInPeriod(req.Period)
+		if period < models.SignInPeriod_End {
 			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid period"))
 			return
 		}
 
-		res := db.Model(&models.SignIn{}).Where("id = ?", id).Updates(&models.SignIn{Quantity: req.Quantity, Period: req.Period})
+		res := db.Model(&models.SignIn{}).Where("id = ?", id).Updates(&models.SignIn{Quantity: req.Quantity, Period: period})
 		if err := res.Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
