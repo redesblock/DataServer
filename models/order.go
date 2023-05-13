@@ -44,6 +44,7 @@ type Order struct {
 	PaymentTime    time.Time       `json:"payment_time"`
 	Status         OrderStatus     `json:"status"`
 	Hash           string          `json:"hash"`
+	Discount       decimal.Decimal `json:"discount"`
 
 	UserID uint `json:"user_id"`
 	User   User

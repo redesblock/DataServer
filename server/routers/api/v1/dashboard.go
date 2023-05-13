@@ -1,9 +1,11 @@
 package v1
 
 import (
+	"fmt"
 	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -83,6 +85,9 @@ func OverViewHandler(db *gorm.DB) func(c *gin.Context) {
 // @Description used storage
 // @Security ApiKeyAuth
 // @Tags dashboard
+// @Param   start     query    string     false     "start time"
+// @Param   end    query    string     false        "end time"
+// @Param   uint    query    string     false        "unit"
 // @Accept json
 // @Produce json
 // @Success 200 {object} models.UsedStorage
@@ -90,14 +95,45 @@ func OverViewHandler(db *gorm.DB) func(c *gin.Context) {
 func DailyStorageHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("id")
+		userRole, _ := c.Get("role")
+
+		div := uint64(1024)
+		switch unit := strings.ToLower(c.Query("uint")); unit {
+		case "kb":
+			div = 1024
+		case "mb":
+			div = 1024 * 1024
+		case "gb":
+			div = 1024 * 1024 * 1024
+		}
+		endTime := time.Now()
+		if t := c.Query("end"); len(t) > 0 {
+			end, err := time.Parse(models.TIME_FORMAT, t)
+			if err != nil {
+				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
+				return
+			}
+			endTime = end
+		}
+
+		startTime := endTime.Add(-7 * 24 * time.Hour)
+		if t := c.Query("start"); len(t) > 0 {
+			start, err := time.Parse(models.TIME_FORMAT, t)
+			if err != nil {
+				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
+				return
+			}
+			startTime = start
+		}
+
 		var items []*models.UsedStorage
-		if userID.(uint) == 100 {
+		if userRole.(uint) == uint(models.UserRole_Oper) || userRole.(uint) == uint(models.UserRole_Admin) {
 			type result struct {
 				Timestamp int64
 				Total     uint64
 			}
 			var rets []*result
-			if err := db.Model(&models.ReportTraffic{}).Order("timestamp desc").Select("timestamp, sum(uploaded) as total").Group("timestamp").Limit(24).Find(&rets).Error; err != nil {
+			if err := db.Model(&models.ReportTraffic{}).Order("timestamp desc").Where("timestamp >= ? AND timestamp <= ?", startTime.Unix(), endTime.Unix()).Select("timestamp, sum(uploaded) as total").Group("timestamp").Find(&rets).Error; err != nil {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 				return
 			}
@@ -107,40 +143,31 @@ func DailyStorageHandler(db *gorm.DB) func(c *gin.Context) {
 					ret := rets[cnt-1]
 					items = append(items, &models.UsedStorage{
 						Num:    ret.Total,
-						NumStr: ret.Total / 1024,
+						NumStr: ret.Total / div,
 						Time:   time.Unix(ret.Timestamp, 0).Format(models.TIME_FORMAT),
 					})
 				}
 				return items
 			}()))
-			return
-		}
-		date := time.Now()
-		for i := 6; i >= 0; i-- {
-			d := date.Add(-time.Hour * 24 * time.Duration(i))
-			var item *models.UsedStorage
-			if ret := db.Where("user_id = ?", userID).Where("time = ?", d.Format("2006-01-02")).Find(&item); ret.Error != nil {
+		} else {
+			var items []*models.UsedStorage
+			if ret := db.Where("user_id = ?", userID).Order("time desc").Where("time >= ? and time <= ?", startTime.Format("2006-01-02"), endTime.Format("2006-01-02")).Find(&items); ret.Error != nil {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
 				return
-			} else if ret.RowsAffected == 0 {
-				item = &models.UsedStorage{
-					UserID: userID.(uint),
-					Time:   d.Format("2006-01-02"),
-				}
 			}
-			items = append(items, item)
+			c.JSON(http.StatusOK, NewResponse(OKCode, func() []*models.UsedStorage {
+				cnt := len(items)
+				for ; cnt > 0; cnt-- {
+					item := items[cnt-1]
+					items = append(items, &models.UsedStorage{
+						Num:    item.Num,
+						NumStr: item.Num / div,
+						Time:   item.Time,
+					})
+				}
+				return items
+			}()))
 		}
-
-		//offset := 0
-		//limit := 10
-		//
-		//before := time.Now().Add(-time.Hour * 24 * 7).Format("2006-01-02")
-		//var items []*models.UsedStorage
-		//if err := db.Model(&models.UsedStorage{}).Order("id DESC").Where("user_id = ?", userID).Where("num > 0").Where("time > ?", before).Offset(int(offset)).Limit(int(limit)).Find(&items).Error; err != nil {
-		//	c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-		//	return
-		//}
-		c.JSON(http.StatusOK, NewResponse(OKCode, items))
 	}
 }
 
@@ -149,6 +176,9 @@ func DailyStorageHandler(db *gorm.DB) func(c *gin.Context) {
 // @Description used storage
 // @Security ApiKeyAuth
 // @Tags dashboard
+// @Param   start     query    string     false     "start time"
+// @Param   end    query    string     false        "end time"
+// @Param   uint    query    string     false        "unit"
 // @Accept json
 // @Produce json
 // @Success 200 {object} models.UsedTraffic
@@ -156,15 +186,45 @@ func DailyStorageHandler(db *gorm.DB) func(c *gin.Context) {
 func DailyTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("id")
+		userRole, _ := c.Get("role")
+
+		div := uint64(1024)
+		switch unit := strings.ToLower(c.Query("uint")); unit {
+		case "kb":
+			div = 1024
+		case "mb":
+			div = 1024 * 1024
+		case "gb":
+			div = 1024 * 1024 * 1024
+		}
+		endTime := time.Now()
+		if t := c.Query("end"); len(t) > 0 {
+			end, err := time.Parse(models.TIME_FORMAT, t)
+			if err != nil {
+				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
+				return
+			}
+			endTime = end
+		}
+
+		startTime := endTime.Add(-7 * 24 * time.Hour)
+		if t := c.Query("start"); len(t) > 0 {
+			start, err := time.Parse(models.TIME_FORMAT, t)
+			if err != nil {
+				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
+				return
+			}
+			startTime = start
+		}
 
 		var items []*models.UsedTraffic
-		if userID.(uint) == 100 {
+		if userRole.(uint) == uint(models.UserRole_Oper) || userRole.(uint) == uint(models.UserRole_Admin) {
 			type result struct {
 				Timestamp int64
 				Total     uint64
 			}
 			var rets []*result
-			if err := db.Model(&models.ReportTraffic{}).Order("timestamp desc").Select("timestamp, sum(downloaded) as total").Group("timestamp").Limit(24).Find(&rets).Error; err != nil {
+			if err := db.Model(&models.ReportTraffic{}).Order("timestamp desc").Where("timestamp >= ? AND timestamp <= ?", startTime.Unix(), endTime.Unix()).Select("timestamp, sum(downloaded) as total").Group("timestamp").Limit(24).Find(&rets).Error; err != nil {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 				return
 			}
@@ -174,40 +234,30 @@ func DailyTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 					ret := rets[cnt-1]
 					items = append(items, &models.UsedTraffic{
 						Num:    ret.Total,
-						NumStr: ret.Total / 1024,
+						NumStr: ret.Total / div,
 						Time:   time.Unix(ret.Timestamp, 0).Format(models.TIME_FORMAT),
 					})
 				}
 				return items
 			}()))
-			return
-		}
-
-		date := time.Now()
-		for i := 6; i >= 0; i-- {
-			d := date.Add(-time.Hour * 24 * time.Duration(i))
-			var item *models.UsedTraffic
-			if ret := db.Where("user_id = ?", userID).Where("time = ?", d.Format("2006-01-02")).Find(&item); ret.Error != nil {
+		} else {
+			var items []*models.UsedTraffic
+			if ret := db.Where("user_id = ?", userID).Order("time desc").Where("time >= ? and time <= ?", startTime.Format("2006-01-02"), endTime.Format("2006-01-02")).Find(&items); ret.Error != nil {
 				c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
 				return
-			} else if ret.RowsAffected == 0 {
-				item = &models.UsedTraffic{
-					UserID: userID.(uint),
-					Time:   d.Format("2006-01-02"),
-				}
 			}
-			items = append(items, item)
+			c.JSON(http.StatusOK, NewResponse(OKCode, func() []*models.UsedTraffic {
+				cnt := len(items)
+				for ; cnt > 0; cnt-- {
+					item := items[cnt-1]
+					items = append(items, &models.UsedTraffic{
+						Num:    item.Num,
+						NumStr: item.Num / div,
+						Time:   item.Time,
+					})
+				}
+				return items
+			}()))
 		}
-
-		//offset := 0
-		//limit := 10
-		//
-		//before := time.Now().Add(-time.Hour * 24 * 7).Format("2006-01-02")
-		//var items []*models.UsedTraffic
-		//if err := db.Model(&models.UsedTraffic{}).Order("id DESC").Where("user_id = ?", userID).Where("num > 0").Where("time > ?", before).Offset(int(offset)).Limit(int(limit)).Find(&items).Error; err != nil {
-		//	c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-		//	return
-		//}
-		c.JSON(http.StatusOK, NewResponse(OKCode, items))
 	}
 }

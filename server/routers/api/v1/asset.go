@@ -245,7 +245,7 @@ func FileUploadHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 		f, err := os.OpenFile(relativeChunk, os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
-			log.Errorf("open file %s error ", relativeChunk, err)
+			log.Errorf("open file %s error %s", relativeChunk, err)
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "open file error"))
 			return
 		}

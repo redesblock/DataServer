@@ -880,6 +880,19 @@ paths:
       consumes:
       - application/json
       description: used storage
+      parameters:
+      - description: start time
+        in: query
+        name: start
+        type: string
+      - description: end time
+        in: query
+        name: end
+        type: string
+      - description: unit
+        in: query
+        name: uint
+        type: string
       produces:
       - application/json
       responses:
@@ -897,6 +910,19 @@ paths:
       consumes:
       - application/json
       description: used storage
+      parameters:
+      - description: start time
+        in: query
+        name: start
+        type: string
+      - description: end time
+        in: query
+        name: end
+        type: string
+      - description: unit
+        in: query
+        name: uint
+        type: string
       produces:
       - application/json
       responses:
