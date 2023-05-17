@@ -167,13 +167,20 @@ func EditUser(db *gorm.DB) func(c *gin.Context) {
 		}
 		if len(req.Password) > 0 {
 			item.Password = Sha256(req.Password)
+			res := db.Model(&models.User{}).Where("id = ?", id).Updates(item)
+			if err := res.Error; err != nil {
+				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+				return
+			}
+			c.JSON(http.StatusOK, NewResponse(OKCode, res.RowsAffected > 0))
+		} else {
+			res := db.Model(&models.User{}).Where("id = ?", id).Update("status", item.Status)
+			if err := res.Error; err != nil {
+				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+				return
+			}
+			c.JSON(http.StatusOK, NewResponse(OKCode, res.RowsAffected > 0))
 		}
-		res := db.Model(&models.User{}).Where("id = ?", id).Updates(item)
-		if err := res.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
-			return
-		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, res.RowsAffected > 0))
 	}
 }
 

@@ -1,12 +1,14 @@
 package v1
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // @Summary Get a single node
@@ -191,5 +193,141 @@ func GetAreasHandler(db *gorm.DB) func(c *gin.Context) {
 func GetNetWorksHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		c.JSON(http.StatusOK, NewResponse(OKCode, strings.Split("MOP Storage", ",")))
+	}
+}
+
+// @Summary used storage
+// @Schemes
+// @Description used storage
+// @Security ApiKeyAuth
+// @Tags dashboard
+// @Param   start     query    string     false     "start time"
+// @Param   end    query    string     false        "end time"
+// @Param   uint    query    string     false        "unit"
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.UsedStorage
+// @Router /api/v1/node/storage [get]
+func NodeStorageHandler(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		div := uint64(1024)
+		switch unit := strings.ToLower(c.Query("uint")); unit {
+		case "kb":
+			div = 1024
+		case "mb":
+			div = 1024 * 1024
+		case "gb":
+			div = 1024 * 1024 * 1024
+		}
+		endTime := time.Now()
+		if t := c.Query("end"); len(t) > 0 {
+			end, err := time.Parse(models.TIME_FORMAT, t)
+			if err != nil {
+				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
+				return
+			}
+			endTime = end
+		}
+
+		startTime := endTime.Add(-7 * 24 * time.Hour)
+		if t := c.Query("start"); len(t) > 0 {
+			start, err := time.Parse(models.TIME_FORMAT, t)
+			if err != nil {
+				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
+				return
+			}
+			startTime = start
+		}
+
+		var items []*models.UsedStorage
+		type result struct {
+			Timestamp int64
+			Total     uint64
+		}
+		var rets []*result
+		if err := db.Model(&models.ReportTraffic{}).Order("timestamp desc").Where("timestamp >= ? AND timestamp <= ?", startTime.Unix(), endTime.Unix()).Select("timestamp, sum(uploaded) as total").Group("timestamp").Find(&rets).Error; err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
+		}
+		c.JSON(http.StatusOK, NewResponse(OKCode, func() []*models.UsedStorage {
+			cnt := len(rets)
+			for ; cnt > 0; cnt-- {
+				ret := rets[cnt-1]
+				items = append(items, &models.UsedStorage{
+					Num:    ret.Total,
+					NumStr: ret.Total / div,
+					Time:   time.Unix(ret.Timestamp, 0).Format(models.TIME_FORMAT),
+				})
+			}
+			return items
+		}()))
+	}
+}
+
+// @Summary used storage
+// @Schemes
+// @Description used storage
+// @Security ApiKeyAuth
+// @Tags dashboard
+// @Param   start     query    string     false     "start time"
+// @Param   end    query    string     false        "end time"
+// @Param   uint    query    string     false        "unit"
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.UsedTraffic
+// @Router /api/v1/node/traffic [get]
+func NodeTrafficHandler(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		div := uint64(1024)
+		switch unit := strings.ToLower(c.Query("uint")); unit {
+		case "kb":
+			div = 1024
+		case "mb":
+			div = 1024 * 1024
+		case "gb":
+			div = 1024 * 1024 * 1024
+		}
+		endTime := time.Now()
+		if t := c.Query("end"); len(t) > 0 {
+			end, err := time.Parse(models.TIME_FORMAT, t)
+			if err != nil {
+				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
+				return
+			}
+			endTime = end
+		}
+
+		startTime := endTime.Add(-7 * 24 * time.Hour)
+		if t := c.Query("start"); len(t) > 0 {
+			start, err := time.Parse(models.TIME_FORMAT, t)
+			if err != nil {
+				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
+				return
+			}
+			startTime = start
+		}
+
+		var items []*models.UsedTraffic
+		type result struct {
+			Timestamp int64
+			Total     uint64
+		}
+		var rets []*result
+		if err := db.Model(&models.ReportTraffic{}).Order("timestamp desc").Where("timestamp >= ? AND timestamp <= ?", startTime.Unix(), endTime.Unix()).Select("timestamp, sum(downloaded) as total").Group("timestamp").Limit(24).Find(&rets).Error; err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
+		}
+		c.JSON(http.StatusOK, NewResponse(OKCode, func() []*models.UsedTraffic {
+			cnt := len(rets)
+			for ; cnt > 0; cnt-- {
+				ret := rets[cnt-1]
+				items = append(items, &models.UsedTraffic{
+					Num:    ret.Total,
+					NumStr: ret.Total / div,
+					Time:   time.Unix(ret.Timestamp, 0).Format(models.TIME_FORMAT),
+				})
+			}
+			return items
+		}()))
 	}
 }

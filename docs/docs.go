@@ -1034,26 +1034,6 @@ var doc = `{
                     "dashboard"
                 ],
                 "summary": "used storage",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "start time",
-                        "name": "start",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "end time",
-                        "name": "end",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "unit",
-                        "name": "uint",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1283,6 +1263,102 @@ var doc = `{
                         "description": "OK",
                         "schema": {
                             "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/node/storage": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "used storage",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "used storage",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "start time",
+                        "name": "start",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "end time",
+                        "name": "end",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "unit",
+                        "name": "uint",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UsedStorage"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/node/traffic": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "used storage",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "used storage",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "start time",
+                        "name": "start",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "end time",
+                        "name": "end",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "unit",
+                        "name": "uint",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UsedTraffic"
                         }
                     }
                 }
