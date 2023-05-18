@@ -69,6 +69,11 @@ func Login(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 
+		if item.Status == models.UserStaus_Disabled {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "ban"))
+			return
+		}
+
 		token, err := GenToken(UserInfo{
 			ID:    item.ID,
 			Email: item.Email,

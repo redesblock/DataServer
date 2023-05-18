@@ -87,6 +87,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiv1.POST("/bills/traffic", v1.AddBillsTrafficHandler(db))
 
 		apiv1.Use(v1.JWTAuthMiddleware2())
+		apiv1.POST("/login2", v1.Login(db))
 		apiv1.GET("/currencies", v1.GetCurrencies(db))
 		apiv1.GET("/currencies/:id", v1.GetCurrency(db))
 		apiv1.PUT("/currencies/:id", v1.EditCurrency(db))
