@@ -70,7 +70,76 @@ func Login(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		if item.Status == models.UserStaus_Disabled {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "ban"))
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "user ban"))
+			return
+		}
+
+		token, err := GenToken(UserInfo{
+			ID:    item.ID,
+			Email: item.Email,
+			Role:  item.Role,
+		})
+		if err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
+		}
+
+		db.Save(&models.UserAction{
+			ActionType: models.UserActionType_Login,
+			Email:      item.Email,
+			IP:         RemoteIp(c.Request),
+			UserID:     item.ID,
+		})
+		c.Header(HeaderTokenKey, "Bearer "+token)
+		c.JSON(http.StatusOK, NewResponse(OKCode, "Bearer "+token))
+	}
+}
+
+// @Summary user login
+// @Tags login
+// @Accept json
+// @Produce json
+// @Param user body LoginReq true "user info"
+// @Success 200 string token
+// @Router /api/v1/login2 [post]
+func Login2(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var req LoginReq
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			return
+		}
+		if !VerifyEmailFormat(req.Email) {
+			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid email"))
+			return
+		}
+		if len(req.Password) == 0 {
+			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid password"))
+			return
+		}
+
+		var item models.User
+		ret := db.Model(&models.User{}).Where("email = ?", req.Email).Find(&item)
+		if err := ret.Error; err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
+		}
+		req.Password = Sha256(req.Password)
+
+		if ret.RowsAffected == 0 {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "user not found"))
+			return
+		}
+		if item.Password != req.Password {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "wrong password"))
+			return
+		}
+		if item.Status == models.UserStaus_Disabled {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "user ban"))
+			return
+		}
+		if item.Role == models.UserRole_Admin || item.Role == models.UserRole_Oper {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "no role"))
 			return
 		}
 

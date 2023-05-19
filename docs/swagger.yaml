@@ -1033,6 +1033,27 @@ paths:
       summary: user login
       tags:
       - login
+  /api/v1/login2:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: user info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/v1.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: user login
+      tags:
+      - login
   /api/v1/nodes:
     get:
       parameters:
