@@ -121,12 +121,19 @@ func AddUser(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
 			return
 		}
-
 		item := &models.User{
-			Email:    req.Email,
-			Password: Sha256(req.Password),
-			Role:     models.UserRole_Oper,
+			Email: req.Email,
 		}
+		if res := db.Model(&models.User{}).Where("email = ?", req.Email).Find(item); res.Error != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, res.Error))
+			return
+		} else if res.RowsAffected > 0 {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, fmt.Errorf("user alreay exist")))
+			return
+		}
+		item.Email = req.Email
+		item.Password = Sha256(req.Password)
+		item.Role = models.UserRole_Oper
 		res := db.Model(&models.User{}).Save(item)
 		if err := res.Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))

@@ -110,8 +110,8 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiv1.POST("/nodes", v1.AddNode(db))
 		apiv1.PUT("/nodes/:id", v1.EditNode(db))
 		apiv1.DELETE("/nodes/:id", v1.DeleteNode(db))
-		apiv1.GET("/node/storage", v1.NodeStorageHandler(db))
-		apiv1.GET("/node/traffic", v1.NodeTrafficHandler(db))
+		apiv1.GET("/nodes/storage", v1.NodeStorageHandler(db))
+		apiv1.GET("/nodes/traffic", v1.NodeTrafficHandler(db))
 
 		apiv1.GET("/coupons", v1.GetCoupons(db))
 		apiv1.GET("/coupons/:id", v1.GetCoupon(db))

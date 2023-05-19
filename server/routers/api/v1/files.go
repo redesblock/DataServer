@@ -23,7 +23,7 @@ func GetFiles(db *gorm.DB) func(c *gin.Context) {
 		tx := db.Model(&models.BucketObject{}).Order("id desc").Count(&total).Offset(int(offset)).Limit(int(pageSize))
 
 		var items []models.BucketObject
-		if err := tx.Find(&items).Error; err != nil {
+		if err := tx.Preload("User").Find(&items).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}

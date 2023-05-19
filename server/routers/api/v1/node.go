@@ -203,15 +203,15 @@ func GetNetWorksHandler(db *gorm.DB) func(c *gin.Context) {
 // @Tags dashboard
 // @Param   start     query    string     false     "start time"
 // @Param   end    query    string     false        "end time"
-// @Param   uint    query    string     false        "unit"
+// @Param   unit    query    string     false        "unit"
 // @Accept json
 // @Produce json
 // @Success 200 {object} models.UsedStorage
-// @Router /api/v1/node/storage [get]
+// @Router /api/v1/nodes/storage [get]
 func NodeStorageHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		div := uint64(1024)
-		switch unit := strings.ToLower(c.Query("uint")); unit {
+		switch unit := strings.ToLower(c.Query("unit")); unit {
 		case "kb":
 			div = 1024
 		case "mb":
@@ -221,7 +221,7 @@ func NodeStorageHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 		endTime := time.Now()
 		if t := c.Query("end"); len(t) > 0 {
-			end, err := time.Parse(models.TIME_FORMAT, t)
+			end, err := time.Parse("2006-01-02", t)
 			if err != nil {
 				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
 				return
@@ -231,7 +231,7 @@ func NodeStorageHandler(db *gorm.DB) func(c *gin.Context) {
 
 		startTime := endTime.Add(-7 * 24 * time.Hour)
 		if t := c.Query("start"); len(t) > 0 {
-			start, err := time.Parse(models.TIME_FORMAT, t)
+			start, err := time.Parse("2006-01-02", t)
 			if err != nil {
 				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
 				return
@@ -271,15 +271,15 @@ func NodeStorageHandler(db *gorm.DB) func(c *gin.Context) {
 // @Tags dashboard
 // @Param   start     query    string     false     "start time"
 // @Param   end    query    string     false        "end time"
-// @Param   uint    query    string     false        "unit"
+// @Param   unit    query    string     false        "unit"
 // @Accept json
 // @Produce json
 // @Success 200 {object} models.UsedTraffic
-// @Router /api/v1/node/traffic [get]
+// @Router /api/v1/nodes/traffic [get]
 func NodeTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		div := uint64(1024)
-		switch unit := strings.ToLower(c.Query("uint")); unit {
+		switch unit := strings.ToLower(c.Query("unit")); unit {
 		case "kb":
 			div = 1024
 		case "mb":
@@ -289,7 +289,7 @@ func NodeTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 		endTime := time.Now()
 		if t := c.Query("end"); len(t) > 0 {
-			end, err := time.Parse(models.TIME_FORMAT, t)
+			end, err := time.Parse("2006-01-02", t)
 			if err != nil {
 				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
 				return
@@ -299,7 +299,7 @@ func NodeTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 
 		startTime := endTime.Add(-7 * 24 * time.Hour)
 		if t := c.Query("start"); len(t) > 0 {
-			start, err := time.Parse(models.TIME_FORMAT, t)
+			start, err := time.Parse("2006-01-02", t)
 			if err != nil {
 				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
 				return

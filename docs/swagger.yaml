@@ -1033,66 +1033,6 @@ paths:
       summary: user login
       tags:
       - login
-  /api/v1/node/storage:
-    get:
-      consumes:
-      - application/json
-      description: used storage
-      parameters:
-      - description: start time
-        in: query
-        name: start
-        type: string
-      - description: end time
-        in: query
-        name: end
-        type: string
-      - description: unit
-        in: query
-        name: uint
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.UsedStorage'
-      security:
-      - ApiKeyAuth: []
-      summary: used storage
-      tags:
-      - dashboard
-  /api/v1/node/traffic:
-    get:
-      consumes:
-      - application/json
-      description: used storage
-      parameters:
-      - description: start time
-        in: query
-        name: start
-        type: string
-      - description: end time
-        in: query
-        name: end
-        type: string
-      - description: unit
-        in: query
-        name: uint
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.UsedTraffic'
-      security:
-      - ApiKeyAuth: []
-      summary: used storage
-      tags:
-      - dashboard
   /api/v1/nodes:
     get:
       parameters:
@@ -1202,6 +1142,66 @@ paths:
       summary: Update node
       tags:
       - node
+  /api/v1/nodes/storage:
+    get:
+      consumes:
+      - application/json
+      description: used storage
+      parameters:
+      - description: start time
+        in: query
+        name: start
+        type: string
+      - description: end time
+        in: query
+        name: end
+        type: string
+      - description: unit
+        in: query
+        name: unit
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UsedStorage'
+      security:
+      - ApiKeyAuth: []
+      summary: used storage
+      tags:
+      - dashboard
+  /api/v1/nodes/traffic:
+    get:
+      consumes:
+      - application/json
+      description: used storage
+      parameters:
+      - description: start time
+        in: query
+        name: start
+        type: string
+      - description: end time
+        in: query
+        name: end
+        type: string
+      - description: unit
+        in: query
+        name: unit
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UsedTraffic'
+      security:
+      - ApiKeyAuth: []
+      summary: used storage
+      tags:
+      - dashboard
   /api/v1/operators:
     get:
       parameters:
