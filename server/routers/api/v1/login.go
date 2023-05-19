@@ -138,7 +138,7 @@ func Login2(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "user ban"))
 			return
 		}
-		if item.Role == models.UserRole_Admin || item.Role == models.UserRole_Oper {
+		if item.Role != models.UserRole_Admin && item.Role != models.UserRole_Oper {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "no role"))
 			return
 		}
