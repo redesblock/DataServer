@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 // @Summary Get a single order
@@ -41,6 +42,10 @@ func GetOrder(db *gorm.DB) func(c *gin.Context) {
 // @Param   p_type     query    int     false        "folder id"
 // @Param   page_num     query    int     false        "page number"
 // @Param   page_size    query    int     false        "page size"
+// @Param   start   query    string     true        "start"
+// @Param   end   query    string     true        "end"
+// @Param   order   query    string     true        "order id"
+// @Param   payment   query    string     true        "payment"
 // @Success 200 {object} Response
 // @Failure 500 {object} Response
 // @Router /api/v1/orders [get]
@@ -57,6 +62,31 @@ func GetOrders(db *gorm.DB) func(c *gin.Context) {
 				return
 			}
 			tx = tx.Where("p_type = ?", pType)
+		}
+		start := c.Query("start")
+		end := c.Query("end")
+		if len(start) > 0 && len(end) > 0 {
+			startTime, err := time.Parse("2006-01-02", start)
+			if err != nil {
+				c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+				return
+			}
+			endTime, err := time.Parse("2006-01-02", end)
+			if err != nil {
+				c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+				return
+			}
+			if startTime.After(endTime) {
+				tx = tx.Where("created >= ? AND created < ?", endTime.Unix(), startTime.Unix())
+			} else {
+				tx = tx.Where("created >= ? AND created < ?", startTime, endTime.Unix())
+			}
+		}
+		if order := c.Query("order"); len(order) > 0 {
+			tx = tx.Where("order_id = ?", order)
+		}
+		if payment := c.Query("payment"); len(payment) > 0 {
+			tx = tx.Where("payment_account = ?", payment)
 		}
 
 		var items []models.Order

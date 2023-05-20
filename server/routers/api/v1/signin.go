@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 // @Summary Get a single signIn
@@ -117,15 +118,45 @@ func EditSignIn(db *gorm.DB) func(c *gin.Context) {
 // @Tags signIn
 // @Produce json
 // @Success 200 {object} Response
-// @Router /api/v1/signIns/switch [get]
+// @Router /api/v1/user/signIn [get]
 func GetSignInSwitch(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		var count int64
-		if err := db.Model(&models.SignIn{}).Where("enable = true").Count(&count).Error; err != nil {
+		userID, _ := c.Get("id")
+		var item models.User
+		ret := db.Model(&models.User{}).Where("id = ?", userID).Find(&item)
+		if err := ret.Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, count > 0))
+		if ret.RowsAffected == 0 {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "not found"))
+			return
+		}
+
+		var items []*models.SignIn
+		if err := db.Model(&models.SignIn{}).Where("enable = true").Find(&items).Error; err != nil {
+			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			return
+		}
+		signIn := false
+		for _, i := range items {
+			if models.SignInPeriod_Day == i.Period {
+				signIn = time.Now().Day()-item.SignedIn.Day() > 1
+			} else if models.SignInPeriod_Week == i.Period {
+				_, w := time.Now().ISOWeek()
+				_, w1 := item.SignedIn.ISOWeek()
+				signIn = w-w1 > 1
+			} else if models.SignInPeriod_Month == i.Period {
+				signIn = time.Now().Month()-item.SignedIn.Month() > 1
+			} else if models.SignInPeriod_Year == i.Period {
+				signIn = time.Now().Year()-item.SignedIn.Year() > 1
+			}
+			if signIn {
+				break
+			}
+		}
+
+		c.JSON(http.StatusOK, NewResponse(OKCode, signIn))
 	}
 }
 

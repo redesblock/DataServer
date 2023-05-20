@@ -283,7 +283,7 @@ func GetUnclaimed(db *gorm.DB) func(c *gin.Context) {
 // @Tags signIn
 // @Produce json
 // @Success 200 {object} Response
-// @Router /api/v1/claim/{:id} [get]
+// @Router /api/v1/unclaimed/{:id} [get]
 func GetClaim(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("id")
@@ -341,7 +341,7 @@ func GetClaim(db *gorm.DB) func(c *gin.Context) {
 // @Tags signIn
 // @Produce json
 // @Success 200 {object} Response
-// @Router /api/v1/signedIn [get]
+// @Router /api/v1/user/signedIn [get]
 func GetSignedIn(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("id")
@@ -356,7 +356,7 @@ func GetSignedIn(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 
-		var signIns []models.SignIn
+		var signIns []*models.SignIn
 		if err := db.Model(&models.SignIn{}).Where("enable = true").Find(&signIns).Error; err != nil {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
@@ -365,6 +365,22 @@ func GetSignedIn(db *gorm.DB) func(c *gin.Context) {
 		var storage uint64
 		var traffic uint64
 		for _, signIn := range signIns {
+			enable := false
+			if models.SignInPeriod_Day == signIn.Period {
+				enable = time.Now().Day()-item.SignedIn.Day() > 1
+			} else if models.SignInPeriod_Week == signIn.Period {
+				_, w := time.Now().ISOWeek()
+				_, w1 := item.SignedIn.ISOWeek()
+				enable = w-w1 > 1
+			} else if models.SignInPeriod_Month == signIn.Period {
+				enable = time.Now().Month()-item.SignedIn.Month() > 1
+			} else if models.SignInPeriod_Year == signIn.Period {
+				enable = time.Now().Year()-item.SignedIn.Year() > 1
+			}
+			if !enable {
+				continue
+			}
+
 			switch signIn.PType {
 			case models.ProductType_Storage:
 				storage += signIn.Quantity

@@ -656,25 +656,6 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/claim/{:id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "signIn"
-                ],
-                "summary": "user signed in",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/claimed": {
             "get": {
                 "produces": [
@@ -1631,6 +1612,34 @@ var doc = `{
                         "description": "page size",
                         "name": "page_size",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "start",
+                        "name": "start",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "end",
+                        "name": "end",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "order id",
+                        "name": "order",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "payment",
+                        "name": "payment",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1886,23 +1895,6 @@ var doc = `{
             }
         },
         "/api/v1/signIns/switch": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "signIn"
-                ],
-                "summary": "Get signIn Switch",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.Response"
-                        }
-                    }
-                }
-            },
             "put": {
                 "produces": [
                     "application/json"
@@ -1989,25 +1981,6 @@ var doc = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/v1.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/signedIn": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "signIn"
-                ],
-                "summary": "user signed in",
-                "responses": {
-                    "200": {
-                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/v1.Response"
                         }
@@ -2305,6 +2278,25 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/unclaimed/{:id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "signIn"
+                ],
+                "summary": "user signed in",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/user": {
             "get": {
                 "security": [
@@ -2402,6 +2394,44 @@ var doc = `{
                         "in": "query"
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/signIn": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "signIn"
+                ],
+                "summary": "Get signIn Switch",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/signedIn": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "signIn"
+                ],
+                "summary": "user signed in",
                 "responses": {
                     "200": {
                         "description": "OK",

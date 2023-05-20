@@ -52,7 +52,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiv1.GET("/user/signedIn", v1.GetSignedIn(db))
 		apiv1.GET("/user/claimed", v1.GetClaimed(db))
 		apiv1.GET("/user/unclaimed", v1.GetUnclaimed(db))
-		apiv1.GET("/user/claim/:id", v1.GetClaim(db))
+		apiv1.GET("/user/unclaimed/:id", v1.GetClaim(db))
 
 		apiv1.POST("/user", v1.AddUserHandler(db))
 		apiv1.GET("/user/actions", v1.UserActionsHandler(db))

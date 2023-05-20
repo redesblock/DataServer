@@ -642,18 +642,6 @@ paths:
       summary: traffic price
       tags:
       - bills
-  /api/v1/claim/{:id}:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.Response'
-      summary: user signed in
-      tags:
-      - signIn
   /api/v1/claimed:
     get:
       parameters:
@@ -1263,6 +1251,26 @@ paths:
         in: query
         name: page_size
         type: integer
+      - description: start
+        in: query
+        name: start
+        required: true
+        type: string
+      - description: end
+        in: query
+        name: end
+        required: true
+        type: string
+      - description: order id
+        in: query
+        name: order
+        required: true
+        type: string
+      - description: payment
+        in: query
+        name: payment
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -1474,17 +1482,6 @@ paths:
       tags:
       - signIn
   /api/v1/signIns/switch:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.Response'
-      summary: Get signIn Switch
-      tags:
-      - signIn
     put:
       produces:
       - application/json
@@ -1498,18 +1495,6 @@ paths:
           schema:
             $ref: '#/definitions/v1.Response'
       summary: Set signIn switch
-      tags:
-      - signIn
-  /api/v1/signedIn:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.Response'
-      summary: user signed in
       tags:
       - signIn
   /api/v1/special_products:
@@ -1700,6 +1685,18 @@ paths:
       summary: user signed in
       tags:
       - signIn
+  /api/v1/unclaimed/{:id}:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: user signed in
+      tags:
+      - signIn
   /api/v1/user:
     get:
       consumes:
@@ -1766,6 +1763,30 @@ paths:
       summary: list user actions
       tags:
       - dashboard
+  /api/v1/user/signIn:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get signIn Switch
+      tags:
+      - signIn
+  /api/v1/user/signedIn:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: user signed in
+      tags:
+      - signIn
   /api/v1/users:
     get:
       parameters:
