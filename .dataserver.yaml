@@ -26,7 +26,8 @@ jwt:
 
 # price
 price:
-  erc20: 0xcc07B6277c7B4614884eEa59972AfEa17f40716F
+  mop: 0xcc07B6277c7B4614884eEa59972AfEa17f40716F
+  usdt: 0x804c7762fbeab64ac554aec644e43ab934d23ff0
   receiptor: 0x5529E3F428f42C23DDaCbb80fd46247B775725b1
   traffic: 0.0001 # download price
   storage: 0.0001 # upload price
@@ -37,3 +38,11 @@ gateway: https://gateway.mopweb3.cn/
 bsc:
   rpc: http://202.83.246.155:8575
   browser: https://testnet.bscscan.com/
+
+alipay:
+  appid: 2021000122621871
+  privateKey:
+  isProd:
+  returnUrl:
+  notifyUrl:
+  alipayPublicKeyContent:

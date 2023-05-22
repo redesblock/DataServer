@@ -10,8 +10,9 @@ import (
 func GetERC20ContractHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		c.JSON(http.StatusOK, NewResponse(OKCode, map[string]string{
-			"abi":     ERC20ABI,
-			"address": viper.GetString("price.erc20"),
+			"abi":  ERC20ABI,
+			"mop":  viper.GetString("price.mop"),
+			"usdt": viper.GetString("price.usdt"),
 		}))
 	}
 }

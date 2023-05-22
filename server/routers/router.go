@@ -89,8 +89,8 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiv1.GET("/download/:cid", v1.GetFileDownloadHandler(db))
 
 		apiv1.GET("/contract", v1.GetERC20ContractHandler(db))
-		apiv1.GET("/buy/storage", v1.BuyStorageHandler(db))
-		apiv1.GET("/buy/traffic", v1.BuyTrafficHandler(db))
+		//apiv1.GET("/buy/storage", v1.BuyStorageHandler(db))
+		//apiv1.GET("/buy/traffic", v1.BuyTrafficHandler(db))
 		apiv1.GET("/bills/storage", v1.GetBillsStorageHandler(db))
 		apiv1.GET("/bills/traffic", v1.GetBillsTrafficHandler(db))
 		apiv1.POST("/bills/storage", v1.AddBillsStorageHandler(db))
