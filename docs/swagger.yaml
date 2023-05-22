@@ -1331,6 +1331,10 @@ paths:
         in: query
         name: page_size
         type: integer
+      - description: type
+        in: query
+        name: p_type
+        type: integer
       produces:
       - application/json
       responses:
@@ -1507,6 +1511,10 @@ paths:
       - description: page size
         in: query
         name: page_size
+        type: integer
+      - description: type
+        in: query
+        name: p_type
         type: integer
       produces:
       - application/json

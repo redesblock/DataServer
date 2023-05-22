@@ -393,7 +393,7 @@ func GetSignedIn(db *gorm.DB) func(c *gin.Context) {
 		item.TotalTraffic += traffic
 		item.SignedIn = time.Now()
 		if err := db.Transaction(func(tx *gorm.DB) error {
-			err := tx.Save(item).Error
+			err := tx.Save(&item).Error
 			if err != nil {
 				return err
 			}

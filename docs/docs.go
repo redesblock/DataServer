@@ -1735,6 +1735,12 @@ var doc = `{
                         "description": "page size",
                         "name": "page_size",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "type",
+                        "name": "p_type",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2008,6 +2014,12 @@ var doc = `{
                         "type": "integer",
                         "description": "page size",
                         "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "type",
+                        "name": "p_type",
                         "in": "query"
                     }
                 ],

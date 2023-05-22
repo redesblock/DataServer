@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
@@ -179,7 +178,6 @@ func SetSignInSwitch(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
 			return
 		}
-		fmt.Println(res.RowsAffected)
 		c.JSON(http.StatusOK, NewResponse(OKCode, res.RowsAffected > 0))
 	}
 }

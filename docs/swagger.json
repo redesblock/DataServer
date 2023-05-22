@@ -1720,6 +1720,12 @@
                         "description": "page size",
                         "name": "page_size",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "type",
+                        "name": "p_type",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1993,6 +1999,12 @@
                         "type": "integer",
                         "description": "page size",
                         "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "type",
+                        "name": "p_type",
                         "in": "query"
                     }
                 ],

@@ -54,6 +54,15 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiv1.GET("/user/unclaimed", v1.GetUnclaimed(db))
 		apiv1.GET("/user/unclaimed/:id", v1.GetClaim(db))
 
+		apiv1.GET("/products", v1.GetProducts(db))
+		apiv1.GET("/products/:id", v1.GetProduct(db))
+
+		apiv1.GET("/special_products", v1.GetSpecialProducts(db))
+		apiv1.GET("/special_products/:id", v1.GetSpecialProduct(db))
+
+		apiv1.GET("/currencies", v1.GetCurrencies(db))
+		apiv1.GET("/currencies/:id", v1.GetCurrency(db))
+
 		apiv1.POST("/user", v1.AddUserHandler(db))
 		apiv1.GET("/user/actions", v1.UserActionsHandler(db))
 		apiv1.GET("/overview", v1.OverViewHandler(db))
@@ -88,8 +97,6 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiv1.POST("/bills/traffic", v1.AddBillsTrafficHandler(db))
 
 		apiv1.Use(v1.JWTAuthMiddleware2())
-		apiv1.GET("/currencies", v1.GetCurrencies(db))
-		apiv1.GET("/currencies/:id", v1.GetCurrency(db))
 		apiv1.PUT("/currencies/:id", v1.EditCurrency(db))
 		apiv1.DELETE("/currencies/:id", v1.DeleteCurrency(db))
 
@@ -119,14 +126,10 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiv1.PUT("/coupons/:id", v1.EditCoupon(db))
 		apiv1.DELETE("/coupons/:id", v1.DeleteCoupon(db))
 
-		apiv1.GET("/special_products", v1.GetSpecialProducts(db))
-		apiv1.GET("/special_products/:id", v1.GetSpecialProduct(db))
 		apiv1.POST("/special_products", v1.AddSpecialProduct(db))
 		apiv1.PUT("/special_products/:id", v1.EditSpecialProduct(db))
 		apiv1.DELETE("/special_products/:id", v1.DeleteSpecialProduct(db))
 
-		apiv1.GET("/products", v1.GetProducts(db))
-		apiv1.GET("/products/:id", v1.GetProduct(db))
 		apiv1.PUT("/products/:id", v1.EditProduct(db))
 
 		apiv1.GET("/signIns", v1.GetSignIns(db))

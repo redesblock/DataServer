@@ -41,6 +41,7 @@ func GetSpecialProduct(db *gorm.DB) func(c *gin.Context) {
 // @Produce json
 // @Param   page_num     query    int     false        "page number"
 // @Param   page_size    query    int     false        "page size"
+// @Param   p_type    query    int     false        "type"
 // @Success 200 {object} Response
 // @Failure 500 {object} Response
 // @Router /api/v1/special_products [get]
@@ -50,6 +51,9 @@ func GetSpecialProducts(db *gorm.DB) func(c *gin.Context) {
 		pageNum, pageSize := page(c)
 		offset := (pageNum - 1) * pageSize
 		tx := db.Model(&models.SpecialProduct{}).Order("id desc").Count(&total).Offset(int(offset)).Limit(int(pageSize))
+		if pType := c.Query("p_type"); len(pType) > 0 {
+			tx = tx.Where("p_type = ?", pType)
+		}
 
 		var items []models.SpecialProduct
 		if err := tx.Preload("Product").Preload("Product.Currency").Find(&items).Error; err != nil {
