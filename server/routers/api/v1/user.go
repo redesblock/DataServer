@@ -5,8 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
-	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -20,20 +20,20 @@ func GetUser(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 		var item models.User
 		res := db.Model(&models.User{}).Where("id = ?", id).Find(&item)
 		if err := res.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		if res.RowsAffected > 0 {
-			c.JSON(http.StatusOK, NewResponse(OKCode, &item))
+			c.JSON(OKCode, NewResponse(c, OKCode, &item))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, nil))
+		c.JSON(OKCode, NewResponse(c, OKCode, nil))
 	}
 }
 
@@ -54,7 +54,7 @@ func GetUsers(db *gorm.DB) func(c *gin.Context) {
 
 		var items []models.User
 		if err := tx.Find(&items).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -62,7 +62,7 @@ func GetUsers(db *gorm.DB) func(c *gin.Context) {
 		if total%pageSize != 0 {
 			pageTotal++
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, &List{
+		c.JSON(OKCode, NewResponse(c, OKCode, &List{
 			Total:     total,
 			PageTotal: pageTotal,
 			Items:     items,
@@ -87,7 +87,7 @@ func GetOperators(db *gorm.DB) func(c *gin.Context) {
 
 		var items []models.User
 		if err := tx.Find(&items).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -95,7 +95,7 @@ func GetOperators(db *gorm.DB) func(c *gin.Context) {
 		if total%pageSize != 0 {
 			pageTotal++
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, &List{
+		c.JSON(OKCode, NewResponse(c, OKCode, &List{
 			Total:     total,
 			PageTotal: pageTotal,
 			Items:     items,
@@ -118,17 +118,17 @@ func AddUser(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req AddUserReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 		item := &models.User{
 			Email: req.Email,
 		}
 		if res := db.Model(&models.User{}).Where("email = ?", req.Email).Find(item); res.Error != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, res.Error))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, res.Error))
 			return
 		} else if res.RowsAffected > 0 {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, fmt.Errorf("user alreay exist")))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, fmt.Errorf("user alreay exist")))
 			return
 		}
 		item.Email = req.Email
@@ -136,10 +136,10 @@ func AddUser(db *gorm.DB) func(c *gin.Context) {
 		item.Role = models.UserRole_Oper
 		res := db.Model(&models.User{}).Save(item)
 		if err := res.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+		c.JSON(OKCode, NewResponse(c, OKCode, item))
 	}
 }
 
@@ -160,12 +160,12 @@ func EditUser(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 		var req EditUserReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 
@@ -176,17 +176,17 @@ func EditUser(db *gorm.DB) func(c *gin.Context) {
 			item.Password = Sha256(req.Password)
 			res := db.Model(&models.User{}).Where("id = ?", id).Updates(item)
 			if err := res.Error; err != nil {
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 				return
 			}
-			c.JSON(http.StatusOK, NewResponse(OKCode, res.RowsAffected > 0))
+			c.JSON(OKCode, NewResponse(c, OKCode, res.RowsAffected > 0))
 		} else {
 			res := db.Model(&models.User{}).Where("id = ?", id).Update("status", item.Status)
 			if err := res.Error; err != nil {
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 				return
 			}
-			c.JSON(http.StatusOK, NewResponse(OKCode, res.RowsAffected > 0))
+			c.JSON(OKCode, NewResponse(c, OKCode, res.RowsAffected > 0))
 		}
 	}
 }
@@ -202,15 +202,15 @@ func DeleteUser(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 		res := db.Unscoped().Where("id = ?", id).Delete(&models.User{})
 		if err := res.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, res.RowsAffected > 0))
+		c.JSON(OKCode, NewResponse(c, OKCode, res.RowsAffected > 0))
 	}
 }
 
@@ -219,6 +219,7 @@ func DeleteUser(db *gorm.DB) func(c *gin.Context) {
 // @Produce json
 // @Param   page_num     query    int     false        "page number"
 // @Param   page_size    query    int     false        "page size"
+// @Param   p_type    query    int     false        "type"
 // @Success 200 {object} Response
 // @Router /api/v1/claimed [get]
 func GetClaimed(db *gorm.DB) func(c *gin.Context) {
@@ -227,22 +228,44 @@ func GetClaimed(db *gorm.DB) func(c *gin.Context) {
 		var total int64
 		pageNum, pageSize := page(c)
 		offset := (pageNum - 1) * pageSize
+
 		tx := db.Model(&models.UserCoupon{}).Order("id desc").Where("user_id = ?", userID)
+		if usable := c.Query("usable"); len(usable) > 0 {
+			if strings.ToLower(usable) == "true" {
+				tx = tx.Where("used = ?", false)
+			} else {
+				tx = tx.Where("used = ?", true)
+			}
+		}
+		if len(c.Query("p_type")) > 0 {
+			pType, err := strconv.ParseInt(c.Query("p_type"), 10, 64)
+			if err != nil {
+				c.JSON(OKCode, NewResponse(c, RequestCode, err))
+				return
+			}
+			tx = tx.Where("p_type in ?", []int64{int64(models.ProductType_Storage) & pType, int64(models.ProductType_Traffic) & pType})
+		}
 
 		var items []*models.UserCoupon
 		ret := tx.Count(&total).Offset(int(offset)).Limit(int(pageNum)).Preload("Coupon").Find(&items)
 		if err := ret.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		pageTotal := total / pageSize
 		if total%pageSize != 0 {
 			pageTotal++
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, &List{
+		c.JSON(OKCode, NewResponse(c, OKCode, &List{
 			Total:     total,
 			PageTotal: pageTotal,
-			Items:     items,
+			Items: func() []*models.Coupon {
+				var ret []*models.Coupon
+				for _, item := range items {
+					ret = append(ret, &item.Coupon)
+				}
+				return ret
+			}(),
 		}))
 	}
 }
@@ -262,16 +285,16 @@ func GetUnclaimed(db *gorm.DB) func(c *gin.Context) {
 		tx := db.Model(&models.Coupon{}).Order("id desc").Where("reserve > 0")
 
 		var items []*models.Coupon
-		ret := tx.Count(&total).Offset(int(offset)).Limit(int(pageNum)).Preload("Coupon").Find(&items)
+		ret := tx.Count(&total).Offset(int(offset)).Limit(int(pageNum)).Find(&items)
 		if err := ret.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		pageTotal := total / pageSize
 		if total%pageSize != 0 {
 			pageTotal++
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, &List{
+		c.JSON(OKCode, NewResponse(c, OKCode, &List{
 			Total:     total,
 			PageTotal: pageTotal,
 			Items:     items,
@@ -289,22 +312,22 @@ func GetClaim(db *gorm.DB) func(c *gin.Context) {
 		userID, _ := c.Get("id")
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 		var item models.Coupon
 		ret := db.Model(&models.Coupon{}).Where("id = ?", id).Find(&item)
 		if err := ret.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		if ret.RowsAffected == 0 {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "not found"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "not found"))
 			return
 		}
 
 		if item.Reserve == 0 {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "no reserve"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "no reserve"))
 			return
 		}
 
@@ -314,25 +337,29 @@ func GetClaim(db *gorm.DB) func(c *gin.Context) {
 				if err := db.Model(&models.UserCoupon{}).Where("user_id = ? AND coupon_id = ?", userID, id).Count(&count).Error; err != nil {
 					return err
 				}
+				if uint64(count) >= item.MaxClaim {
+					return fmt.Errorf("over max claim")
+				}
 			}
 			item.Reserve--
-			if err := tx.Save(item).Error; err != nil {
+			if err := tx.Save(&item).Error; err != nil {
 				return err
 			}
 			if err := tx.Save(&models.UserCoupon{
 				UserID:   userID.(uint),
 				CouponID: uint(id),
+				PType:    item.PType,
 				Used:     false,
 			}).Error; err != nil {
 				return err
 			}
 			return nil
 		}); err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+		c.JSON(OKCode, NewResponse(c, OKCode, item))
 		return
 	}
 }
@@ -348,17 +375,17 @@ func GetSignedIn(db *gorm.DB) func(c *gin.Context) {
 		var item models.User
 		ret := db.Model(&models.User{}).Where("id = ?", userID).Find(&item)
 		if err := ret.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		if ret.RowsAffected == 0 {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "user not found"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "user not found"))
 			return
 		}
 
 		var signIns []*models.SignIn
 		if err := db.Model(&models.SignIn{}).Where("enable = true").Find(&signIns).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -393,14 +420,16 @@ func GetSignedIn(db *gorm.DB) func(c *gin.Context) {
 		item.TotalTraffic += traffic
 		item.SignedIn = time.Now()
 		if err := db.Transaction(func(tx *gorm.DB) error {
-			err := tx.Save(&item).Error
+			err := tx.Debug().Save(&item).Error
 			if err != nil {
 				return err
 			}
 			if storage > 0 {
 				err := tx.Save(&models.Order{
+					OrderID:  generateOrderID(),
 					PType:    models.ProductType_Storage,
 					Quantity: storage,
+					Payment:  models.PaymentChannel_SignIn,
 					Status:   models.OrderComplete,
 					UserID:   userID.(uint),
 				}).Error
@@ -410,8 +439,10 @@ func GetSignedIn(db *gorm.DB) func(c *gin.Context) {
 			}
 			if traffic > 0 {
 				err := tx.Save(&models.Order{
+					OrderID:  generateOrderID(),
 					PType:    models.ProductType_Traffic,
 					Quantity: traffic,
+					Payment:  models.PaymentChannel_SignIn,
 					Status:   models.OrderComplete,
 					UserID:   userID.(uint),
 				}).Error
@@ -421,9 +452,9 @@ func GetSignedIn(db *gorm.DB) func(c *gin.Context) {
 			}
 			return nil
 		}); err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(ExecuteCode, fmt.Sprintf("Congratulations on your successful sign-in! You have now received a free %s storage space and %s download traffic.", models.ByteSize(storage), models.ByteSize(traffic))))
+		c.JSON(OKCode, NewResponse(c, OKCode, fmt.Sprintf("Congratulations on your successful sign-in! You have now received a free %s storage space and %s download traffic.", models.ByteSize(storage), models.ByteSize(traffic))))
 	}
 }

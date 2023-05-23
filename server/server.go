@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/redesblock/dataserver/models"
 	"github.com/redesblock/dataserver/server/dispatcher"
+	"github.com/redesblock/dataserver/server/pay"
 	"github.com/redesblock/dataserver/server/routers"
 	v1 "github.com/redesblock/dataserver/server/routers/api/v1"
 	"github.com/spf13/viper"
@@ -28,6 +29,7 @@ func Start(port string, db *gorm.DB) {
 
 	dispatcher.NewDispatcher(100).Run()
 	gin.SetMode(gin.DebugMode)
+	pay.Init()
 	r := routers.InitRouter(db)
 	// update tx status
 	go func() {

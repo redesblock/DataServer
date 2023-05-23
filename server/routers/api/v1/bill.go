@@ -1,11 +1,12 @@
 package v1
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/models"
+	"github.com/redesblock/dataserver/server/pay"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 // @Summary list storage bills
@@ -29,7 +30,7 @@ func GetBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 		var items []models.Order
 		tx := db.Model(&models.Order{}).Order("id desc").Where("user_id = ?", userID).Where("p_type = ?", models.ProductType_Storage)
 		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Find(&items).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -37,7 +38,7 @@ func GetBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 		if total%pageSize != 0 {
 			pageTotal++
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, &List{
+		c.JSON(OKCode, NewResponse(c, OKCode, &List{
 			Total:     total,
 			PageTotal: pageTotal,
 			Items:     items,
@@ -65,7 +66,7 @@ func GetBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		var items []models.Order
 		tx := db.Model(&models.Order{}).Order("id desc").Where("user_id = ?", userID).Where("p_type = ?", models.ProductType_Traffic)
 		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Find(&items).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -73,7 +74,7 @@ func GetBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		if total%pageSize != 0 {
 			pageTotal++
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, &List{
+		c.JSON(OKCode, NewResponse(c, OKCode, &List{
 			Total:     total,
 			PageTotal: pageTotal,
 			Items:     items,
@@ -82,10 +83,56 @@ func GetBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 }
 
 type BillReq struct {
-	Hash        string          `json:"hash"`
-	Amount      string          `json:"amount"`
-	Size        decimal.Decimal `json:"size"`
-	Description string          `json:"description"`
+	Size           decimal.Decimal       `json:"quantity"`
+	SpecialProduct uint                  `json:"special_product"`
+	PaymentChannel models.PaymentChannel `json:"payment_channel"`
+	Currency       uint                  `json:"currency"`
+	Coupon         uint                  `json:"coupon"`
+	Description    string                `json:"desc"`
+	Hash           string                `json:"hash"`
+}
+
+func (r *BillReq) convertToOrder(db *gorm.DB, p_type models.ProductType) (quantity uint64, price decimal.Decimal, discount decimal.Decimal, err error) {
+	var item models.Product
+	ret := db.Where("p_type = ?", p_type).Find(&item)
+	if err = ret.Error; err != nil {
+		return
+	} else if ret.RowsAffected == 0 {
+		err = fmt.Errorf("invalid p_type")
+		return
+	}
+
+	if r.SpecialProduct != 0 {
+		var item2 models.SpecialProduct
+		ret := db.Find(&item2, r.SpecialProduct)
+		if err = ret.Error; err != nil {
+			return
+		}
+		if ret.RowsAffected == 0 {
+			err = fmt.Errorf("invalid special_product")
+			return
+		}
+		quantity = item2.Quantity
+		price = decimal.NewFromInt(int64(quantity)).Div(decimal.NewFromInt(int64(item.Quantity))).Mul(item.Price)
+		discount = item2.Discount.Mul(price).Div(decimal.NewFromInt(10))
+	} else {
+		quantity = r.Size.BigInt().Uint64()
+		price = decimal.NewFromInt(int64(quantity)).Div(decimal.NewFromInt(int64(item.Quantity))).Mul(item.Price)
+		discount = price
+		if r.Coupon > 0 {
+			var item2 models.Coupon
+			ret := db.Find(&item2, r.Coupon)
+			if err = ret.Error; err != nil {
+				return
+			}
+			if ret.RowsAffected == 0 {
+				err = fmt.Errorf("invalid coupon")
+				return
+			}
+			discount = item2.Discount.Mul(price).Div(decimal.NewFromInt(10))
+		}
+	}
+	return
 }
 
 // @Summary add storage bill
@@ -101,27 +148,89 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req BillReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
+			return
+		}
+
+		var citem models.Currency
+		ret := db.Find(&citem, req.Currency)
+		if err := ret.Error; err != nil {
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
+			return
+		}
+		if ret.RowsAffected == 0 {
+			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid currency")))
+			return
+		}
+		if int64(citem.Payment)&int64(req.PaymentChannel) == 0 {
+			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid payment channel")))
+			return
+		}
+
+		var uitem models.UserCoupon
+		ret = db.Where("used = false").Find(&uitem, req.Coupon)
+		if err := ret.Error; err != nil {
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
+			return
+		}
+		if ret.RowsAffected == 0 {
+			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid coupon")))
+			return
+		}
+		if int64(uitem.PType)&int64(models.ProductType_Storage) == 0 {
+			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid coupon")))
+			return
+		}
+
+		quantity, price, discount, err := req.convertToOrder(db, models.ProductType_Storage)
+		if err != nil {
+			c.JSON(OKCode, NewResponse(c, RequestCode, err))
 			return
 		}
 
 		userID, _ := c.Get("id")
 		item := &models.Order{
-			PType:    models.ProductType_Storage,
-			Hash:     req.Hash,
-			Quantity: req.Size.Mul(decimal.NewFromInt(1024 * 1024)).BigInt().Uint64(),
-			UserID:   userID.(uint),
-			Status:   models.OrderWait,
+			OrderID:    generateOrderID(),
+			PType:      models.ProductType_Storage,
+			Quantity:   quantity,
+			UserID:     userID.(uint),
+			Status:     models.OrderWait,
+			Hash:       req.Hash,
+			Price:      price,
+			Discount:   discount,
+			CurrencyID: req.Currency,
 		}
-		item.Price, _ = decimal.NewFromString(req.Amount)
-		if len(item.Hash) > 0 {
-			item.Status = models.OrderPending
+
+		if req.PaymentChannel == models.PaymentChannel_Crypto {
+			if len(item.Hash) > 0 {
+				item.Status = models.OrderPending
+			} else {
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, "no crypto hash"))
+				return
+			}
 		}
-		if err := db.Save(item).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+
+		var resp interface{}
+		if err := db.Transaction(func(tx *gorm.DB) error {
+			if err := db.Save(item).Error; err != nil {
+				return err
+			}
+			if req.PaymentChannel == models.PaymentChannel_Alipay {
+				res, err := pay.AliPayTrade("", item.OrderID, item.Price.StringFixed(2))
+				if err != nil {
+					return err
+				}
+				resp = res
+			} else {
+				return fmt.Errorf("not support payment channel")
+			}
+			return nil
+		}); err != nil {
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+
+		c.JSON(OKCode, NewResponse(c, OKCode, resp))
 	}
 }
 
@@ -137,27 +246,88 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req BillReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
+			return
+		}
+
+		var citem models.Currency
+		ret := db.Find(&citem, req.Currency)
+		if err := ret.Error; err != nil {
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
+			return
+		}
+		if ret.RowsAffected == 0 {
+			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid currency")))
+			return
+		}
+		if int64(citem.Payment)&int64(req.PaymentChannel) == 0 {
+			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid payment channel")))
+			return
+		}
+
+		var uitem models.UserCoupon
+		ret = db.Where("used = false").Find(&uitem, req.Coupon)
+		if err := ret.Error; err != nil {
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
+			return
+		}
+		if ret.RowsAffected == 0 {
+			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid coupon")))
+			return
+		}
+		if int64(uitem.PType)&int64(models.ProductType_Storage) == 0 {
+			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid coupon")))
+			return
+		}
+
+		quantity, price, discount, err := req.convertToOrder(db, models.ProductType_Storage)
+		if err != nil {
+			c.JSON(OKCode, NewResponse(c, RequestCode, err))
 			return
 		}
 
 		userID, _ := c.Get("id")
 		item := &models.Order{
+			OrderID:  generateOrderID(),
 			PType:    models.ProductType_Traffic,
-			Hash:     req.Hash,
-			Quantity: req.Size.Mul(decimal.NewFromInt(1024 * 1024)).BigInt().Uint64(),
+			Quantity: quantity,
+			Price:    price,
+			Discount: discount,
 			UserID:   userID.(uint),
 			Status:   models.OrderWait,
+			Hash:     req.Hash,
 		}
-		item.Price, _ = decimal.NewFromString(req.Amount)
-		if len(item.Hash) > 0 {
-			item.Status = models.OrderPending
+
+		if req.PaymentChannel == models.PaymentChannel_Crypto {
+			if len(item.Hash) > 0 {
+				item.Status = models.OrderPending
+			} else {
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, "no crypto hash"))
+				return
+			}
 		}
-		if err := db.Save(item).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+
+		var resp interface{}
+		if err := db.Transaction(func(tx *gorm.DB) error {
+			if err := db.Save(item).Error; err != nil {
+				return err
+			}
+			if req.PaymentChannel == models.PaymentChannel_Alipay {
+				res, err := pay.AliPayTrade("", item.OrderID, item.Price.StringFixed(2))
+				if err != nil {
+					return err
+				}
+				resp = res
+			} else {
+				return fmt.Errorf("not support payment channel")
+			}
+			return nil
+		}); err != nil {
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+
+		c.JSON(OKCode, NewResponse(c, OKCode, resp))
 	}
 }
 
@@ -167,21 +337,27 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 // @Tags bills
 // @Accept json
 // @Produce json
-// @Param   size     query    int     true        "buy size"
+// @Param data body BillReq true "data"
 // @Success 200 string ok
 // @Router /api/v1/buy/traffic [get]
 func BuyTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		var item models.Product
-		if err := db.Preload("Currency").Where("p_type = ?", models.ProductType_Storage).Find(&item).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+		var req BillReq
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 
-		c.JSON(http.StatusOK, NewResponse(OKCode, &map[string]interface{}{
-			"size":      item.Quantity,
-			"amount":    item.Price,
-			"receiptor": item.Currency.Receiptor,
+		quantity, price, discount, err := req.convertToOrder(db, models.ProductType_Storage)
+		if err != nil {
+			c.JSON(OKCode, NewResponse(c, RequestCode, err))
+			return
+		}
+
+		c.JSON(OKCode, NewResponse(c, OKCode, &map[string]interface{}{
+			"quantity": quantity,
+			"price":    price,
+			"discount": discount,
 		}))
 	}
 }
@@ -192,21 +368,27 @@ func BuyTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 // @Tags bills
 // @Accept json
 // @Produce json
-// @Param   size     query    string     true        "buy size"
+// @Param data body BillReq true "data"
 // @Success 200 string ok
 // @Router /api/v1/buy/storage [get]
 func BuyStorageHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		var item models.Product
-		if err := db.Preload("Currency").Where("p_type = ?", models.ProductType_Storage).Find(&item).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+		var req BillReq
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 
-		c.JSON(http.StatusOK, NewResponse(OKCode, &map[string]interface{}{
-			"size":      item.Quantity,
-			"amount":    item.Price,
-			"receiptor": item.Currency.Receiptor,
+		quantity, price, discount, err := req.convertToOrder(db, models.ProductType_Storage)
+		if err != nil {
+			c.JSON(OKCode, NewResponse(c, RequestCode, err))
+			return
+		}
+
+		c.JSON(OKCode, NewResponse(c, OKCode, &map[string]interface{}{
+			"quantity": quantity,
+			"price":    price,
+			"discount": discount,
 		}))
 	}
 }

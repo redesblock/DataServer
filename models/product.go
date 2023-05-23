@@ -9,7 +9,7 @@ type ProductType uint
 
 const (
 	ProductType_Storage ProductType = 1
-	ProductType_Traffic             = 1 << 1
+	ProductType_Traffic ProductType = 1 << 1
 )
 
 var ProductTypeMsgs = map[ProductType]string{

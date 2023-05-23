@@ -5,7 +5,6 @@ import (
 	"github.com/redesblock/dataserver/models"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
-	"net/http"
 	"strconv"
 )
 
@@ -19,20 +18,20 @@ func GetSpecialProduct(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 		var item models.SpecialProduct
 		res := db.Model(&models.SpecialProduct{}).Where("id = ?", id).Preload("Product").Preload("Product.Currency").Find(&item)
 		if err := res.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		if res.RowsAffected > 0 {
-			c.JSON(http.StatusOK, NewResponse(OKCode, &item))
+			c.JSON(OKCode, NewResponse(c, OKCode, &item))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, nil))
+		c.JSON(OKCode, NewResponse(c, OKCode, nil))
 	}
 }
 
@@ -57,7 +56,7 @@ func GetSpecialProducts(db *gorm.DB) func(c *gin.Context) {
 
 		var items []models.SpecialProduct
 		if err := tx.Preload("Product").Preload("Product.Currency").Find(&items).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -65,7 +64,7 @@ func GetSpecialProducts(db *gorm.DB) func(c *gin.Context) {
 		if total%pageSize != 0 {
 			pageTotal++
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, &List{
+		c.JSON(OKCode, NewResponse(c, OKCode, &List{
 			Total:     total,
 			PageTotal: pageTotal,
 			Items:     items,
@@ -91,16 +90,16 @@ func AddSpecialProduct(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req AddSpecialProductReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 
 		var t models.Product
 		if res := db.Where("p_type = ?", req.PType).Find(&t); res.Error != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, res.Error))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, res.Error))
 			return
 		} else if res.RowsAffected == 0 {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "invalid type"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "invalid type"))
 			return
 		}
 
@@ -114,10 +113,10 @@ func AddSpecialProduct(db *gorm.DB) func(c *gin.Context) {
 		}
 		res := db.Model(&models.SpecialProduct{}).Save(item)
 		if err := res.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+		c.JSON(OKCode, NewResponse(c, OKCode, item))
 	}
 }
 
@@ -138,12 +137,12 @@ func EditSpecialProduct(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 		var req EditSpecialProductReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 
@@ -152,10 +151,10 @@ func EditSpecialProduct(db *gorm.DB) func(c *gin.Context) {
 			Reserve: req.Reserve,
 		})
 		if err := res.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, res.RowsAffected > 0))
+		c.JSON(OKCode, NewResponse(c, OKCode, res.RowsAffected > 0))
 	}
 }
 
@@ -170,15 +169,15 @@ func DeleteSpecialProduct(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 		res := db.Unscoped().Where("id = ?", id).Delete(&models.SpecialProduct{})
 		if err := res.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, res.RowsAffected > 0))
+		c.JSON(OKCode, NewResponse(c, OKCode, res.RowsAffected > 0))
 	}
 
 }

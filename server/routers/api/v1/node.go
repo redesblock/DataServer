@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -21,20 +20,20 @@ func GetNode(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 		var item models.Node
 		res := db.Model(&models.Node{}).Where("id = ?", id).Find(&item)
 		if err := res.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		if res.RowsAffected > 0 {
-			c.JSON(http.StatusOK, NewResponse(OKCode, &item))
+			c.JSON(OKCode, NewResponse(c, OKCode, &item))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, nil))
+		c.JSON(OKCode, NewResponse(c, OKCode, nil))
 	}
 }
 
@@ -55,7 +54,7 @@ func GetNodes(db *gorm.DB) func(c *gin.Context) {
 
 		var items []models.Node
 		if err := tx.Find(&items).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -63,7 +62,7 @@ func GetNodes(db *gorm.DB) func(c *gin.Context) {
 		if total%pageSize != 0 {
 			pageTotal++
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, &List{
+		c.JSON(OKCode, NewResponse(c, OKCode, &List{
 			Total:     total,
 			PageTotal: pageTotal,
 			Items:     items,
@@ -89,7 +88,7 @@ func AddNode(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req AddNodeReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 
@@ -103,10 +102,10 @@ func AddNode(db *gorm.DB) func(c *gin.Context) {
 		}
 		res := db.Model(&models.Node{}).Save(item)
 		if err := res.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+		c.JSON(OKCode, NewResponse(c, OKCode, item))
 	}
 }
 
@@ -130,12 +129,12 @@ func EditNode(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 		var req EditNodeReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 
@@ -147,10 +146,10 @@ func EditNode(db *gorm.DB) func(c *gin.Context) {
 			Usable:    true,
 		})
 		if err := res.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, res.RowsAffected > 0))
+		c.JSON(OKCode, NewResponse(c, OKCode, res.RowsAffected > 0))
 	}
 }
 
@@ -165,15 +164,15 @@ func DeleteNode(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 		res := db.Unscoped().Where("id = ?", id).Delete(&models.Node{})
 		if err := res.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, res.RowsAffected > 0))
+		c.JSON(OKCode, NewResponse(c, OKCode, res.RowsAffected > 0))
 	}
 
 }
@@ -183,16 +182,16 @@ func GetAreasHandler(db *gorm.DB) func(c *gin.Context) {
 		var items []string
 		err := db.Model(&models.Node{}).Select("zone").Where("usable = true").Order("zone DESC").Find(&items).Error
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, items))
+		c.JSON(OKCode, NewResponse(c, OKCode, items))
 	}
 }
 
 func GetNetWorksHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		c.JSON(http.StatusOK, NewResponse(OKCode, strings.Split("MOP Storage", ",")))
+		c.JSON(OKCode, NewResponse(c, OKCode, strings.Split("MOP Storage", ",")))
 	}
 }
 
@@ -223,7 +222,7 @@ func NodeStorageHandler(db *gorm.DB) func(c *gin.Context) {
 		if t := c.Query("end"); len(t) > 0 {
 			end, err := time.Parse("2006-01-02", t)
 			if err != nil {
-				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
+				c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid time %s", t)))
 				return
 			}
 			endTime = end
@@ -233,7 +232,7 @@ func NodeStorageHandler(db *gorm.DB) func(c *gin.Context) {
 		if t := c.Query("start"); len(t) > 0 {
 			start, err := time.Parse("2006-01-02", t)
 			if err != nil {
-				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
+				c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid time %s", t)))
 				return
 			}
 			startTime = start
@@ -246,10 +245,10 @@ func NodeStorageHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 		var rets []*result
 		if err := db.Model(&models.ReportTraffic{}).Order("timestamp desc").Where("timestamp >= ? AND timestamp <= ?", startTime.Unix(), endTime.Unix()).Select("timestamp, sum(uploaded) as total").Group("timestamp").Find(&rets).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, func() []*models.UsedStorage {
+		c.JSON(OKCode, NewResponse(c, OKCode, func() []*models.UsedStorage {
 			cnt := len(rets)
 			for ; cnt > 0; cnt-- {
 				ret := rets[cnt-1]
@@ -291,7 +290,7 @@ func NodeTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		if t := c.Query("end"); len(t) > 0 {
 			end, err := time.Parse("2006-01-02", t)
 			if err != nil {
-				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
+				c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid time %s", t)))
 				return
 			}
 			endTime = end
@@ -301,7 +300,7 @@ func NodeTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		if t := c.Query("start"); len(t) > 0 {
 			start, err := time.Parse("2006-01-02", t)
 			if err != nil {
-				c.JSON(http.StatusOK, NewResponse(RequestCode, fmt.Errorf("invalid time %s", t)))
+				c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid time %s", t)))
 				return
 			}
 			startTime = start
@@ -314,10 +313,10 @@ func NodeTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 		var rets []*result
 		if err := db.Model(&models.ReportTraffic{}).Order("timestamp desc").Where("timestamp >= ? AND timestamp <= ?", startTime.Unix(), endTime.Unix()).Select("timestamp, sum(downloaded) as total").Group("timestamp").Limit(24).Find(&rets).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, func() []*models.UsedTraffic {
+		c.JSON(OKCode, NewResponse(c, OKCode, func() []*models.UsedTraffic {
 			cnt := len(rets)
 			for ; cnt > 0; cnt-- {
 				ret := rets[cnt-1]

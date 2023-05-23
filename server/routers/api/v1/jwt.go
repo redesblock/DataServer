@@ -72,7 +72,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 		authHeader := c.Request.Header.Get(HeaderTokenKey)
 		if authHeader == "" {
 			log.Info("Authorization empty")
-			c.JSON(http.StatusUnauthorized, NewResponse(AuthCode, "Empty Bearer Authorization"))
+			c.JSON(http.StatusUnauthorized, NewResponse(c, AuthCode, "Empty Bearer Authorization"))
 			c.Abort()
 			return
 		}
@@ -80,7 +80,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 		parts := strings.SplitN(authHeader, " ", 2)
 		if !(len(parts) == 2 && parts[0] == "Bearer") {
 			log.Info("Invalid Authorization: ", authHeader)
-			c.JSON(http.StatusUnauthorized, NewResponse(AuthCode, "Invalid Bearer Authorization"))
+			c.JSON(http.StatusUnauthorized, NewResponse(c, AuthCode, "Invalid Bearer Authorization"))
 			c.Abort()
 			return
 		}
@@ -88,7 +88,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 		mc, err := ParseToken(parts[1])
 		if err != nil {
 			log.Info("invalid Bearer token: ", authHeader)
-			c.JSON(http.StatusUnauthorized, NewResponse(AuthCode, "Invalid Bearer Authorization"))
+			c.JSON(http.StatusUnauthorized, NewResponse(c, AuthCode, "Invalid Bearer Authorization"))
 			c.Abort()
 			return
 		}
@@ -110,7 +110,7 @@ func JWTAuthMiddleware2() func(c *gin.Context) {
 		val, _ := c.Get("role")
 		role := val.(models.UserRole)
 		if role != models.UserRole_Admin && role != models.UserRole_Oper {
-			c.JSON(http.StatusUnauthorized, NewResponse(AuthCode, "Unauthorized roles"))
+			c.JSON(http.StatusUnauthorized, NewResponse(c, AuthCode, "Unauthorized roles"))
 			c.Abort()
 		}
 		c.Next() // 后续的处理函数可以用过c.Get("user")来获取当前请求的用户信

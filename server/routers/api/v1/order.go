@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
-	"net/http"
 	"strconv"
 	"time"
 )
@@ -19,20 +18,20 @@ func GetOrder(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 		var item models.Order
 		res := db.Model(&models.Order{}).Where("id = ?", id).Find(&item)
 		if err := res.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		if res.RowsAffected > 0 {
-			c.JSON(http.StatusOK, NewResponse(OKCode, &item))
+			c.JSON(OKCode, NewResponse(c, OKCode, &item))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, nil))
+		c.JSON(OKCode, NewResponse(c, OKCode, nil))
 	}
 }
 
@@ -58,7 +57,7 @@ func GetOrders(db *gorm.DB) func(c *gin.Context) {
 		if len(c.Query("p_type")) > 0 {
 			pType, err := strconv.ParseInt(c.Query("p_type"), 10, 64)
 			if err != nil {
-				c.JSON(http.StatusOK, NewResponse(RequestCode, err))
+				c.JSON(OKCode, NewResponse(c, RequestCode, err))
 				return
 			}
 			tx = tx.Where("p_type = ?", pType)
@@ -68,12 +67,12 @@ func GetOrders(db *gorm.DB) func(c *gin.Context) {
 		if len(start) > 0 && len(end) > 0 {
 			startTime, err := time.Parse("2006-01-02", start)
 			if err != nil {
-				c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+				c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 				return
 			}
 			endTime, err := time.Parse("2006-01-02", end)
 			if err != nil {
-				c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+				c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 				return
 			}
 			if startTime.After(endTime) {
@@ -91,7 +90,7 @@ func GetOrders(db *gorm.DB) func(c *gin.Context) {
 
 		var items []models.Order
 		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Find(&items).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -99,7 +98,7 @@ func GetOrders(db *gorm.DB) func(c *gin.Context) {
 		if total%pageSize != 0 {
 			pageTotal++
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, &List{
+		c.JSON(OKCode, NewResponse(c, OKCode, &List{
 			Total:     total,
 			PageTotal: pageTotal,
 			Items:     items,
@@ -120,17 +119,17 @@ func GetOrders(db *gorm.DB) func(c *gin.Context) {
 //	return func(c *gin.Context) {
 //		var req AddOrderReq
 //		if err := c.ShouldBindJSON(&req); err != nil {
-//			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+//			c.JSON(OKCode, NewResponse(c,RequestCode, err.Error()))
 //			return
 //		}
 //
 //		item := &models.Order{}
 //		res := db.Model(&models.Node{}).Save(item)
 //		if err := res.Error; err != nil {
-//			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+//			c.JSON(OKCode, NewResponse(c,ExecuteCode, err))
 //			return
 //		}
-//		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+//		c.JSON(OKCode, NewResponse(c,OKCode, item))
 //	}
 //}
 //
@@ -148,20 +147,20 @@ func GetOrders(db *gorm.DB) func(c *gin.Context) {
 //	return func(c *gin.Context) {
 //		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 //		if err != nil {
-//			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+//			c.JSON(OKCode, NewResponse(c,RequestCode, "invalid id"))
 //			return
 //		}
 //		var req EditOrderReq
 //		if err := c.ShouldBindJSON(&req); err != nil {
-//			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+//			c.JSON(OKCode, NewResponse(c,RequestCode, err.Error()))
 //			return
 //		}
 //
 //		res := db.Model(&models.Node{}).Where("id = ?", id).Updates(&models.Order{})
 //		if err := res.Error; err != nil {
-//			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+//			c.JSON(OKCode, NewResponse(c,ExecuteCode, err))
 //			return
 //		}
-//		c.JSON(http.StatusOK, NewResponse(OKCode, res.RowsAffected > 0))
+//		c.JSON(OKCode, NewResponse(c,OKCode, res.RowsAffected > 0))
 //	}
 //}

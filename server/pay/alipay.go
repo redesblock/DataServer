@@ -1,28 +1,43 @@
 package pay
 
 import (
-	"github.com/go-pay/gopay"
-	"github.com/go-pay/gopay/alipay"
+	"github.com/smartwalle/alipay/v3"
 	"github.com/spf13/viper"
-	"io"
 )
 
-func AliPayClient() (*alipay.Client, error) {
-	client, err := alipay.NewClient(viper.GetString("alipay.appid"), viper.GetString("alipay.privateKey"), viper.GetBool("alipay.isProd"))
-	if err != nil {
-		return nil, err
-	}
-	client.DebugSwitch = gopay.DebugOn
-	client.SetLocation(alipay.LocationShanghai).
-		SetCharset(alipay.UTF8).
-		SetSignType(alipay.RSA2).
-		SetReturnUrl(viper.GetString("alipay.returnUrl")).
-		SetNotifyUrl(viper.GetString("alipay.notifyUrl"))
+var AlipayClient *alipay.Client
 
-	client.AutoVerifySign([]byte(viper.GetString("alipay.PublicKeyContent")))
-	err = client.SetCertSnByPath("appCertPublicKey.crt", "alipayRootCert.crt", "alipayCertPublicKey_RSA2.crt")
+func InitAlipay() {
+	appid := viper.GetString("alipay.appid")
+	isprod := viper.GetBool("alipay.isprod")
+	appkey := viper.GetString("alipay.app.privateKey")
+	apppub := viper.GetString("alipay.app.publicKey")
+	aliroot := viper.GetString("alipay.root")
+	alipub := viper.GetString("alipay.publicKey")
+
+	client, err := alipay.New(appid, appkey, isprod)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	return client, nil
+	client.LoadAppPublicCertFromFile(apppub)
+	client.LoadAliPayRootCertFromFile(aliroot)
+	client.LoadAliPayPublicCertFromFile(alipub)
+
+	AlipayClient = client
+}
+
+func AliPayTrade(subject, orderID, amount string) (string, error) {
+	var p = alipay.TradePagePay{}
+	p.ReturnURL = viper.GetString("alipay.returnUrl")
+	p.NotifyURL = viper.GetString("alipay.notifyUrl")
+
+	p.Subject = subject
+	p.OutTradeNo = orderID
+	p.TotalAmount = amount
+	p.ProductCode = "FAST_INSTANT_TRADE_PAY"
+	url, err := AlipayClient.TradePagePay(p)
+	if err != nil {
+		return "", err
+	}
+	return url.String(), nil
 }

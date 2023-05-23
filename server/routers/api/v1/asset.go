@@ -40,24 +40,24 @@ func GetAssetHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 
 		fid, err := strconv.ParseUint(c.DefaultQuery("fid", "0"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid fid"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid fid"))
 			return
 		}
 
 		//userID, _ := c.Get("id")
 		//var user models.User
 		//if err := db.Find(&user, "id = ?", userID).Error; err != nil {
-		//	c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+		//	c.JSON(OKCode, NewResponse(c,ExecuteCode, err))
 		//	return
 		//}
 		//if user.UsedStorage >= user.TotalStorage {
-		//	c.JSON(http.StatusOK, NewResponse(ExecuteCode, "storage usage has reached the maximum"))
+		//	c.JSON(OKCode, NewResponse(c,ExecuteCode, "storage usage has reached the maximum"))
 		//	return
 		//}
 
@@ -77,7 +77,7 @@ func GetAssetHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		if err := os.Mkdir(filepath.Join("assets", assetID), os.ModePerm); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err))
 			return
 		}
 
@@ -88,14 +88,14 @@ func GetAssetHandler(db *gorm.DB) func(c *gin.Context) {
 			AssetID:  assetID,
 			Status:   models.STATUS_WAIT,
 		}).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		data := map[string]interface{}{
 			"asset_id": assetID,
 			"url":      "/upload/" + assetID,
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, data))
+		c.JSON(OKCode, NewResponse(c, OKCode, data))
 	}
 }
 
@@ -113,7 +113,7 @@ func FinishFileUploadHandler(db *gorm.DB) func(c *gin.Context) {
 		assetID := c.Param("asset_id")
 		var item *models.BucketObject
 		if ret := db.Find(&item, "asset_id = ?", assetID); ret.RowsAffected == 0 {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "asset not found"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "asset not found"))
 			return
 		}
 
@@ -182,17 +182,17 @@ func FinishFileUploadHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		if err := readLine("./assets/"+assetID+".json", handler); err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		} else {
 			item.UplinkProgress = 10
 			item.Status = models.STATUS_UPLOADED
 			if err := db.Save(item).Error; err != nil {
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 				return
 			}
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, assetID))
+		c.JSON(OKCode, NewResponse(c, OKCode, assetID))
 	}
 }
 
@@ -228,7 +228,7 @@ func FileUploadHandler(db *gorm.DB) func(c *gin.Context) {
 		assetID := c.Param("asset_id")
 		var item *models.BucketObject
 		if ret := db.Find(&item, "asset_id = ?", assetID); ret.RowsAffected == 0 {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "asset not found"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "asset not found"))
 			return
 		}
 		tempFolder := "./assets/" + assetID
@@ -246,13 +246,13 @@ func FileUploadHandler(db *gorm.DB) func(c *gin.Context) {
 		f, err := os.OpenFile(relativeChunk, os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
 			log.Errorf("open file %s error %s", relativeChunk, err)
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "open file error"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "open file error"))
 			return
 		}
 		defer f.Close()
 		writeSize, err := io.Copy(f, file)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "copy file error"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "copy file error"))
 			return
 		}
 
@@ -269,7 +269,7 @@ func FileUploadHandler(db *gorm.DB) func(c *gin.Context) {
 			}
 			var item *models.BucketObject
 			if ret := tx.Find(&item, "asset_id = ?", assetID); ret.RowsAffected == 0 {
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, fmt.Errorf("asset %s not found", assetID)))
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, fmt.Errorf("asset %s not found", assetID)))
 				return nil
 			}
 			item.Size += uint64(writeSize)
@@ -292,9 +292,9 @@ func FileUploadHandler(db *gorm.DB) func(c *gin.Context) {
 			item2.Num += uint64(writeSize)
 			return tx.Save(&item2).Error
 		}); err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+		c.JSON(OKCode, NewResponse(c, OKCode, item))
 	}
 }
 
@@ -314,11 +314,11 @@ func GetFileDownloadHandler(db *gorm.DB) func(c *gin.Context) {
 		userID, _ := c.Get("id")
 		var user models.User
 		if err := db.Find(&user, "id = ?", userID).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		//if user.UsedTraffic >= user.TotalTraffic {
-		//	c.JSON(http.StatusOK, NewResponse(ExecuteCode, "storage usage has reached the maximum"))
+		//	c.JSON(OKCode, NewResponse(c,ExecuteCode, "storage usage has reached the maximum"))
 		//	return
 		//}
 

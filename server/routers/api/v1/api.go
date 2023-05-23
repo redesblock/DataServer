@@ -27,7 +27,7 @@ type Response struct {
 	Data   interface{} `json:"data"`
 }
 
-func NewResponse(code int, data interface{}) *Response {
+func NewResponse(c *gin.Context, code int, data interface{}) *Response {
 	res := &Response{
 		Code: code,
 	}
@@ -36,10 +36,10 @@ func NewResponse(code int, data interface{}) *Response {
 		res.Data = data
 	} else if err, ok := data.(error); ok {
 		res.Detail = err.Error()
-		log.Error("api err ", res.Detail)
+		log.Error("api err ", c.Request.URL.Path, res.Detail)
 	} else {
 		res.Detail, _ = data.(string)
-		log.Error("api err ", res.Detail)
+		log.Error("api err ", c.Request.URL.Path, res.Detail)
 	}
 	return res
 }

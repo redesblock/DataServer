@@ -4,15 +4,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 func GetERC20ContractHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		c.JSON(http.StatusOK, NewResponse(OKCode, map[string]string{
-			"abi":  ERC20ABI,
-			"mop":  viper.GetString("price.mop"),
-			"usdt": viper.GetString("price.usdt"),
+		c.JSON(OKCode, NewResponse(c, OKCode, map[string]string{
+			"abi":       ERC20ABI,
+			"mop":       viper.GetString("price.mop"),
+			"usdt":      viper.GetString("price.usdt"),
+			"receiptor": viper.GetString("price.receiptor"),
 		}))
 	}
 }

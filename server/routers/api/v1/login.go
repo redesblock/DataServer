@@ -33,22 +33,22 @@ func Login(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req LoginReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 		if !VerifyEmailFormat(req.Email) {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid email"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid email"))
 			return
 		}
 		if len(req.Password) == 0 {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid password"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid password"))
 			return
 		}
 
 		var item models.User
 		ret := db.Model(&models.User{}).Where("email = ?", req.Email).Find(&item)
 		if err := ret.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		req.Password = Sha256(req.Password)
@@ -60,17 +60,17 @@ func Login(db *gorm.DB) func(c *gin.Context) {
 				Role:     models.UserRole_User,
 			}
 			if err := db.Save(&item).Error; err != nil {
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 				return
 			}
 		}
 		if item.Password != req.Password {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "wrong password"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "wrong password"))
 			return
 		}
 
 		if item.Status == models.UserStaus_Disabled {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "user ban"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "user ban"))
 			return
 		}
 
@@ -80,7 +80,7 @@ func Login(db *gorm.DB) func(c *gin.Context) {
 			Role:  item.Role,
 		})
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -91,7 +91,7 @@ func Login(db *gorm.DB) func(c *gin.Context) {
 			UserID:     item.ID,
 		})
 		c.Header(HeaderTokenKey, "Bearer "+token)
-		c.JSON(http.StatusOK, NewResponse(OKCode, "Bearer "+token))
+		c.JSON(OKCode, NewResponse(c, OKCode, "Bearer "+token))
 	}
 }
 
@@ -106,40 +106,40 @@ func Login2(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req LoginReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 		if !VerifyEmailFormat(req.Email) {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid email"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid email"))
 			return
 		}
 		if len(req.Password) == 0 {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid password"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid password"))
 			return
 		}
 
 		var item models.User
 		ret := db.Model(&models.User{}).Where("email = ?", req.Email).Find(&item)
 		if err := ret.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		req.Password = Sha256(req.Password)
 
 		if ret.RowsAffected == 0 {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "user not found"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "user not found"))
 			return
 		}
 		if item.Password != req.Password {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "wrong password"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "wrong password"))
 			return
 		}
 		if item.Status == models.UserStaus_Disabled {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "user ban"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "user ban"))
 			return
 		}
 		if item.Role != models.UserRole_Admin && item.Role != models.UserRole_Oper {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "no role"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "no role"))
 			return
 		}
 
@@ -149,7 +149,7 @@ func Login2(db *gorm.DB) func(c *gin.Context) {
 			Role:  item.Role,
 		})
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -160,7 +160,7 @@ func Login2(db *gorm.DB) func(c *gin.Context) {
 			UserID:     item.ID,
 		})
 		c.Header(HeaderTokenKey, "Bearer "+token)
-		c.JSON(http.StatusOK, NewResponse(OKCode, "Bearer "+token))
+		c.JSON(OKCode, NewResponse(c, OKCode, "Bearer "+token))
 	}
 }
 
@@ -179,22 +179,22 @@ func Forgot(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req ForgotReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 		if !VerifyEmailFormat(req.Email) {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid email"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid email"))
 			return
 		}
 
 		var item models.User
 		ret := db.Model(&models.User{}).Where("email = ?", req.Email).Find(&item)
 		if err := ret.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		if ret.RowsAffected == 0 {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "email not exist"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "email not exist"))
 			return
 		}
 
@@ -206,11 +206,11 @@ func Forgot(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		if err := SendGoMail([]string{req.Email}, "Reset password", fmt.Sprintf(EmailContentTemplate_RESET, code)); err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
-		c.JSON(http.StatusOK, NewResponse(OKCode, nil))
+		c.JSON(OKCode, NewResponse(c, OKCode, nil))
 	}
 }
 
@@ -231,18 +231,18 @@ func Reset(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req ResetReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 		if !VerifyEmailFormat(req.Email) {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid email"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid email"))
 			return
 		}
 
 		var item models.User
 		ret := db.Model(&models.User{}).Where("email = ?", req.Email).Find(&item)
 		if err := ret.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -253,13 +253,13 @@ func Reset(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		if len(req.Code) == 0 || code != req.Code {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "wrong code"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "wrong code"))
 			return
 		}
 
 		item.Password = Sha256(req.Password)
 		if err := db.Save(&item).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -269,7 +269,7 @@ func Reset(db *gorm.DB) func(c *gin.Context) {
 			IP:         RemoteIp(c.Request),
 			UserID:     item.ID,
 		})
-		c.JSON(http.StatusOK, NewResponse(OKCode, nil))
+		c.JSON(OKCode, NewResponse(c, OKCode, nil))
 	}
 }
 

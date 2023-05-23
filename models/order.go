@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -49,22 +48,14 @@ type Order struct {
 	UserID uint `json:"user_id"`
 	User   User
 
+	CurrencyID uint `json:"currency_id"`
+	Currency   Currency
+
 	Created     string `json:"created_at" gorm:"-"`
 	Updated     string `json:"updated_at" gorm:"-"`
 	QuantityStr string `json:"size_str" gorm:"-"`
 	StatusStr   string `json:"status_str" gorm:"-"`
 	URL         string `json:"url" gorm:"-"`
-}
-
-func (item *Order) BeforeCreate(tx *gorm.DB) (err error) {
-	var num int64
-	mutex.Lock()
-	defer mutex.Unlock()
-	if err := tx.Count(&num).Error; err != nil {
-		return err
-	}
-	item.OrderID = fmt.Sprintf("%s%d", time.Now().Format("20060102150405"), num)
-	return
 }
 
 func (item *Order) AfterFind(tx *gorm.DB) (err error) {

@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
-	"net/http"
 	"strconv"
 )
 
@@ -25,7 +24,7 @@ func GetBucketsHandler(db *gorm.DB) func(c *gin.Context) {
 		offset := (pageNum - 1) * pageSize
 		total, items, err := models.FindBuckets(db, userID.(uint), offset, pageSize)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -33,7 +32,7 @@ func GetBucketsHandler(db *gorm.DB) func(c *gin.Context) {
 		if total%pageSize != 0 {
 			pageTotal++
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, &List{
+		c.JSON(OKCode, NewResponse(c, OKCode, &List{
 			Total:     total,
 			PageTotal: pageTotal,
 			Items:     items,
@@ -53,18 +52,18 @@ func GetBucketHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 
 		userID, _ := c.Get("id")
 		item, err := models.FindBucket(db, userID.(uint), uint(id))
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+		c.JSON(OKCode, NewResponse(c, OKCode, item))
 	}
 }
 
@@ -80,17 +79,17 @@ func DeleteBucketHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 
 		userID, _ := c.Get("id")
 		if err := db.Where("user_id = ?", userID).Where("id = ?", id).Delete(&models.Bucket{}).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
-		c.JSON(http.StatusOK, NewResponse(OKCode, "ok"))
+		c.JSON(OKCode, NewResponse(c, OKCode, "ok"))
 	}
 }
 
@@ -113,17 +112,17 @@ func AddBucketHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req Bucket
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 
 		userID, _ := c.Get("id")
 		var item *models.Bucket
 		if ret := db.Model(&models.Bucket{}).Where("user_id = ?", userID).Where("name = ?", req.Name).Find(&item); ret.Error != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, ret.Error))
 			return
 		} else if ret.RowsAffected > 0 {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "bucket already exist"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "bucket already exist"))
 			return
 		}
 
@@ -134,10 +133,10 @@ func AddBucketHandler(db *gorm.DB) func(c *gin.Context) {
 		item.UserID = userID.(uint)
 
 		if err := db.Save(item).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+		c.JSON(OKCode, NewResponse(c, OKCode, item))
 	}
 }
 
@@ -154,17 +153,17 @@ func UpdateBucketHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req Bucket
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 
 		userID, _ := c.Get("id")
 		var item *models.Bucket
 		if ret := db.Model(&models.Bucket{}).Where("user_id = ?", userID).Where("id = ?", c.Param("id")).Find(&item); ret.Error != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, ret.Error))
 			return
 		} else if ret.RowsAffected == 0 {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "not found"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "not found"))
 			return
 		}
 
@@ -175,9 +174,9 @@ func UpdateBucketHandler(db *gorm.DB) func(c *gin.Context) {
 		item.UserID = userID.(uint)
 
 		if err := db.Save(item).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+		c.JSON(OKCode, NewResponse(c, OKCode, item))
 	}
 }

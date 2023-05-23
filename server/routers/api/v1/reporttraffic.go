@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
-	"net/http"
 	"time"
 )
 
@@ -33,12 +32,12 @@ func GetReportTraffics(db *gorm.DB) func(c *gin.Context) {
 		if len(start) > 0 && len(end) > 0 {
 			startTime, err := time.Parse("2006-01-02", start)
 			if err != nil {
-				c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+				c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 				return
 			}
 			endTime, err := time.Parse("2006-01-02", end)
 			if err != nil {
-				c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+				c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 				return
 			}
 			if startTime.After(endTime) {
@@ -53,7 +52,7 @@ func GetReportTraffics(db *gorm.DB) func(c *gin.Context) {
 
 		var items []models.ReportTraffic
 		if err := tx.Find(&items).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -61,7 +60,7 @@ func GetReportTraffics(db *gorm.DB) func(c *gin.Context) {
 		if total%pageSize != 0 {
 			pageTotal++
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, &List{
+		c.JSON(OKCode, NewResponse(c, OKCode, &List{
 			Total:     total,
 			PageTotal: pageTotal,
 			Items:     items,
@@ -92,7 +91,7 @@ func AddReportTraffic(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req ReportTrafficReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 
@@ -144,9 +143,9 @@ func AddReportTraffic(db *gorm.DB) func(c *gin.Context) {
 			}
 			return nil
 		}); err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err.Error()))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, "ok"))
+		c.JSON(OKCode, NewResponse(c, OKCode, "ok"))
 	}
 }

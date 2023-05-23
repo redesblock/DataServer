@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
-	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -41,33 +40,33 @@ func OverViewHandler(db *gorm.DB) func(c *gin.Context) {
 		fmt.Println(userRole, userID)
 		if userRole.(models.UserRole) == models.UserRole_Oper || userRole.(models.UserRole) == models.UserRole_Admin {
 			if err := db.Model(&models.Bucket{}).Select("COUNT(id) AS count").Scan(&item.Buckets).Error; err != nil {
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 				return
 			}
 
 			if err := db.Model(&models.BucketObject{}).Where("status > ?", models.STATUS_WAIT).Select("COUNT(id) AS count").Scan(&item.Objects).Error; err != nil {
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 				return
 			}
 
 			if err := db.Model(&models.UsedStorage{}).Select("COALESCE(SUM(num),0) AS total").Scan(&item.UsedStorage).Error; err != nil {
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 				return
 			}
 
 			if err := db.Model(&models.UsedTraffic{}).Select("COALESCE(SUM(num),0) AS total").Scan(&item.UsedTraffic).Error; err != nil {
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 				return
 			}
 
 			if err := db.Model(&models.User{}).Select("COALESCE(SUM(total_storage),0) AS total_storage, COALESCE(SUM(total_traffic),0) AS total_traffic").Scan(&item).Error; err != nil {
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 				return
 			}
 
 			var usr models.User
 			if err := db.Model(&models.User{}).Where("id = ?", userID).Find(&usr).Error; err != nil {
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 				return
 			}
 			item.TotalTrafficStr = models.ByteSize(item.TotalTraffic)
@@ -76,32 +75,32 @@ func OverViewHandler(db *gorm.DB) func(c *gin.Context) {
 			item.UsedTrafficStr = models.ByteSize(item.UsedTraffic)
 			item.UsedStorageStr = models.ByteSize(item.UsedStorage)
 
-			c.JSON(http.StatusOK, NewResponse(OKCode, item))
+			c.JSON(OKCode, NewResponse(c, OKCode, item))
 			return
 		}
 		if err := db.Model(&models.Bucket{}).Where("user_id = ?", userID).Select("COUNT(id) AS count").Scan(&item.Buckets).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
 		if err := db.Model(&models.BucketObject{}).Where("status > ?", models.STATUS_WAIT).Where("bucket_id IN (?)", db.Model(&models.Bucket{}).Select("id").Where("user_id = ?", userID)).Select("COUNT(id) AS count").Scan(&item.Objects).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
 		if err := db.Model(&models.UsedStorage{}).Where("user_id = ?", userID).Select("COALESCE(SUM(num),0) AS total").Scan(&item.UsedStorage).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
 		if err := db.Model(&models.UsedTraffic{}).Where("user_id = ?", userID).Select("COALESCE(SUM(num),0) AS total").Scan(&item.UsedTraffic).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
 		var usr models.User
 		if err := db.Model(&models.User{}).Where("id = ?", userID).Find(&usr).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		item.TotalTraffic = usr.TotalTraffic
@@ -112,7 +111,7 @@ func OverViewHandler(db *gorm.DB) func(c *gin.Context) {
 		item.UsedTrafficStr = models.ByteSize(item.UsedTraffic)
 		item.UsedStorageStr = models.ByteSize(item.UsedStorage)
 
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+		c.JSON(OKCode, NewResponse(c, OKCode, item))
 	}
 }
 
@@ -138,19 +137,19 @@ func DailyStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				var item models.UsedStorage
 				item.Time = d.Format("2006-01-02")
 				if ret := db.Where("time = ?", item.Time).Select("COALESCE(SUM(num),0) AS num").Find(&item); ret.Error != nil {
-					c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
+					c.JSON(OKCode, NewResponse(c, ExecuteCode, ret.Error))
 					return
 				}
 				items = append(items, &item)
 			}
-			c.JSON(http.StatusOK, NewResponse(OKCode, items))
+			c.JSON(OKCode, NewResponse(c, OKCode, items))
 			return
 		}
 		for i := 6; i >= 0; i-- {
 			d := date.Add(-time.Hour * 24 * time.Duration(i))
 			var item *models.UsedStorage
 			if ret := db.Where("user_id = ?", userID).Where("time = ?", d.Format("2006-01-02")).Find(&item); ret.Error != nil {
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, ret.Error))
 				return
 			} else if ret.RowsAffected == 0 {
 				item = &models.UsedStorage{
@@ -159,7 +158,7 @@ func DailyStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				}
 			}
 			items = append(items, item)
-			c.JSON(http.StatusOK, NewResponse(OKCode, items))
+			c.JSON(OKCode, NewResponse(c, OKCode, items))
 			return
 		}
 	}
@@ -190,19 +189,19 @@ func DailyTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				var item models.UsedTraffic
 				item.Time = d.Format("2006-01-02")
 				if ret := db.Where("time = ?", item.Time).Select("COALESCE(SUM(num),0) AS num").Find(&item); ret.Error != nil {
-					c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
+					c.JSON(OKCode, NewResponse(c, ExecuteCode, ret.Error))
 					return
 				}
 				items = append(items, &item)
 			}
-			c.JSON(http.StatusOK, NewResponse(OKCode, items))
+			c.JSON(OKCode, NewResponse(c, OKCode, items))
 			return
 		}
 		for i := 6; i >= 0; i-- {
 			d := date.Add(-time.Hour * 24 * time.Duration(i))
 			var item *models.UsedTraffic
 			if ret := db.Where("user_id = ?", userID).Where("time = ?", d.Format("2006-01-02")).Find(&item); ret.Error != nil {
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, ret.Error))
 				return
 			} else if ret.RowsAffected == 0 {
 				item = &models.UsedTraffic{
@@ -211,7 +210,7 @@ func DailyTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				}
 			}
 			items = append(items, item)
-			c.JSON(http.StatusOK, NewResponse(OKCode, items))
+			c.JSON(OKCode, NewResponse(c, OKCode, items))
 			return
 		}
 	}

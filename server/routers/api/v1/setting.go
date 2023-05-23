@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 // @Summary user info
@@ -22,14 +21,14 @@ func GetUserHandler(db *gorm.DB) func(c *gin.Context) {
 		var item models.User
 		ret := db.Model(&models.User{}).Where("id = ?", userID).Find(&item)
 		if err := ret.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		if ret.RowsAffected == 0 {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, nil))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, nil))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+		c.JSON(OKCode, NewResponse(c, OKCode, item))
 	}
 }
 
@@ -55,7 +54,7 @@ func AddUserHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req UserReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, err.Error()))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
 		req.Password = Sha256(req.Password)
@@ -65,11 +64,11 @@ func AddUserHandler(db *gorm.DB) func(c *gin.Context) {
 		var item models.User
 		ret := db.Model(&models.User{}).Where("id = ?", userID).Find(&item)
 		if err := ret.Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 		if ret.RowsAffected == 0 {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "not found"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "not found"))
 			return
 		}
 
@@ -78,7 +77,7 @@ func AddUserHandler(db *gorm.DB) func(c *gin.Context) {
 		item.Email = req.Email
 		if len(req.NewPassword) > 0 {
 			if item.Password != req.Password {
-				c.JSON(http.StatusOK, NewResponse(ExecuteCode, "wrong password"))
+				c.JSON(OKCode, NewResponse(c, ExecuteCode, "wrong password"))
 				return
 			}
 			req.NewPassword = Sha256(req.NewPassword)
@@ -86,10 +85,10 @@ func AddUserHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		if err := db.Save(item).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+		c.JSON(OKCode, NewResponse(c, OKCode, item))
 	}
 }
 
@@ -115,7 +114,7 @@ func UserActionsHandler(db *gorm.DB) func(c *gin.Context) {
 
 		var items []*models.UserAction
 		if err := tx.Find(&items).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -123,7 +122,7 @@ func UserActionsHandler(db *gorm.DB) func(c *gin.Context) {
 		if total%pageSize != 0 {
 			pageTotal++
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, &List{
+		c.JSON(OKCode, NewResponse(c, OKCode, &List{
 			Total:     total,
 			PageTotal: pageTotal,
 			Items:     items,

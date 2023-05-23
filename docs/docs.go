@@ -607,11 +607,13 @@ var doc = `{
                 "summary": "traffic price",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "buy size",
-                        "name": "size",
-                        "in": "query",
-                        "required": true
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.BillReq"
+                        }
                     }
                 ],
                 "responses": {
@@ -639,11 +641,13 @@ var doc = `{
                 "summary": "traffic price",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "buy size",
-                        "name": "size",
-                        "in": "query",
-                        "required": true
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.BillReq"
+                        }
                     }
                 ],
                 "responses": {
@@ -676,6 +680,12 @@ var doc = `{
                         "type": "integer",
                         "description": "page size",
                         "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "type",
+                        "name": "p_type",
                         "in": "query"
                     }
                 ],
@@ -2746,6 +2756,32 @@ var doc = `{
                 },
                 "password": {
                     "type": "string"
+                }
+            }
+        },
+        "v1.BillReq": {
+            "type": "object",
+            "properties": {
+                "coupon": {
+                    "type": "integer"
+                },
+                "currency": {
+                    "type": "integer"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "payment_channel": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "special_product": {
+                    "type": "integer"
                 }
             }
         },

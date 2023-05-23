@@ -63,6 +63,8 @@ type UserCoupon struct {
 	User   User `json:"user"`
 	Used   bool `json:"used"`
 
+	PType ProductType `json:"product_type"`
+
 	CouponID uint   `json:"-"`
 	Coupon   Coupon `json:"coupon"`
 }

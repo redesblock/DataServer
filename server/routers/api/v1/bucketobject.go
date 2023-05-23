@@ -27,19 +27,19 @@ func GetBucketObjectsHandler(db *gorm.DB) func(c *gin.Context) {
 
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 
 		fid, err := strconv.ParseUint(c.DefaultQuery("fid", "0"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid fid"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid fid"))
 			return
 		}
 
 		total, items, err := models.FindBucketObjects(db, uint(id), uint(fid), offset, pageSize)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
@@ -47,7 +47,7 @@ func GetBucketObjectsHandler(db *gorm.DB) func(c *gin.Context) {
 		if total%pageSize != 0 {
 			pageTotal++
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, &List{
+		c.JSON(OKCode, NewResponse(c, OKCode, &List{
 			Total:     total,
 			PageTotal: pageTotal,
 			Items:     items,
@@ -68,23 +68,23 @@ func GetBucketObjectHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 
 		fid, err := strconv.ParseUint(c.Param("fid"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid fid"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid fid"))
 			return
 		}
 
 		item, err := models.FindBucketObject(db, uint(id), uint(fid))
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+		c.JSON(OKCode, NewResponse(c, OKCode, item))
 	}
 }
 
@@ -101,22 +101,22 @@ func DeleteBucketObjectHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 
 		fid, err := strconv.ParseUint(c.Param("fid"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid fid"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid fid"))
 			return
 		}
 
 		if err := db.Where("bucket_id = ?", id).Where("id = ?", fid).Delete(&models.BucketObject{}).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
 
-		c.JSON(http.StatusOK, NewResponse(OKCode, "ok"))
+		c.JSON(OKCode, NewResponse(c, OKCode, "ok"))
 	}
 }
 
@@ -141,12 +141,12 @@ func AddBucketObjectHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid id"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
 			return
 		}
 		var req AddBucketReq
 		if err := c.BindJSON(&req); err != nil {
-			c.JSON(http.StatusOK, NewResponse(RequestCode, "invalid fid"))
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid fid"))
 			return
 		}
 		fid := req.Parent
@@ -156,10 +156,10 @@ func AddBucketObjectHandler(db *gorm.DB) func(c *gin.Context) {
 
 		var t *models.BucketObject
 		if ret := db.Model(&models.BucketObject{}).Where("bucket_id = ?", id).Where("parent_id = ?", fid).Where("name = ?", name).Find(&t); ret.Error != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, ret.Error))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, ret.Error))
 			return
 		} else if ret.RowsAffected > 0 {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, "object already exist"))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, "object already exist"))
 			return
 		}
 
@@ -181,9 +181,9 @@ func AddBucketObjectHandler(db *gorm.DB) func(c *gin.Context) {
 			item.UplinkProgress = 100
 		}
 		if err := db.Save(item).Error; err != nil {
-			c.JSON(http.StatusOK, NewResponse(ExecuteCode, err))
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(http.StatusOK, NewResponse(OKCode, item))
+		c.JSON(OKCode, NewResponse(c, OKCode, item))
 	}
 }

@@ -29,8 +29,6 @@ price:
   mop: 0xcc07B6277c7B4614884eEa59972AfEa17f40716F
   usdt: 0x804c7762fbeab64ac554aec644e43ab934d23ff0
   receiptor: 0x5529E3F428f42C23DDaCbb80fd46247B775725b1
-  traffic: 0.0001 # download price
-  storage: 0.0001 # upload price
 
 # download base url
 gateway: https://gateway.mopweb3.cn/
@@ -41,8 +39,12 @@ bsc:
 
 alipay:
   appid: 2021000122621871
-  privateKey:
-  isProd:
+  appname: sandbox应用:2088621995302883
+  isProd: false
   returnUrl:
   notifyUrl:
-  alipayPublicKeyContent:
+  app:
+    privateKey: MIIEngIBAAKCAQEAhwEI2+wqe+n3RWpY5i9LdlLSba7+aVS51BPbUXqX1h1rbiRMz+9wybeHSVWpXbzqqVB2QtUfZuXzwVpBsbdJFaVkrbb+wTxC/EGbM9vzL3XWsE0wGMCmT9kDJd3uWYPnLWXdNIRrmiVuQqb7JrH7qvEjvuBC8yGjtHmLNVvAeldHwOLs6pTDt4UFSEMSSA3GGJ7Ij06IYwI2fm08iMYK+TanNjVvpQxNe+G7eUKrM1ogOptqwqURVb2Cf7j8k+IgOjGsUeIRCmJErepSa4oc/19L860YLIDrmBbBit9Nu7YKNX7niY1HOeEZEAxooD2wWa5/N6TZqcJC5KhxW+HcIwIDAQABAoIBAF4KpnUr6dwveoPsNMkDoPlncBXflHEjB99nhZsYXrRUAgXTW35tOJALPD4lYbleY8hVuEuN0jYHcOj7Sk/VcR+W+q7XjlZk9/RobwiM6rXgzBA7dImJiVCNxteV5PaOH3dMQe7XX20dLdVYJBMsYDcPiurnpTtf731EPWiJ5WZSZc787MsjnHu2pOQOrgYlJxoHNAqcfz/aDNTRIqqUXfkQbZDQ2/3upkG5cX7jVTG/uiiSQ1tZx0P3+sK5e17kVjTrcxE+AoAXNe8g4UE2o/sW71KFolYCI1ARJETbzqvt11gp66n69TdISbZZ/wQNqphxmUYi04IYje9JKJgSKmECgYEA4+5Fs4CHkbZvOcsoCwA17m/6lRzQgH1735VF1MCx6oNCVOzwEErYd60cyFHLKBXffGuFchGoBOXzHfutp23L6HUjjYrJzP7f4yvUOGejTLZGRFlYb5e/QHMNLLO4p1VFm8/gXzg01UgYAYacMANDgT0qDL8muH0h9xJZeveVTtUCgYEAl6EpcF5oZm2hqyDw2Ol7fSIzvrVa060ghfn3P/gKY4rkHKAWChm+omrMSfsjsE6B0XQVKhMMa9iz22ew0ESdze9wi6yZJzt6ipC9efBjOq+5QpZJr2bn4f9Z/jr9LbPpVgavoCO6vYXdGCwseSJpsaU7BbTUkVgp3NYDuyVSKxcCgYAnzfOkLlz+iGKSMDVU/ntsoWecZMTQu5lHaXUhe2lWsAeEd0BRSBDXjYbKQOZ+oJs/yjMqwYSbHmE/qjUgWR9UACjuTf+B6jzFGmFcXFT7T5Wj2AqGqnR+19jEJrqnlk+qrznaxyEK4iU3Fv/trpQ6XKkcQsGLVGb7E9xGijgr5QJ/IvIBmuQnK3QYzlfJKjSlQTGgu1MQm7hKxpXVZejEfCyGZhJ/AdTtGoGCk4pNr1Rolt0qA4hgVHqc+PPszBMES3Hjfk1I/sG2fDjfcjr0o5HcIHyCfuo4ht1S4ES4FNBh9nGUCFQztXokem2z0jccJNTvxWDnnJe1DjBEq9zuEwJ/HCfeDMUYMufktK+6Dn+D1cXmH/o4Y6ehRoryzz21SoNGUcWg5gSzSryWnmv/5i/lw1lkv70p+WYCh2geagr3yio5YQRvNWcTCs0i4iNN3+uYKCgfPHGJMQWz4ORpSj1gt+kMHslwlbei8UpXdP8O9Lvq7EmJQuGPSr3yn00mGg==
+    publicKey: ./appPublicCert.crt
+  root: ./alipayRootCert.crt
+  publicKey: ./alipayPublicCert.crt

@@ -80,6 +80,23 @@ definitions:
       password:
         type: string
     type: object
+  v1.BillReq:
+    properties:
+      coupon:
+        type: integer
+      currency:
+        type: integer
+      desc:
+        type: string
+      hash:
+        type: string
+      payment_channel:
+        type: integer
+      quantity:
+        type: number
+      special_product:
+        type: integer
+    type: object
   v1.Bucket:
     properties:
       access:
@@ -606,11 +623,12 @@ paths:
       - application/json
       description: traffic price
       parameters:
-      - description: buy size
-        in: query
-        name: size
+      - description: data
+        in: body
+        name: data
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/v1.BillReq'
       produces:
       - application/json
       responses:
@@ -627,11 +645,12 @@ paths:
       - application/json
       description: traffic price
       parameters:
-      - description: buy size
-        in: query
-        name: size
+      - description: data
+        in: body
+        name: data
         required: true
-        type: integer
+        schema:
+          $ref: '#/definitions/v1.BillReq'
       produces:
       - application/json
       responses:
@@ -652,6 +671,10 @@ paths:
       - description: page size
         in: query
         name: page_size
+        type: integer
+      - description: type
+        in: query
+        name: p_type
         type: integer
       produces:
       - application/json
