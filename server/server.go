@@ -38,6 +38,23 @@ func Start(port string, db *gorm.DB) {
 		for {
 			select {
 			case <-timer.C:
+				if err := db.Debug().Model(&models.UserCoupon{}).Where("end_time != ? AND end_time < ?", models.UnlimitedTime, time.Now()).Update("status", models.UserCouponStatus_Expired).Error; err != nil {
+					log.Errorf("sync user coupon status: %s", err)
+					return
+				}
+				if err := db.Debug().Model(&models.Coupon{}).Where("reserve > 0").Where("start_time != ? AND start_time <= ?", time.Now()).Update("status", models.CouponStatus_InProcess).Error; err != nil {
+					log.Errorf("sync coupon status: %s", err)
+					return
+				}
+				if err := db.Debug().Model(&models.Coupon{}).Where("reserve = 0").Update("status", models.CouponStatus_Completed).Error; err != nil {
+					log.Errorf("sync coupon status: %s", err)
+					return
+				}
+				if err := db.Debug().Model(&models.Coupon{}).Where("reserve > 0").Where("end_time != ? AND end_time < ?", time.Now()).Update("status", models.CouponStatus_Expired).Error; err != nil {
+					log.Errorf("sync coupon status: %s", err)
+					return
+				}
+
 				var items []*models.Order
 				if err := db.Find(&models.Order{}).Where("payment = ?", models.PaymentChannel_Crypto).Where("status = ?", models.OrderPending).Find(&items).Error; err != nil {
 					log.Errorf("sync tx status: %s", err)

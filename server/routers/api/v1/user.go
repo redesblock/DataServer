@@ -224,10 +224,6 @@ func DeleteUser(db *gorm.DB) func(c *gin.Context) {
 // @Router /api/v1/claimed [get]
 func GetClaimed(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		if err := db.Model(&models.UserCoupon{}).Where("end_time != ? AND end_time < ?", models.UnlimitedTime, time.Now()).Update("status=?", models.UserCouponStatus_Expire).Error; err != nil {
-			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
-			return
-		}
 		userID, _ := c.Get("id")
 		var total int64
 		pageNum, pageSize := page(c)
@@ -251,7 +247,7 @@ func GetClaimed(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		var items []*models.UserCoupon
-		ret := tx.Count(&total).Offset(int(offset)).Limit(int(pageNum)).Preload("Coupon").Find(&items)
+		ret := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Preload("Coupon").Find(&items)
 		if err := ret.Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
@@ -290,7 +286,7 @@ func GetUnclaimed(db *gorm.DB) func(c *gin.Context) {
 		tx := db.Model(&models.Coupon{}).Order("id desc").Where("reserve > 0")
 		tx = tx.Where("(start_time <= ? AND end_time >= ?) OR (start_time = ? AND end_time = ?)", now, now, models.UnlimitedTime, models.UnlimitedTime)
 		var items []*models.Coupon
-		ret := tx.Count(&total).Offset(int(offset)).Limit(int(pageNum)).Find(&items)
+		ret := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Find(&items)
 		if err := ret.Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
@@ -392,12 +388,13 @@ func GetClaim(db *gorm.DB) func(c *gin.Context) {
 				}
 				if storage > 0 {
 					err := tx.Save(&models.Order{
-						OrderID:  generateOrderID(),
-						PType:    models.ProductType_Storage,
-						Quantity: storage,
-						Payment:  models.PaymentChannel_Counon_Free,
-						Status:   models.OrderComplete,
-						UserID:   userID.(uint),
+						OrderID:     generateOrderID(),
+						PType:       models.ProductType_Storage,
+						Quantity:    storage,
+						Payment:     models.PaymentChannel_Counon_Free,
+						PaymentTime: time.Now(),
+						Status:      models.OrderComplete,
+						UserID:      userID.(uint),
 					}).Error
 					if err != nil {
 						return err
@@ -405,12 +402,13 @@ func GetClaim(db *gorm.DB) func(c *gin.Context) {
 				}
 				if traffic > 0 {
 					err := tx.Save(&models.Order{
-						OrderID:  generateOrderID(),
-						PType:    models.ProductType_Traffic,
-						Quantity: traffic,
-						Payment:  models.PaymentChannel_Counon_Free,
-						Status:   models.OrderComplete,
-						UserID:   userID.(uint),
+						OrderID:     generateOrderID(),
+						PType:       models.ProductType_Traffic,
+						Quantity:    traffic,
+						Payment:     models.PaymentChannel_Counon_Free,
+						PaymentTime: time.Now(),
+						Status:      models.OrderComplete,
+						UserID:      userID.(uint),
 					}).Error
 					if err != nil {
 						return err

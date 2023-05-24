@@ -111,6 +111,7 @@ func AddCoupon(db *gorm.DB) func(c *gin.Context) {
 			TrafficQuantityMax: req.TrafficQuantityMax,
 			StartTime:          time.Unix(req.StartTime, 0),
 			EndTime:            time.Unix(req.EndTime, 0),
+			Status:             models.CouponStatus_NotStart,
 		}
 		res := db.Model(&models.Coupon{}).Save(item)
 		if err := res.Error; err != nil {

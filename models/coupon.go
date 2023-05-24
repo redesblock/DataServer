@@ -23,10 +23,32 @@ var CouponTypeMsgs = map[CouponType]string{
 type UserCouponStatus uint
 
 const (
-	UserCouponStatus_Normal UserCouponStatus = 0
-	UserCouponStatus_Used   UserCouponStatus = 1
-	UserCouponStatus_Expire UserCouponStatus = 2
+	UserCouponStatus_Normal UserCouponStatus = iota
+	UserCouponStatus_Used
+	UserCouponStatus_Expired
 )
+
+type CouponStatus uint
+
+const (
+	CouponStatus_NotStart CouponStatus = iota
+	CouponStatus_InProcess
+	CouponStatus_Completed
+	CouponStatus_Expired
+)
+
+var UserCouponStatusMsgs = []string{
+	"usable",
+	"used",
+	"expired",
+}
+
+var CouponStatusMsgs = []string{
+	"not started",
+	"in process",
+	"completed",
+	"expired",
+}
 
 type Coupon struct {
 	gorm.Model
@@ -43,11 +65,13 @@ type Coupon struct {
 	Sold               uint64          `json:"sold"`
 	Reserve            uint64          `json:"reserve"`
 	MaxClaim           uint64          `json:"max_claim"`
+	Status             CouponStatus    `json:"status"`
 
 	StartTimeStr  string   `json:"start_time_str" gorm:"-"`
 	EndTimeStr    string   `json:"end_time_str" gorm:"-"`
 	PTypeStr      []string `json:"product_type_str" gorm:"-"`
 	CouponTypeStr string   `json:"coupon_type_str" gorm:"-"`
+	StatusStr     string   `json:"status_str" gorm:"-"`
 	Created       string   `json:"created_at" gorm:"-"`
 	Updated       string   `json:"updated_at" gorm:"-"`
 }
@@ -78,4 +102,15 @@ type UserCoupon struct {
 
 	CouponID uint   `json:"-"`
 	Coupon   Coupon `json:"coupon"`
+
+	StatusStr string `json:"status_str" gorm:"-"`
+	Created   string `json:"created_at" gorm:"-"`
+	Updated   string `json:"updated_at" gorm:"-"`
+}
+
+func (item *UserCoupon) AfterFind(tx *gorm.DB) (err error) {
+	item.StatusStr = UserCouponStatusMsgs[item.Status]
+	item.Created = item.CreatedAt.Format(TIME_FORMAT)
+	item.Updated = item.UpdatedAt.Format(TIME_FORMAT)
+	return
 }

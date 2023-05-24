@@ -8,11 +8,11 @@ import (
 type PaymentChannel uint
 
 const (
-	PaymentChannel_SignIn      = 1
-	PaymentChannel_Counon_Free = 1 << 1
-	PaymentChannel_Crypto      = 1 << 2
-	PaymentChannel_Alipay      = 1 << 3
-	PaymentChannel_WeChat      = 1 << 4
+	PaymentChannel_SignIn      PaymentChannel = 1
+	PaymentChannel_Counon_Free PaymentChannel = 1 << 1
+	PaymentChannel_Crypto      PaymentChannel = 1 << 2
+	PaymentChannel_Alipay      PaymentChannel = 1 << 3
+	PaymentChannel_WeChat      PaymentChannel = 1 << 4
 )
 
 var PaymentChannelMsgs = map[PaymentChannel]string{

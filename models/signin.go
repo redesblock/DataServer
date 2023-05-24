@@ -7,7 +7,7 @@ import (
 type SignInPeriod uint
 
 const (
-	SignInPeriod_Day SignInPeriod = 0
+	SignInPeriod_Day SignInPeriod = iota
 	SignInPeriod_Week
 	SignInPeriod_Month
 	SignInPeriod_Year
