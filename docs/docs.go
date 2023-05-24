@@ -1640,7 +1640,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "order id",
-                        "name": "order",
+                        "name": "order_id",
                         "in": "query",
                         "required": true
                     },

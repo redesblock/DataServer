@@ -43,7 +43,7 @@ func GetOrder(db *gorm.DB) func(c *gin.Context) {
 // @Param   page_size    query    int     false        "page size"
 // @Param   start   query    string     true        "start"
 // @Param   end   query    string     true        "end"
-// @Param   order   query    string     true        "order id"
+// @Param   order_id   query    string     true        "order id"
 // @Param   payment   query    string     true        "payment"
 // @Success 200 {object} Response
 // @Failure 500 {object} Response
@@ -76,12 +76,12 @@ func GetOrders(db *gorm.DB) func(c *gin.Context) {
 				return
 			}
 			if startTime.After(endTime) {
-				tx = tx.Where("created >= ? AND created < ?", endTime.Unix(), startTime.Unix())
+				tx = tx.Where("created_at >= ? AND created_at < ?", endTime.Unix(), startTime.Unix())
 			} else {
-				tx = tx.Where("created >= ? AND created < ?", startTime, endTime.Unix())
+				tx = tx.Where("created_at >= ? AND created_at < ?", startTime, endTime.Unix())
 			}
 		}
-		if order := c.Query("order"); len(order) > 0 {
+		if order := c.Query("order_id"); len(order) > 0 {
 			tx = tx.Where("order_id = ?", order)
 		}
 		if payment := c.Query("payment"); len(payment) > 0 {
@@ -89,7 +89,7 @@ func GetOrders(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		var items []models.Order
-		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Find(&items).Error; err != nil {
+		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Preload("User").Preload("Currency").Find(&items).Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}

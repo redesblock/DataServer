@@ -25,6 +25,7 @@ var OrderStatusMsgs = []string{
 	"Pending",
 	"Success",
 	"Fail",
+	"Complete",
 }
 
 var mutex sync.Mutex
@@ -45,15 +46,16 @@ type Order struct {
 	Hash           string          `json:"hash"`
 	Discount       decimal.Decimal `json:"discount"`
 
-	UserID uint `json:"user_id"`
+	UserID uint `json:"-"`
 	User   User
 
-	CurrencyID uint `json:"currency_id"`
+	CurrencyID uint `json:"-"`
 	Currency   Currency
 
 	Created     string `json:"created_at" gorm:"-"`
 	Updated     string `json:"updated_at" gorm:"-"`
 	QuantityStr string `json:"size_str" gorm:"-"`
+	PaymentStr  string `json:"payment_str" gorm:"-"`
 	StatusStr   string `json:"status_str" gorm:"-"`
 	URL         string `json:"url" gorm:"-"`
 }
@@ -64,5 +66,6 @@ func (item *Order) AfterFind(tx *gorm.DB) (err error) {
 	item.QuantityStr = ByteSize(item.Quantity)
 	item.StatusStr = OrderStatusMsgs[item.Status]
 	item.URL = viper.GetString("bsc.browser") + "tx/" + item.Hash
+	item.PaymentStr = PaymentChannelMsgs[item.Payment]
 	return
 }
