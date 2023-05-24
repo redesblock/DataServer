@@ -26,5 +26,5 @@ func generateOrderID() string {
 	orderCount++
 	count := orderCount
 	mutex.Unlock()
-	return fmt.Sprintf("%s%3d", prefix, count)
+	return fmt.Sprintf("%s%03d", prefix, count)
 }
