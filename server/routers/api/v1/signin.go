@@ -172,7 +172,7 @@ func SetSignInSwitch(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 		on_off := count > 0
-		res := db.Model(&models.SignIn{}).Debug().Where("1 = 1").Update("enable", !on_off)
+		res := db.Model(&models.SignIn{}).Where("1 = 1").Update("enable", !on_off)
 		if err := res.Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
