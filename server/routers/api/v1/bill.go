@@ -7,6 +7,7 @@ import (
 	"github.com/redesblock/dataserver/server/pay"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
+	"strings"
 )
 
 // @Summary list storage bills
@@ -102,6 +103,16 @@ func (r *BillReq) convertToOrder(db *gorm.DB, p_type models.ProductType) (quanti
 		return
 	}
 
+	var citem models.Currency
+	ret = db.Find(&citem, r.Currency)
+	if err = ret.Error; err != nil {
+		return
+	}
+	if ret.RowsAffected == 0 {
+		err = fmt.Errorf("invalid currency")
+		return
+	}
+
 	if r.SpecialProduct != 0 {
 		var item2 models.SpecialProduct
 		ret := db.Find(&item2, r.SpecialProduct)
@@ -132,6 +143,14 @@ func (r *BillReq) convertToOrder(db *gorm.DB, p_type models.ProductType) (quanti
 			discount = item2.Discount.Mul(price).Div(decimal.NewFromInt(10))
 		}
 	}
+
+	price = price.Mul(citem.Rate)
+	discount = discount.Mul(citem.Rate)
+
+	if strings.ToUpper(citem.Symbol) != "MOP" && strings.ToUpper(citem.Symbol) != "USDT" {
+		price, _ = decimal.NewFromString(price.StringFixed(2))
+		discount, _ = decimal.NewFromString(discount.StringFixed(2))
+	}
 	return
 }
 
@@ -152,23 +171,23 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 
-		var citem models.Currency
-		ret := db.Find(&citem, req.Currency)
-		if err := ret.Error; err != nil {
-			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
-			return
-		}
-		if ret.RowsAffected == 0 {
-			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid currency")))
-			return
-		}
-		if int64(citem.Payment)&int64(req.PaymentChannel) == 0 {
-			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid payment channel")))
-			return
-		}
+		//var citem models.Currency
+		//ret := db.Find(&citem, req.Currency)
+		//if err := ret.Error; err != nil {
+		//	c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
+		//	return
+		//}
+		//if ret.RowsAffected == 0 {
+		//	c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid currency")))
+		//	return
+		//}
+		//if int64(citem.Payment)&int64(req.PaymentChannel) == 0 {
+		//	c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid payment channel")))
+		//	return
+		//}
 
 		var uitem models.UserCoupon
-		ret = db.Where("used = false").Find(&uitem, req.Coupon)
+		ret := db.Where("used = false").Find(&uitem, req.Coupon)
 		if err := ret.Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
@@ -216,7 +235,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				return err
 			}
 			if req.PaymentChannel == models.PaymentChannel_Alipay {
-				res, err := pay.AliPayTrade("", item.OrderID, item.Price.StringFixed(2))
+				res, err := pay.AliPayTrade(req.Description, item.OrderID, item.Price.String())
 				if err != nil {
 					return err
 				}
@@ -250,23 +269,23 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 
-		var citem models.Currency
-		ret := db.Find(&citem, req.Currency)
-		if err := ret.Error; err != nil {
-			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
-			return
-		}
-		if ret.RowsAffected == 0 {
-			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid currency")))
-			return
-		}
-		if int64(citem.Payment)&int64(req.PaymentChannel) == 0 {
-			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid payment channel")))
-			return
-		}
+		//var citem models.Currency
+		//ret := db.Find(&citem, req.Currency)
+		//if err := ret.Error; err != nil {
+		//	c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
+		//	return
+		//}
+		//if ret.RowsAffected == 0 {
+		//	c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid currency")))
+		//	return
+		//}
+		//if int64(citem.Payment)&int64(req.PaymentChannel) == 0 {
+		//	c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid payment channel")))
+		//	return
+		//}
 
 		var uitem models.UserCoupon
-		ret = db.Where("used = false").Find(&uitem, req.Coupon)
+		ret := db.Where("used = false").Find(&uitem, req.Coupon)
 		if err := ret.Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
@@ -313,7 +332,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				return err
 			}
 			if req.PaymentChannel == models.PaymentChannel_Alipay {
-				res, err := pay.AliPayTrade("", item.OrderID, item.Price.StringFixed(2))
+				res, err := pay.AliPayTrade(req.Description, item.OrderID, item.Price.String())
 				if err != nil {
 					return err
 				}

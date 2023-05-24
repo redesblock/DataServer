@@ -8,11 +8,13 @@ import (
 type ProductType uint
 
 const (
+	ProductType_ALL     ProductType = 0
 	ProductType_Storage ProductType = 1
 	ProductType_Traffic ProductType = 1 << 1
 )
 
 var ProductTypeMsgs = map[ProductType]string{
+	ProductType_ALL:     "All",
 	ProductType_Storage: "Storage",
 	ProductType_Traffic: "Traffic",
 }

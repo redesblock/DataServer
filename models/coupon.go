@@ -8,6 +8,8 @@ import (
 
 type CouponType uint
 
+var UnlimitedTime = time.Unix(0, 0)
+
 const (
 	CouponType_Free = iota
 	CouponType_Discount
@@ -17,6 +19,14 @@ var CouponTypeMsgs = map[CouponType]string{
 	CouponType_Free:     "free",
 	CouponType_Discount: "discount",
 }
+
+type UserCouponStatus uint
+
+const (
+	UserCouponStatus_Normal UserCouponStatus = 0
+	UserCouponStatus_Used   UserCouponStatus = 1
+	UserCouponStatus_Expire UserCouponStatus = 2
+)
 
 type Coupon struct {
 	gorm.Model
@@ -59,11 +69,12 @@ func (item *Coupon) AfterFind(tx *gorm.DB) (err error) {
 type UserCoupon struct {
 	gorm.Model
 
-	UserID uint `json:"-"`
-	User   User `json:"user"`
-	Used   bool `json:"used"`
+	UserID uint             `json:"-"`
+	User   User             `json:"user"`
+	Status UserCouponStatus `json:"status"`
 
-	PType ProductType `json:"product_type"`
+	EndTime time.Time   `json:"end_time"`
+	PType   ProductType `json:"product_type"`
 
 	CouponID uint   `json:"-"`
 	Coupon   Coupon `json:"coupon"`
