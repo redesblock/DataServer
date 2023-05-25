@@ -131,8 +131,8 @@ func (r *BillReq) convertToOrder(db *gorm.DB, p_type models.ProductType) (quanti
 		price = decimal.NewFromInt(int64(quantity)).Div(decimal.NewFromInt(int64(item.Quantity))).Mul(item.Price)
 		discount = price
 		if r.Coupon > 0 {
-			var item2 models.Coupon
-			ret := db.Find(&item2, r.Coupon)
+			var item2 models.UserCoupon
+			ret := db.Preload("Coupon").Find(&item2, r.Coupon)
 			if err = ret.Error; err != nil {
 				return
 			}
@@ -140,7 +140,7 @@ func (r *BillReq) convertToOrder(db *gorm.DB, p_type models.ProductType) (quanti
 				err = fmt.Errorf("invalid coupon")
 				return
 			}
-			discount = item2.Discount.Mul(price).Div(decimal.NewFromInt(10))
+			discount = item2.Coupon.Discount.Mul(price).Div(decimal.NewFromInt(10))
 		}
 	}
 
