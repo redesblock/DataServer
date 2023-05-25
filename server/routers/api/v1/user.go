@@ -259,13 +259,7 @@ func GetClaimed(db *gorm.DB) func(c *gin.Context) {
 		c.JSON(OKCode, NewResponse(c, OKCode, &List{
 			Total:     total,
 			PageTotal: pageTotal,
-			Items: func() []*models.Coupon {
-				var ret []*models.Coupon
-				for _, item := range items {
-					ret = append(ret, &item.Coupon)
-				}
-				return ret
-			}(),
+			Items:     items,
 		}))
 	}
 }
