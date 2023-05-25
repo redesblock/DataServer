@@ -33,7 +33,7 @@ var mutex sync.Mutex
 type Order struct {
 	gorm.Model
 	OrderID        string          `json:"order_id"`
-	PType          ProductType     `json:"type" gorm:"unique"`
+	PType          ProductType     `json:"type"`
 	Quantity       uint64          `json:"quantity"`
 	Price          decimal.Decimal `json:"price"`
 	PaymentID      string          `json:"payment_id"`
