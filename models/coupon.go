@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
+	"strings"
 	"time"
 )
 
@@ -67,24 +68,31 @@ type Coupon struct {
 	MaxClaim           uint64          `json:"max_claim"`
 	Status             CouponStatus    `json:"status"`
 
-	StartTimeStr  string   `json:"start_time_str" gorm:"-"`
-	EndTimeStr    string   `json:"end_time_str" gorm:"-"`
-	PTypeStr      []string `json:"product_type_str" gorm:"-"`
-	CouponTypeStr string   `json:"coupon_type_str" gorm:"-"`
-	StatusStr     string   `json:"status_str" gorm:"-"`
-	Created       string   `json:"created_at" gorm:"-"`
-	Updated       string   `json:"updated_at" gorm:"-"`
+	StartTimeStr  string `json:"start_time_str" gorm:"-"`
+	EndTimeStr    string `json:"end_time_str" gorm:"-"`
+	PTypeStr      string `json:"product_type_str" gorm:"-"`
+	CouponTypeStr string `json:"coupon_type_str" gorm:"-"`
+	StatusStr     string `json:"status_str" gorm:"-"`
+	Created       string `json:"created_at" gorm:"-"`
+	Updated       string `json:"updated_at" gorm:"-"`
 }
 
 func (item *Coupon) AfterFind(tx *gorm.DB) (err error) {
 	item.StartTimeStr = item.StartTime.Format(TIME_FORMAT)
 	item.EndTimeStr = item.EndTime.Format(TIME_FORMAT)
 	item.CouponTypeStr = CouponTypeMsgs[item.CouponType]
-	for p, s := range ProductTypeMsgs {
-		if p^item.PType == 1 {
-			item.PTypeStr = append(item.PTypeStr, s)
+	if str, ok := ProductTypeMsgs[item.PType]; ok {
+		item.PTypeStr = str
+	} else {
+		var strs []string
+		for p, s := range ProductTypeMsgs {
+			if p^item.PType == 1 {
+				strs = append(strs, s)
+			}
 		}
+		item.PTypeStr = strings.Join(strs, ",")
 	}
+
 	item.Created = item.CreatedAt.Format(TIME_FORMAT)
 	item.Updated = item.UpdatedAt.Format(TIME_FORMAT)
 	return

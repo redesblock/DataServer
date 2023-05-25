@@ -276,9 +276,9 @@ func GetUnclaimed(db *gorm.DB) func(c *gin.Context) {
 		var total int64
 		pageNum, pageSize := page(c)
 		offset := (pageNum - 1) * pageSize
-		now := time.Now()
+		//now := time.Now()
 		tx := db.Model(&models.Coupon{}).Order("id desc").Where("reserve > 0")
-		tx = tx.Where("(start_time <= ? AND end_time >= ?) OR (start_time = ? AND end_time = ?)", now, now, models.UnlimitedTime, models.UnlimitedTime)
+		//tx = tx.Where("(start_time <= ? AND end_time >= ?) OR (start_time = ? AND end_time = ?)", now, now, models.UnlimitedTime, models.UnlimitedTime)
 		var items []*models.Coupon
 		ret := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Find(&items)
 		if err := ret.Error; err != nil {
