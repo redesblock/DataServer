@@ -187,7 +187,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 		//}
 
 		var uitem models.UserCoupon
-		ret := db.Where("used = false").Find(&uitem, req.Coupon)
+		ret := db.Where("status = ?", models.UserCouponStatus_Normal).Find(&uitem, req.Coupon)
 		if err := ret.Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
@@ -285,7 +285,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		//}
 
 		var uitem models.UserCoupon
-		ret := db.Where("used = false").Find(&uitem, req.Coupon)
+		ret := db.Where("status = ?", models.UserCouponStatus_Normal).Find(&uitem, req.Coupon)
 		if err := ret.Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
