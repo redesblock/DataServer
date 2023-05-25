@@ -186,19 +186,21 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 		//	return
 		//}
 
-		var uitem models.UserCoupon
-		ret := db.Where("status = ?", models.UserCouponStatus_Normal).Find(&uitem, req.Coupon)
-		if err := ret.Error; err != nil {
-			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
-			return
-		}
-		if ret.RowsAffected == 0 {
-			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid coupon")))
-			return
-		}
-		if int64(uitem.PType)&int64(models.ProductType_Storage) == 0 {
-			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid coupon")))
-			return
+		if req.Coupon > 0 {
+			var uitem models.UserCoupon
+			ret := db.Where("status = ?", models.UserCouponStatus_Normal).Find(&uitem, req.Coupon)
+			if err := ret.Error; err != nil {
+				c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
+				return
+			}
+			if ret.RowsAffected == 0 {
+				c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid coupon")))
+				return
+			}
+			if int64(uitem.PType)&int64(models.ProductType_Storage) == 0 {
+				c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid coupon")))
+				return
+			}
 		}
 
 		quantity, price, discount, err := req.convertToOrder(db, models.ProductType_Storage)
@@ -284,19 +286,21 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		//	return
 		//}
 
-		var uitem models.UserCoupon
-		ret := db.Where("status = ?", models.UserCouponStatus_Normal).Find(&uitem, req.Coupon)
-		if err := ret.Error; err != nil {
-			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
-			return
-		}
-		if ret.RowsAffected == 0 {
-			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid coupon")))
-			return
-		}
-		if int64(uitem.PType)&int64(models.ProductType_Storage) == 0 {
-			c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid coupon")))
-			return
+		if req.Coupon > 0 {
+			var uitem models.UserCoupon
+			ret := db.Where("status = ?", models.UserCouponStatus_Normal).Find(&uitem, req.Coupon)
+			if err := ret.Error; err != nil {
+				c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
+				return
+			}
+			if ret.RowsAffected == 0 {
+				c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid coupon")))
+				return
+			}
+			if int64(uitem.PType)&int64(models.ProductType_Storage) == 0 {
+				c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid coupon")))
+				return
+			}
 		}
 
 		quantity, price, discount, err := req.convertToOrder(db, models.ProductType_Storage)
