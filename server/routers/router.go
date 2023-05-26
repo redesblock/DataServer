@@ -95,6 +95,8 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiv1.POST("/buy/traffic", v1.BuyTrafficHandler(db))
 		apiv1.POST("/bills/storage", v1.AddBillsStorageHandler(db))
 		apiv1.POST("/bills/traffic", v1.AddBillsTrafficHandler(db))
+		apiv1.GET("/bills/traffic/:id", v1.GetOrder(db))
+		apiv1.GET("/bills/storage/:id", v1.GetOrder(db))
 
 		apiv1.GET("alipay/notify", v1.AlipayNotify(db))
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/models"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 	"strconv"
 	"strings"
@@ -247,7 +248,7 @@ func GetClaimed(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		var items []*models.UserCoupon
-		ret := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Preload("Coupon").Find(&items)
+		ret := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Preload("User").Preload("Coupon").Find(&items)
 		if err := ret.Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
@@ -276,9 +277,7 @@ func GetUnclaimed(db *gorm.DB) func(c *gin.Context) {
 		var total int64
 		pageNum, pageSize := page(c)
 		offset := (pageNum - 1) * pageSize
-		//now := time.Now()
-		tx := db.Model(&models.Coupon{}).Order("id desc").Where("reserve > 0")
-		//tx = tx.Where("(start_time <= ? AND end_time >= ?) OR (start_time = ? AND end_time = ?)", now, now, models.UnlimitedTime, models.UnlimitedTime)
+		tx := db.Model(&models.Coupon{}).Order("id desc").Where("status = ?", models.CouponStatus_InProcess).Where("reserve > 0")
 		var items []*models.Coupon
 		ret := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Find(&items)
 		if err := ret.Error; err != nil {
@@ -337,8 +336,10 @@ func GetClaim(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 		now := time.Now()
-		if !item.EndTime.Equal(models.UnlimitedTime) {
+		if item.EndTime.Unix() > 0 {
 			if item.EndTime.Before(now) {
+				item.Status = models.CouponStatus_Expired
+				db.Save(&item)
 				c.JSON(OKCode, NewResponse(c, ExecuteCode, "expired"))
 				return
 			}
@@ -355,6 +356,9 @@ func GetClaim(db *gorm.DB) func(c *gin.Context) {
 				}
 			}
 			item.Reserve--
+			if item.Reserve == 0 {
+				item.Status = models.CouponStatus_Completed
+			}
 			if err := tx.Save(&item).Error; err != nil {
 				return err
 			}
@@ -482,12 +486,15 @@ func GetSignedIn(db *gorm.DB) func(c *gin.Context) {
 			}
 			if storage > 0 {
 				err := tx.Save(&models.Order{
-					OrderID:  generateOrderID(),
-					PType:    models.ProductType_Storage,
-					Quantity: storage,
-					Payment:  models.PaymentChannel_SignIn,
-					Status:   models.OrderComplete,
-					UserID:   userID.(uint),
+					OrderID:       generateOrderID(),
+					PType:         models.ProductType_Storage,
+					Quantity:      storage,
+					Payment:       models.PaymentChannel_SignIn,
+					PaymentTime:   time.Now(),
+					PaymentAmount: decimal.Zero.String(),
+					Status:        models.OrderComplete,
+					UserID:        userID.(uint),
+					CurrencyID:    1,
 				}).Error
 				if err != nil {
 					return err
@@ -495,12 +502,15 @@ func GetSignedIn(db *gorm.DB) func(c *gin.Context) {
 			}
 			if traffic > 0 {
 				err := tx.Save(&models.Order{
-					OrderID:  generateOrderID(),
-					PType:    models.ProductType_Traffic,
-					Quantity: traffic,
-					Payment:  models.PaymentChannel_SignIn,
-					Status:   models.OrderComplete,
-					UserID:   userID.(uint),
+					OrderID:       generateOrderID(),
+					PType:         models.ProductType_Traffic,
+					Quantity:      traffic,
+					Payment:       models.PaymentChannel_SignIn,
+					PaymentTime:   time.Now(),
+					PaymentAmount: decimal.Zero.String(),
+					Status:        models.OrderComplete,
+					UserID:        userID.(uint),
+					CurrencyID:    1,
 				}).Error
 				if err != nil {
 					return err
@@ -511,6 +521,10 @@ func GetSignedIn(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
-		c.JSON(OKCode, NewResponse(c, OKCode, fmt.Sprintf("Congratulations on your successful sign-in! You have now received a free %s storage space and %s download traffic.", models.ByteSize(storage), models.ByteSize(traffic))))
+		c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{
+			"storage": storage,
+			"traffic": traffic,
+			"msg":     fmt.Sprintf("Congratulations on your successful sign-in! You have now received a free %s storage space and %s download traffic.", models.ByteSize(storage), models.ByteSize(traffic)),
+		}))
 	}
 }

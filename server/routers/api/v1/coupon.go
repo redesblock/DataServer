@@ -113,6 +113,11 @@ func AddCoupon(db *gorm.DB) func(c *gin.Context) {
 			EndTime:            time.Unix(req.EndTime, 0),
 			Status:             models.CouponStatus_NotStart,
 		}
+		if req.StartTime == 0 && req.EndTime == 0 {
+			item.Status = models.CouponStatus_InProcess
+		} else if t := time.Now().Unix(); t >= req.StartTime && t <= req.EndTime {
+			item.Status = models.CouponStatus_InProcess
+		}
 		res := db.Model(&models.Coupon{}).Save(item)
 		if err := res.Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))

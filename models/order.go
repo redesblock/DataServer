@@ -52,20 +52,25 @@ type Order struct {
 	CurrencyID uint `json:"-"`
 	Currency   Currency
 
-	Created     string `json:"created_at" gorm:"-"`
-	Updated     string `json:"updated_at" gorm:"-"`
-	QuantityStr string `json:"size_str" gorm:"-"`
-	PaymentStr  string `json:"payment_str" gorm:"-"`
-	StatusStr   string `json:"status_str" gorm:"-"`
-	URL         string `json:"url" gorm:"-"`
+	Created        string `json:"created_at" gorm:"-"`
+	Updated        string `json:"updated_at" gorm:"-"`
+	QuantityStr    string `json:"size_str" gorm:"-"`
+	PaymentStr     string `json:"payment_channel_str" gorm:"-"`
+	PaymentTimeStr string `json:"payment_time_str"`
+
+	StatusStr string `json:"status_str" gorm:"-"`
+	URL       string `json:"url" gorm:"-"`
 }
 
 func (item *Order) AfterFind(tx *gorm.DB) (err error) {
 	item.Created = item.CreatedAt.Format(TIME_FORMAT)
 	item.Updated = item.UpdatedAt.Format(TIME_FORMAT)
+	item.PaymentTimeStr = item.PaymentTime.Format(TIME_FORMAT)
 	item.QuantityStr = ByteSize(item.Quantity)
 	item.StatusStr = OrderStatusMsgs[item.Status]
-	item.URL = viper.GetString("bsc.browser") + "tx/" + item.Hash
+	if len(item.Hash) > 0 {
+		item.URL = viper.GetString("bsc.browser") + "tx/" + item.Hash
+	}
 	item.PaymentStr = PaymentChannelMsgs[item.Payment]
 	return
 }

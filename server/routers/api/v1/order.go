@@ -22,7 +22,7 @@ func GetOrder(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 		var item models.Order
-		res := db.Model(&models.Order{}).Where("id = ?", id).Find(&item)
+		res := db.Model(&models.Order{}).Where("id = ?", id).Preload("User").Preload("Currency").Find(&item)
 		if err := res.Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
@@ -76,9 +76,9 @@ func GetOrders(db *gorm.DB) func(c *gin.Context) {
 				return
 			}
 			if startTime.After(endTime) {
-				tx = tx.Where("created_at >= ? AND created_at < ?", endTime.Unix(), startTime.Unix())
+				tx = tx.Where("created_at BETWEEN ? AND ?", endTime, startTime)
 			} else {
-				tx = tx.Where("created_at >= ? AND created_at < ?", startTime, endTime.Unix())
+				tx = tx.Where("created_at BETWEEN ? AND ?", startTime, endTime)
 			}
 		}
 		if order := c.Query("order_id"); len(order) > 0 {

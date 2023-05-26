@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
+	"strings"
 )
 
 type PaymentChannel uint
@@ -31,17 +32,19 @@ type Currency struct {
 	Payment   PaymentChannel  `json:"payment_channel"`
 	Receiptor string          `json:"receiptor"`
 
-	PaymentStr []string `json:"payment_channel_str" gorm:"-"`
-	Created    string   `json:"created_at" gorm:"-"`
-	Updated    string   `json:"updated_at" gorm:"-"`
+	PaymentStr string `json:"payment_channel_str" gorm:"-"`
+	Created    string `json:"created_at" gorm:"-"`
+	Updated    string `json:"updated_at" gorm:"-"`
 }
 
 func (item *Currency) AfterFind(tx *gorm.DB) (err error) {
+	var strs []string
 	for p, s := range PaymentChannelMsgs {
-		if p^item.Payment == 1 {
-			item.PaymentStr = append(item.PaymentStr, s)
+		if p&item.Payment > 0 {
+			strs = append(strs, s)
 		}
 	}
+	item.PaymentStr = strings.Join(strs, ",")
 	item.Created = item.CreatedAt.Format(TIME_FORMAT)
 	item.Updated = item.UpdatedAt.Format(TIME_FORMAT)
 	return

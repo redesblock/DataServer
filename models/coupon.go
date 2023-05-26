@@ -80,13 +80,14 @@ type Coupon struct {
 func (item *Coupon) AfterFind(tx *gorm.DB) (err error) {
 	item.StartTimeStr = item.StartTime.Format(TIME_FORMAT)
 	item.EndTimeStr = item.EndTime.Format(TIME_FORMAT)
+	item.StatusStr = CouponStatusMsgs[item.Status]
 	item.CouponTypeStr = CouponTypeMsgs[item.CouponType]
 	if str, ok := ProductTypeMsgs[item.PType]; ok {
 		item.PTypeStr = str
 	} else {
 		var strs []string
 		for p, s := range ProductTypeMsgs {
-			if p^item.PType == 1 {
+			if p&item.PType > 0 {
 				strs = append(strs, s)
 			}
 		}

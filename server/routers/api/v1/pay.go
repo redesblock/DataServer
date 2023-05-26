@@ -29,21 +29,35 @@ func AlipayNotify(db *gorm.DB) func(c *gin.Context) {
 		}
 		switch noti.TradeStatus {
 		case alipay.TradeStatusWaitBuyerPay:
-			order.Status = models.OrderPending
+			if order.Status == models.OrderPending {
+				order.Status = models.OrderPending
+				if err := db.Save(&order).Error; err != nil {
+					c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
+					return
+				}
+			}
 		case alipay.TradeStatusClosed:
-			order.Status = models.OrderCancel
+			if order.Status == models.OrderCancel {
+				order.Status = models.OrderCancel
+				if err := db.Save(&order).Error; err != nil {
+					c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
+					return
+				}
+			}
 		case alipay.TradeStatusSuccess:
-			order.Status = models.OrderSuccess
-			order.PaymentID = noti.TradeNo
-			order.PaymentAccount = noti.BuyerLogonId
-			order.ReceiveAccount = noti.SellerEmail
-			order.PaymentAmount = noti.TotalAmount
-			order.PaymentTime, _ = time.Parse(models.TIME_FORMAT, noti.NotifyTime)
+			if order.Status == models.OrderSuccess {
+				order.Status = models.OrderSuccess
+				order.PaymentID = noti.TradeNo
+				order.PaymentAccount = noti.BuyerLogonId
+				order.ReceiveAccount = noti.SellerEmail
+				order.PaymentAmount = noti.TotalAmount
+				order.PaymentTime, _ = time.Parse(models.TIME_FORMAT, noti.NotifyTime)
+				if err := db.Save(&order).Error; err != nil {
+					c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
+					return
+				}
+			}
 		case alipay.TradeStatusFinished:
-		}
-		if err := db.Save(&order).Error; err != nil {
-			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
-			return
 		}
 		alipay.ACKNotification(c.Writer)
 	}

@@ -38,21 +38,18 @@ func Start(port string, db *gorm.DB) {
 		for {
 			select {
 			case <-timer.C:
-				if err := db.Model(&models.UserCoupon{}).Where("end_time != ? AND end_time < ?", models.UnlimitedTime, time.Now()).Update("status", models.UserCouponStatus_Expired).Error; err != nil {
+				if err := db.Model(&models.UserCoupon{}).Where("status = ?", models.UserCouponStatus_Normal).Where("end_time != ? AND end_time < ?", models.UnlimitedTime, time.Now()).Update("status", models.UserCouponStatus_Expired).Error; err != nil {
 					log.Errorf("sync user coupon status: %s", err)
-					return
 				}
-				if err := db.Model(&models.Coupon{}).Where("reserve > 0").Where("start_time != ? AND start_time <= ?", models.UnlimitedTime, time.Now()).Update("status", models.CouponStatus_InProcess).Error; err != nil {
+				if err := db.Model(&models.Coupon{}).Where("status = ?", models.CouponStatus_NotStart).Where("reserve > 0").Where("start_time != ? AND start_time <= ?", models.UnlimitedTime, time.Now()).Update("status", models.CouponStatus_InProcess).Error; err != nil {
 					log.Errorf("sync coupon status: %s", err)
-					return
 				}
-				if err := db.Model(&models.Coupon{}).Where("reserve = 0").Update("status", models.CouponStatus_Completed).Error; err != nil {
+				//if err := db.Model(&models.Coupon{}).Where("reserve = 0").Update("status", models.CouponStatus_Completed).Error; err != nil {
+				//	log.Errorf("sync coupon status: %s", err)
+				//	return
+				//}
+				if err := db.Model(&models.Coupon{}).Where("status != ?", models.CouponStatus_Expired).Where("reserve > 0").Where("end_time != ? AND end_time < ?", models.UnlimitedTime, time.Now()).Update("status", models.CouponStatus_Expired).Error; err != nil {
 					log.Errorf("sync coupon status: %s", err)
-					return
-				}
-				if err := db.Model(&models.Coupon{}).Where("reserve > 0").Where("end_time != ? AND end_time < ?", models.UnlimitedTime, time.Now()).Update("status", models.CouponStatus_Expired).Error; err != nil {
-					log.Errorf("sync coupon status: %s", err)
-					return
 				}
 
 				var items []*models.Order

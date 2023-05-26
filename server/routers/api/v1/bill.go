@@ -7,6 +7,7 @@ import (
 	"github.com/redesblock/dataserver/server/pay"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
+	"net/http"
 	"strings"
 )
 
@@ -30,7 +31,7 @@ func GetBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 
 		var items []models.Order
 		tx := db.Model(&models.Order{}).Order("id desc").Where("user_id = ?", userID).Where("p_type = ?", models.ProductType_Storage)
-		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Find(&items).Error; err != nil {
+		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Preload("User").Preload("Currency").Find(&items).Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
@@ -66,7 +67,7 @@ func GetBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 
 		var items []models.Order
 		tx := db.Model(&models.Order{}).Order("id desc").Where("user_id = ?", userID).Where("p_type = ?", models.ProductType_Traffic)
-		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Find(&items).Error; err != nil {
+		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Preload("User").Preload("Currency").Find(&items).Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
@@ -140,6 +141,7 @@ func (r *BillReq) convertToOrder(db *gorm.DB, p_type models.ProductType) (quanti
 				err = fmt.Errorf("invalid coupon")
 				return
 			}
+			// TODO
 			discount = item2.Coupon.Discount.Mul(price).Div(decimal.NewFromInt(10))
 		}
 	}
@@ -231,7 +233,6 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 			}
 		}
 
-		var resp interface{}
 		if err := db.Transaction(func(tx *gorm.DB) error {
 			if err := db.Save(item).Error; err != nil {
 				return err
@@ -241,7 +242,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				resp = res
+				c.Redirect(http.StatusTemporaryRedirect, res)
 			} else {
 				return fmt.Errorf("not support payment channel")
 			}
@@ -251,7 +252,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 
-		c.JSON(OKCode, NewResponse(c, OKCode, resp))
+		c.JSON(OKCode, NewResponse(c, OKCode, ""))
 	}
 }
 
@@ -330,7 +331,6 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 			}
 		}
 
-		var resp interface{}
 		if err := db.Transaction(func(tx *gorm.DB) error {
 			if err := db.Save(item).Error; err != nil {
 				return err
@@ -340,7 +340,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				resp = res
+				c.Redirect(http.StatusTemporaryRedirect, res)
 			} else {
 				return fmt.Errorf("not support payment channel")
 			}
@@ -350,7 +350,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 
-		c.JSON(OKCode, NewResponse(c, OKCode, resp))
+		c.JSON(OKCode, NewResponse(c, OKCode, ""))
 	}
 }
 
