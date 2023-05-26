@@ -7,7 +7,6 @@ import (
 	"github.com/redesblock/dataserver/server/pay"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
-	"net/http"
 	"strings"
 )
 
@@ -242,7 +241,8 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				c.Redirect(http.StatusTemporaryRedirect, res)
+				c.JSON(OKCode, NewResponse(c, OKCode, res))
+				//c.Redirect(http.StatusTemporaryRedirect, res)
 			} else {
 				return fmt.Errorf("not support payment channel")
 			}
@@ -340,7 +340,8 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				c.Redirect(http.StatusTemporaryRedirect, res)
+				c.JSON(OKCode, NewResponse(c, OKCode, res))
+				//c.Redirect(http.StatusTemporaryRedirect, res)
 			} else {
 				return fmt.Errorf("not support payment channel")
 			}
