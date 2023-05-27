@@ -31,7 +31,10 @@ var OrderStatusMsgs = []string{
 var mutex sync.Mutex
 
 type Order struct {
-	gorm.Model
+	ID             uint `json:"id" gorm:"primarykey"`
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeletedAt      gorm.DeletedAt  `gorm:"index"`
 	OrderID        string          `json:"order_id"`
 	PType          ProductType     `json:"type"`
 	Quantity       uint64          `json:"quantity"`

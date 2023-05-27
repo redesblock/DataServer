@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/spf13/viper"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -27,16 +28,19 @@ var Statuses = []string{
 }
 
 type BucketObject struct {
-	gorm.Model
-	Name       string `json:"name"`
-	CID        string `json:"cid"`
-	Size       uint64 `json:"size"`
-	Status     int    `json:"-"`
-	AssetID    string `json:"asset_id"`
-	ParentID   uint   `json:"-"`
-	BucketID   uint   `json:"-"`
-	Downloaded uint64 `json:"downloaded"`
-	UserID     uint   `json:"-"`
+	ID         uint `json:"id" gorm:"primarykey"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	DeletedAt  gorm.DeletedAt `gorm:"index"`
+	Name       string         `json:"name"`
+	CID        string         `json:"cid"`
+	Size       uint64         `json:"size"`
+	Status     int            `json:"-"`
+	AssetID    string         `json:"asset_id"`
+	ParentID   uint           `json:"-"`
+	BucketID   uint           `json:"-"`
+	Downloaded uint64         `json:"downloaded"`
+	UserID     uint           `json:"-"`
 	User       User
 
 	Created        string    `json:"created_at" gorm:"-"`

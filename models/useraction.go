@@ -1,6 +1,9 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 type UserActionType uint
 
@@ -17,7 +20,10 @@ var UserActionTypeMsgs = []string{
 }
 
 type UserAction struct {
-	gorm.Model
+	ID         uint `json:"id" gorm:"primarykey"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	DeletedAt  gorm.DeletedAt `gorm:"index"`
 	ActionType UserActionType `json:"action_type"`
 	Email      string         `json:"email" gorm:"index"`
 	IP         string         `json:"ip"`

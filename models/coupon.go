@@ -52,7 +52,10 @@ var CouponStatusMsgs = []string{
 }
 
 type Coupon struct {
-	gorm.Model
+	ID                 uint `json:"id" gorm:"primarykey"`
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	DeletedAt          gorm.DeletedAt  `gorm:"index"`
 	Name               string          `json:"name"`
 	CouponType         CouponType      `json:"coupon_type"`
 	PType              ProductType     `json:"product_type"`
@@ -100,7 +103,10 @@ func (item *Coupon) AfterFind(tx *gorm.DB) (err error) {
 }
 
 type UserCoupon struct {
-	gorm.Model
+	ID        uint `json:"id" gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 
 	UserID uint             `json:"-"`
 	User   User             `json:"user"`

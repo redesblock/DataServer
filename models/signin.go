@@ -2,6 +2,7 @@ package models
 
 import (
 	"gorm.io/gorm"
+	"time"
 )
 
 type SignInPeriod uint
@@ -23,11 +24,14 @@ var SignInPeriodMsgs = []string{
 }
 
 type SignIn struct {
-	gorm.Model
-	PType    ProductType  `json:"type" gorm:"unique"`
-	Quantity uint64       `json:"quantity"`
-	Period   SignInPeriod `json:"period"`
-	Enable   bool         `json:"enable"`
+	ID        uint `json:"id" gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+	PType     ProductType    `json:"type" gorm:"unique"`
+	Quantity  uint64         `json:"quantity"`
+	Period    SignInPeriod   `json:"period"`
+	Enable    bool           `json:"enable"`
 
 	QuantityStr string `json:"quantity_str" gorm:"-"`
 	PeriodStr   string `json:"period_str" gorm:"-"`

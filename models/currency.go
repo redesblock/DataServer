@@ -4,6 +4,7 @@ import (
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 	"strings"
+	"time"
 )
 
 type PaymentChannel uint
@@ -25,7 +26,10 @@ var PaymentChannelMsgs = map[PaymentChannel]string{
 }
 
 type Currency struct {
-	gorm.Model
+	ID        uint `json:"id" gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt  `gorm:"index"`
 	Symbol    string          `json:"symbol" gorm:"unique"`
 	Rate      decimal.Decimal `json:"rate"`
 	Base      bool            `json:"base" gorm:"default: false"`

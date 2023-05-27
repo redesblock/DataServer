@@ -32,16 +32,19 @@ var UserStatusMsgs = []string{
 }
 
 type User struct {
-	gorm.Model
-	Email        string     `json:"email" gorm:"unique"`
-	Password     string     `json:"-"`
-	FirstName    string     `json:"first_name"`
-	LastName     string     `json:"last_name"`
-	Role         UserRole   `json:"role" gorm:"default:0"`
-	Status       UserStatus `json:"status" gorm:"default:0"`
-	TotalStorage uint64     `json:"total_storage"`
-	TotalTraffic uint64     `json:"total_traffic"`
-	SignedIn     time.Time  `json:"-"`
+	ID           uint `json:"id" gorm:"primarykey"`
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	DeletedAt    gorm.DeletedAt `gorm:"index"`
+	Email        string         `json:"email" gorm:"unique"`
+	Password     string         `json:"-"`
+	FirstName    string         `json:"first_name"`
+	LastName     string         `json:"last_name"`
+	Role         UserRole       `json:"role" gorm:"default:0"`
+	Status       UserStatus     `json:"status" gorm:"default:0"`
+	TotalStorage uint64         `json:"total_storage"`
+	TotalTraffic uint64         `json:"total_traffic"`
+	SignedIn     time.Time      `json:"-"`
 
 	RoleStr         string `json:"role_str" gorm:"-"`
 	StatusStr       string `json:"status_str" gorm:"-"`

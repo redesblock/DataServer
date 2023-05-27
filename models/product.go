@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
+	"time"
 )
 
 type ProductType uint
@@ -20,10 +21,13 @@ var ProductTypeMsgs = map[ProductType]string{
 }
 
 type Product struct {
-	gorm.Model
-	PType    ProductType     `json:"type" gorm:"unique"`
-	Quantity uint64          `json:"quantity"`
-	Price    decimal.Decimal `json:"price"`
+	ID        uint `json:"id" gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt  `gorm:"index"`
+	PType     ProductType     `json:"type" gorm:"unique"`
+	Quantity  uint64          `json:"quantity"`
+	Price     decimal.Decimal `json:"price"`
 
 	PTypeStr    string `json:"product_type_str" gorm:"-"`
 	QuantityStr string `json:"quantity_str" gorm:"-"`
@@ -44,13 +48,16 @@ func (item *Product) AfterFind(tx *gorm.DB) (err error) {
 }
 
 type SpecialProduct struct {
-	gorm.Model
-	Name     string          `json:"name"`
-	PType    ProductType     `json:"type"`
-	Quantity uint64          `json:"quantity"`
-	Discount decimal.Decimal `json:"discount"`
-	Sold     uint64          `json:"sold"`
-	Reserve  uint64          `json:"reserve"`
+	ID        uint `json:"id" gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt  `gorm:"index"`
+	Name      string          `json:"name"`
+	PType     ProductType     `json:"type"`
+	Quantity  uint64          `json:"quantity"`
+	Discount  decimal.Decimal `json:"discount"`
+	Sold      uint64          `json:"sold"`
+	Reserve   uint64          `json:"reserve"`
 
 	PTypeStr    string `json:"product_type_str" gorm:"-"`
 	QuantityStr string `json:"quantity_str" gorm:"-"`

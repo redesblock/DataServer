@@ -242,6 +242,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 					return err
 				}
 				c.JSON(OKCode, NewResponse(c, OKCode, res))
+				return nil
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 			} else {
 				return fmt.Errorf("not support payment channel")
@@ -249,6 +250,8 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 			return nil
 		}); err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
+			return
+		} else {
 			return
 		}
 
@@ -342,12 +345,15 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				}
 				c.JSON(OKCode, NewResponse(c, OKCode, res))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
+				return nil
 			} else {
 				return fmt.Errorf("not support payment channel")
 			}
 			return nil
 		}); err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
+			return
+		} else {
 			return
 		}
 

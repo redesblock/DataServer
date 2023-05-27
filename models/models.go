@@ -65,18 +65,14 @@ func Init(db *gorm.DB) error {
 
 	signIns := []*SignIn{
 		{
-			Model: gorm.Model{
-				ID: 1,
-			},
+			ID:       1,
 			PType:    ProductType_Storage,
 			Quantity: 1024 * 1024 * 100,
 			Period:   SignInPeriod_Day,
 			Enable:   true,
 		},
 		{
-			Model: gorm.Model{
-				ID: 2,
-			},
+			ID:       2,
 			PType:    ProductType_Traffic,
 			Quantity: 1024 * 1024 * 100,
 			Period:   SignInPeriod_Day,
@@ -85,36 +81,28 @@ func Init(db *gorm.DB) error {
 	}
 	currencies := []*Currency{
 		{
-			Model: gorm.Model{
-				ID: 1,
-			},
+			ID:      1,
 			Symbol:  "USDT",
 			Rate:    decimal.NewFromFloat(1),
 			Base:    true,
 			Payment: PaymentChannel_Crypto,
 		},
 		{
-			Model: gorm.Model{
-				ID: 2,
-			},
+			ID:      2,
 			Symbol:  "MOP",
 			Rate:    decimal.NewFromFloat(1000),
 			Base:    false,
 			Payment: PaymentChannel_Crypto,
 		},
 		{
-			Model: gorm.Model{
-				ID: 3,
-			},
+			ID:      3,
 			Symbol:  "CNY",
 			Rate:    decimal.NewFromFloat(7),
 			Base:    false,
 			Payment: PaymentChannel_Alipay | PaymentChannel_WeChat,
 		},
 		{
-			Model: gorm.Model{
-				ID: 4,
-			},
+			ID:      4,
 			Symbol:  "USD",
 			Rate:    decimal.NewFromFloat(1),
 			Base:    false,
@@ -123,18 +111,14 @@ func Init(db *gorm.DB) error {
 	}
 	products := []*Product{
 		{
-			Model: gorm.Model{
-				ID: 1,
-			},
+			ID:         1,
 			PType:      ProductType_Storage,
 			Quantity:   1024 * 1024,
 			Price:      decimal.NewFromFloat(1),
 			CurrencyID: 1,
 		},
 		{
-			Model: gorm.Model{
-				ID: 2,
-			},
+			ID:         2,
 			PType:      ProductType_Traffic,
 			Quantity:   1024 * 1024,
 			Price:      decimal.NewFromFloat(1),
@@ -143,9 +127,7 @@ func Init(db *gorm.DB) error {
 	}
 	nodes := []*Node{
 		{
-			Model: gorm.Model{
-				ID: 1,
-			},
+			ID:        1,
 			Name:      "重庆",
 			IP:        "182.140.245.81",
 			Port:      1683,
@@ -156,9 +138,7 @@ func Init(db *gorm.DB) error {
 	}
 	users := []*User{
 		{
-			Model: gorm.Model{
-				ID: 1,
-			},
+			ID:       1,
 			Email:    "admin@redeslab.io",
 			Password: "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
 			Role:     UserRole_Admin,

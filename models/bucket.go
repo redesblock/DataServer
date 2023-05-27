@@ -2,14 +2,18 @@ package models
 
 import (
 	"gorm.io/gorm"
+	"time"
 )
 
 type Bucket struct {
-	gorm.Model
-	Name    string `json:"name"`
-	Access  bool   `json:"access"`
-	Network string `json:"network"`
-	Area    string `json:"area"`
+	ID        uint `json:"id" gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+	Name      string         `json:"name"`
+	Access    bool           `json:"access"`
+	Network   string         `json:"network"`
+	Area      string         `json:"area"`
 
 	UserID uint `json:"-"`
 

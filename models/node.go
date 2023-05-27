@@ -2,16 +2,20 @@ package models
 
 import (
 	"gorm.io/gorm"
+	"time"
 )
 
 type Node struct {
-	gorm.Model
-	Name      string `json:"name"`
-	IP        string `json:"ip"`
-	Port      int    `json:"port"`
-	Zone      string `json:"zone"`
-	VoucherID string `json:"voucher_id" gorm:"unique"`
-	Usable    bool   `json:"usable"`
+	ID        uint `json:"id" gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+	Name      string         `json:"name"`
+	IP        string         `json:"ip"`
+	Port      int            `json:"port"`
+	Zone      string         `json:"zone"`
+	VoucherID string         `json:"voucher_id" gorm:"unique"`
+	Usable    bool           `json:"usable"`
 
 	Created string `json:"created_at" gorm:"-"`
 	Updated string `json:"updated_at" gorm:"-"`
