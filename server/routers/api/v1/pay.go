@@ -52,7 +52,19 @@ func AlipayNotify(db *gorm.DB) func(c *gin.Context) {
 				order.ReceiveAccount = noti.SellerEmail
 				order.PaymentAmount = noti.TotalAmount
 				order.PaymentTime, _ = time.Parse(models.TIME_FORMAT, noti.NotifyTime)
-				if err := db.Save(&order).Error; err != nil {
+				if err := db.Transaction(func(tx *gorm.DB) error {
+					var user models.User
+					if ret := tx.Model(&models.User{}).Where("id = ?", order.UserID).Find(&user); ret.Error != nil {
+						return ret.Error
+					} else if ret.RowsAffected == 0 {
+						return fmt.Errorf("not found user")
+					}
+					user.TotalStorage += order.Quantity
+					if err := tx.Save(&user).Error; err != nil {
+						return err
+					}
+					return tx.Save(&order).Error
+				}); err != nil {
 					c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 					return
 				}

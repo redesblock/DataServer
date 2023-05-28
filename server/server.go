@@ -63,9 +63,25 @@ func Start(port string, db *gorm.DB) {
 						continue
 					}
 					if ret == 1 {
-						if err := db.Model(&models.Order{}).Where("hash = ?", item.Hash).Update("status", models.OrderSuccess).Error; err != nil {
+						if err := db.Transaction(func(tx *gorm.DB) error {
+							var user models.User
+							if ret := tx.Model(&models.User{}).Where("id = ?", item.UserID).Find(&user); ret.Error != nil {
+								return ret.Error
+							} else if ret.RowsAffected == 0 {
+								return fmt.Errorf("not found user")
+							}
+							user.TotalStorage += item.Quantity
+							if err := tx.Save(&user).Error; err != nil {
+								return err
+							}
+							if err := tx.Model(&models.Order{}).Where("hash = ?", item.Hash).Update("status", models.OrderSuccess).Error; err != nil {
+								return err
+							}
+							return nil
+						}); err != nil {
 							log.Errorf("sync tx status: %s", err)
 						}
+
 					}
 					if ret == 2 {
 						if err := db.Model(&models.Order{}).Where("hash = ?", item.Hash).Update("status", models.OrderFailed).Error; err != nil {
