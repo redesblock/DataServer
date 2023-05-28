@@ -60,6 +60,7 @@ type Order struct {
 	QuantityStr    string `json:"size_str" gorm:"-"`
 	PaymentStr     string `json:"payment_channel_str" gorm:"-"`
 	PaymentTimeStr string `json:"payment_time_str"`
+	PTypeStr       string `json:"type_str" gorm:"-"`
 
 	StatusStr string `json:"status_str" gorm:"-"`
 	URL       string `json:"url" gorm:"-"`
@@ -70,6 +71,7 @@ func (item *Order) AfterFind(tx *gorm.DB) (err error) {
 	item.Updated = item.UpdatedAt.Format(TIME_FORMAT)
 	item.PaymentTimeStr = item.PaymentTime.Format(TIME_FORMAT)
 	item.QuantityStr = ByteSize(item.Quantity)
+	item.PTypeStr = ProductTypeMsgs[item.PType]
 	item.StatusStr = OrderStatusMsgs[item.Status]
 	if len(item.Hash) > 0 {
 		item.URL = viper.GetString("bsc.browser") + "tx/" + item.Hash
