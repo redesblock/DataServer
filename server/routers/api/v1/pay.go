@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-pay/gopay"
@@ -43,6 +44,8 @@ func AlipayNotify(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
+		b, _ := json.Marshal(noti)
+		fmt.Println("alipay notify", string(b))
 
 		var order models.Order
 		ret := db.Model(&models.Order{}).Where("order_id = ?", noti.OutTradeNo).Find(&order)
@@ -52,7 +55,7 @@ func AlipayNotify(db *gorm.DB) func(c *gin.Context) {
 		}
 		switch noti.TradeStatus {
 		case alipay.TradeStatusWaitBuyerPay:
-			if order.Status == models.OrderPending {
+			if order.Status != models.OrderPending {
 				order.Status = models.OrderPending
 				if err := db.Save(&order).Error; err != nil {
 					c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
@@ -60,7 +63,7 @@ func AlipayNotify(db *gorm.DB) func(c *gin.Context) {
 				}
 			}
 		case alipay.TradeStatusClosed:
-			if order.Status == models.OrderCancel {
+			if order.Status != models.OrderCancel {
 				order.Status = models.OrderCancel
 				if err := db.Save(&order).Error; err != nil {
 					c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
@@ -68,7 +71,7 @@ func AlipayNotify(db *gorm.DB) func(c *gin.Context) {
 				}
 			}
 		case alipay.TradeStatusSuccess:
-			if order.Status == models.OrderSuccess {
+			if order.Status != models.OrderSuccess {
 				order.Status = models.OrderSuccess
 				order.PaymentID = noti.TradeNo
 				order.PaymentAccount = noti.BuyerLogonId
@@ -120,6 +123,10 @@ func WxPayNotify(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
+
+		b, _ := json.Marshal(noti)
+		fmt.Println("wxpay notify", string(b))
+
 		var order models.Order
 		ret := db.Model(&models.Order{}).Where("order_id = ?", noti.OutTradeNo).Find(&order)
 		if err := ret.Error; err != nil {
@@ -129,7 +136,7 @@ func WxPayNotify(db *gorm.DB) func(c *gin.Context) {
 
 		switch notifyReq.EventType {
 		case wechat.TradeStateClosed:
-			if order.Status == models.OrderCancel {
+			if order.Status != models.OrderCancel {
 				order.Status = models.OrderCancel
 				if err := db.Save(&order).Error; err != nil {
 					c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
@@ -139,7 +146,7 @@ func WxPayNotify(db *gorm.DB) func(c *gin.Context) {
 		case wechat.TradeStateNoPay:
 
 		case wechat.TradeStateSuccess:
-			if order.Status == models.OrderSuccess {
+			if order.Status != models.OrderSuccess {
 				order.Status = models.OrderSuccess
 				order.PaymentID = noti.TransactionId
 				order.PaymentAccount = noti.Payer.Openid
