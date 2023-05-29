@@ -172,6 +172,11 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 
+		if len(req.Description) == 0 {
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid desc"))
+			return
+		}
+
 		//var citem models.Currency
 		//ret := db.Find(&citem, req.Currency)
 		//if err := ret.Error; err != nil {
@@ -292,6 +297,11 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		var req BillReq
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
+			return
+		}
+
+		if len(req.Description) == 0 {
+			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid desc"))
 			return
 		}
 
