@@ -235,7 +235,7 @@ func GetClaimed(db *gorm.DB) func(c *gin.Context) {
 			if strings.ToLower(usable) == "true" {
 				tx = tx.Where("status=?", models.UserCouponStatus_Normal)
 			} else if strings.ToLower(usable) == "false" {
-				tx = tx.Where("status=?", true)
+				tx = tx.Where("status!=?", models.UserCouponStatus_Normal)
 			}
 		}
 		if len(c.Query("p_type")) > 0 {
@@ -244,7 +244,7 @@ func GetClaimed(db *gorm.DB) func(c *gin.Context) {
 				c.JSON(OKCode, NewResponse(c, RequestCode, err))
 				return
 			}
-			tx = tx.Where("p_type in ?", []int64{int64(models.ProductType_ALL), int64(models.ProductType_Storage) & pType, int64(models.ProductType_Traffic) & pType})
+			tx = tx.Where("p_type in ?", []int64{int64(models.ProductType_ALL), int64(models.ProductType_Storage) | pType, int64(models.ProductType_Traffic) | pType})
 		}
 
 		var items []*models.UserCoupon

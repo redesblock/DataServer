@@ -8,8 +8,31 @@ import (
 	"github.com/redesblock/dataserver/server/pay"
 	"github.com/smartwalle/alipay/v3"
 	"gorm.io/gorm"
+	"net/http"
 	"time"
 )
+
+func AlipayTest(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		res, err := pay.AliPayTrade("test", generateOrderID(), "0.1")
+		if err != nil {
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
+		}
+
+		c.Redirect(http.StatusTemporaryRedirect, res)
+	}
+}
+
+func WxpayTest(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		res, err := pay.WXTrade("test", generateOrderID(), "0.1")
+		if err != nil {
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
+		}
+
+		c.Redirect(http.StatusTemporaryRedirect, res)
+	}
+}
 
 func AlipayNotify(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {

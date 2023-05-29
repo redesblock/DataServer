@@ -39,6 +39,9 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 
 	apiv1 := r.Group("/api/v1")
 	{
+		apiv1.GET("/alipay", v1.AlipayTest(db))
+		apiv1.GET("/wxpay", v1.WxpayTest(db))
+
 		apiv1.POST("/traffic", v1.AddReportTraffic(db))
 		apiv1.GET("/traffics", v1.GetReportTraffics(db))
 		apiv1.POST("/login", v1.Login(db))

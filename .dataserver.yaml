@@ -48,4 +48,4 @@ wxpay:
   privateKey: ./apiclient_key.pem
   apiV3Key: w330326196806282830w13906667680x
   appid:
-  notifyUrl: http://202.83.246.155:8083/api/v1/wxpay/notify
+  notifyUrl: https://www.weixin.qq.com/wxpay/pay.php

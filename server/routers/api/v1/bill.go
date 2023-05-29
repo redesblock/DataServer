@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/models"
@@ -132,7 +133,7 @@ func (r *BillReq) convertToOrder(db *gorm.DB, p_type models.ProductType) (quanti
 		discount = price
 		if r.Coupon > 0 {
 			var item2 models.UserCoupon
-			ret := db.Preload("Coupon").Find(&item2, r.Coupon)
+			ret := db.Where("status = ?", models.UserCouponStatus_Normal).Preload("Coupon").Find(&item2, r.Coupon)
 			if err = ret.Error; err != nil {
 				return
 			}
