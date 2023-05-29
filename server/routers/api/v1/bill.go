@@ -115,7 +115,7 @@ func (r *BillReq) convertToOrder(db *gorm.DB, p_type models.ProductType) (quanti
 
 	if r.SpecialProduct != 0 {
 		var item2 models.SpecialProduct
-		ret := db.Find(&item2, r.SpecialProduct)
+		ret := db.Where("reserve > 0").Find(&item2, r.SpecialProduct)
 		if err = ret.Error; err != nil {
 			return
 		}
@@ -233,7 +233,23 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		if err := db.Transaction(func(tx *gorm.DB) error {
-			if err := db.Save(item).Error; err != nil {
+			if req.SpecialProduct != 0 {
+				var item2 models.SpecialProduct
+				ret := tx.Where("reserve > 0").Find(&item2, req.SpecialProduct)
+				if err = ret.Error; err != nil {
+					return err
+				}
+				if ret.RowsAffected == 0 {
+					err = fmt.Errorf("invalid special_product")
+					return err
+				}
+				item2.Sold++
+				item2.Reserve--
+				if err := tx.Save(item2).Error; err != nil {
+					return err
+				}
+			}
+			if err := tx.Save(item).Error; err != nil {
 				return err
 			}
 			if req.PaymentChannel == models.PaymentChannel_Alipay {
@@ -339,7 +355,23 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		if err := db.Transaction(func(tx *gorm.DB) error {
-			if err := db.Save(item).Error; err != nil {
+			if req.SpecialProduct != 0 {
+				var item2 models.SpecialProduct
+				ret := tx.Where("reserve > 0").Find(&item2, req.SpecialProduct)
+				if err = ret.Error; err != nil {
+					return err
+				}
+				if ret.RowsAffected == 0 {
+					err = fmt.Errorf("invalid special_product")
+					return err
+				}
+				item2.Sold++
+				item2.Reserve--
+				if err := tx.Save(item2).Error; err != nil {
+					return err
+				}
+			}
+			if err := tx.Save(item).Error; err != nil {
 				return err
 			}
 			if req.PaymentChannel == models.PaymentChannel_Alipay {

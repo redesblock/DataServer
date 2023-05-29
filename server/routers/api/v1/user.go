@@ -413,7 +413,7 @@ func GetClaim(db *gorm.DB) func(c *gin.Context) {
 					}
 				}
 			}
-			return nil
+			return tx.Save(&uitem).Error
 		}); err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
