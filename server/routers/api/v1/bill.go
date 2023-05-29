@@ -258,7 +258,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				return err
 			}
 			if req.PaymentChannel == models.PaymentChannel_Alipay {
-				res, err := pay.AliPayTrade(req.Description, item.OrderID, item.Price.String())
+				res, err := pay.AliPayTrade(req.Description, item.OrderID, item.Discount.String())
 				if err != nil {
 					return err
 				}
@@ -266,7 +266,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				return nil
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 			} else if req.PaymentChannel == models.PaymentChannel_WeChat {
-				res, err := pay.WXTrade(req.Description, item.OrderID, item.Price.String())
+				res, err := pay.WXTrade(req.Description, item.OrderID, item.Discount.String())
 				if err != nil {
 					return err
 				}
@@ -385,7 +385,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				return err
 			}
 			if req.PaymentChannel == models.PaymentChannel_Alipay {
-				res, err := pay.AliPayTrade(req.Description, item.OrderID, item.Price.String())
+				res, err := pay.AliPayTrade(req.Description, item.OrderID, item.Discount.String())
 				if err != nil {
 					return err
 				}
@@ -393,7 +393,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_WeChat {
-				res, err := pay.WXTrade(req.Description, item.OrderID, item.Price.String())
+				res, err := pay.WXTrade(req.Description, item.OrderID, item.Discount.String())
 				if err != nil {
 					return err
 				}

@@ -49,6 +49,9 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiv1.POST("/forgot", v1.Forgot(db))
 		apiv1.POST("/reset", v1.Reset(db))
 
+		apiv1.POST("/alipay/notify", v1.AlipayNotify(db))
+		apiv1.POST("/wxpay/notify", v1.AlipayNotify(db))
+
 		apiv1.Use(v1.JWTAuthMiddleware())
 		apiv1.GET("/user", v1.GetUserHandler(db))
 		apiv1.GET("/user/signIn", v1.GetSignInSwitch(db))
@@ -100,9 +103,6 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiv1.POST("/bills/traffic", v1.AddBillsTrafficHandler(db))
 		apiv1.GET("/bills/traffic/:id", v1.GetOrder(db))
 		apiv1.GET("/bills/storage/:id", v1.GetOrder(db))
-
-		apiv1.POST("/alipay/notify", v1.AlipayNotify(db))
-		apiv1.POST("/wxpay/notify", v1.AlipayNotify(db))
 
 		apiv1.Use(v1.JWTAuthMiddleware2())
 		apiv1.PUT("/currencies/:id", v1.EditCurrency(db))
