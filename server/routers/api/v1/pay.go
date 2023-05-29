@@ -74,3 +74,9 @@ func AlipayNotify(db *gorm.DB) func(c *gin.Context) {
 		alipay.ACKNotification(c.Writer)
 	}
 }
+
+func WxPayNotify(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+
+	}
+}

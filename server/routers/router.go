@@ -98,7 +98,8 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiv1.GET("/bills/traffic/:id", v1.GetOrder(db))
 		apiv1.GET("/bills/storage/:id", v1.GetOrder(db))
 
-		apiv1.GET("alipay/notify", v1.AlipayNotify(db))
+		apiv1.GET("/alipay/notify", v1.AlipayNotify(db))
+		apiv1.GET("/wxpay/notify", v1.AlipayNotify(db))
 
 		apiv1.Use(v1.JWTAuthMiddleware2())
 		apiv1.PUT("/currencies/:id", v1.EditCurrency(db))

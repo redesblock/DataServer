@@ -244,6 +244,14 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				c.JSON(OKCode, NewResponse(c, OKCode, res))
 				return nil
 				//c.Redirect(http.StatusTemporaryRedirect, res)
+			} else if req.PaymentChannel == models.PaymentChannel_WeChat {
+				res, err := pay.WXTrade(req.Description, item.OrderID, item.Price.String())
+				if err != nil {
+					return err
+				}
+				c.JSON(OKCode, NewResponse(c, OKCode, res))
+				//c.Redirect(http.StatusTemporaryRedirect, res)
+				return nil
 			} else {
 				return fmt.Errorf("not support payment channel")
 			}
@@ -251,11 +259,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 		}); err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
-		} else {
-			return
 		}
-
-		c.JSON(OKCode, NewResponse(c, OKCode, ""))
 	}
 }
 
@@ -346,6 +350,14 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				c.JSON(OKCode, NewResponse(c, OKCode, res))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
+			} else if req.PaymentChannel == models.PaymentChannel_WeChat {
+				res, err := pay.WXTrade(req.Description, item.OrderID, item.Price.String())
+				if err != nil {
+					return err
+				}
+				c.JSON(OKCode, NewResponse(c, OKCode, res))
+				//c.Redirect(http.StatusTemporaryRedirect, res)
+				return nil
 			} else {
 				return fmt.Errorf("not support payment channel")
 			}
@@ -353,11 +365,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		}); err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
-		} else {
-			return
 		}
-
-		c.JSON(OKCode, NewResponse(c, OKCode, ""))
 	}
 }
 
@@ -378,7 +386,7 @@ func BuyTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 
-		quantity, price, discount, err := req.convertToOrder(db, models.ProductType_Storage)
+		quantity, price, discount, err := req.convertToOrder(db, models.ProductType_Traffic)
 		if err != nil {
 			c.JSON(OKCode, NewResponse(c, RequestCode, err))
 			return
