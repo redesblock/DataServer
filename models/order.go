@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -44,7 +45,7 @@ type Order struct {
 	PaymentAccount string          `json:"payment_account"`
 	ReceiveAccount string          `json:"receive_account"`
 	PaymentAmount  string          `json:"payment_amount"`
-	PaymentTime    time.Time       `json:"payment_time"`
+	PaymentTime    sql.NullTime    `json:"payment_time"`
 	Status         OrderStatus     `json:"status"`
 	Hash           string          `json:"hash"`
 	Discount       decimal.Decimal `json:"discount"`
