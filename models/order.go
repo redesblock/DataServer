@@ -47,7 +47,7 @@ type Order struct {
 	PaymentTime    time.Time       `json:"payment_time"`
 	Status         OrderStatus     `json:"status"`
 	Hash           string          `json:"hash"`
-	Discount       decimal.Decimal `json:"-"`
+	Discount       decimal.Decimal `json:"discount"`
 
 	UserID uint `json:"-"`
 	User   User
@@ -55,13 +55,12 @@ type Order struct {
 	CurrencyID uint `json:"-"`
 	Currency   Currency
 
-	Created        string          `json:"created_at" gorm:"-"`
-	Updated        string          `json:"updated_at" gorm:"-"`
-	QuantityStr    string          `json:"size_str" gorm:"-"`
-	PaymentStr     string          `json:"payment_channel_str" gorm:"-"`
-	PaymentTimeStr string          `json:"payment_time_str"`
-	PTypeStr       string          `json:"type_str" gorm:"-"`
-	Discount2      decimal.Decimal `json:"discount"`
+	Created        string `json:"created_at" gorm:"-"`
+	Updated        string `json:"updated_at" gorm:"-"`
+	QuantityStr    string `json:"size_str" gorm:"-"`
+	PaymentStr     string `json:"payment_channel_str" gorm:"-"`
+	PaymentTimeStr string `json:"payment_time_str"`
+	PTypeStr       string `json:"type_str" gorm:"-"`
 
 	StatusStr string `json:"status_str" gorm:"-"`
 	URL       string `json:"url" gorm:"-"`
@@ -77,7 +76,6 @@ func (item *Order) AfterFind(tx *gorm.DB) (err error) {
 	if len(item.Hash) > 0 {
 		item.URL = viper.GetString("bsc.browser") + "tx/" + item.Hash
 	}
-	item.Discount2 = item.Discount.Div(item.Price)
 	item.PaymentStr = PaymentChannelMsgs[item.Payment]
 	return
 }
