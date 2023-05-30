@@ -1,8 +1,10 @@
 package pay
 
 import (
+	"github.com/redesblock/dataserver/models"
 	"github.com/smartwalle/alipay/v3"
 	"github.com/spf13/viper"
+	"time"
 )
 
 var AlipayClient *alipay.Client
@@ -35,6 +37,7 @@ func AliPayTrade(subject, orderID, amount string) (string, error) {
 	p.OutTradeNo = orderID
 	p.TotalAmount = amount
 	p.ProductCode = "FAST_INSTANT_TRADE_PAY"
+	p.TimeExpire = time.Now().Add(10 * time.Minute).Format(models.TIME_FORMAT)
 	url, err := AlipayClient.TradePagePay(p)
 	if err != nil {
 		return "", err

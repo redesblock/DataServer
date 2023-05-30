@@ -2,14 +2,18 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"github.com/go-pay/gopay/wechat/v3"
 	"github.com/redesblock/dataserver/models"
 	"github.com/redesblock/dataserver/server/dispatcher"
 	"github.com/redesblock/dataserver/server/pay"
 	"github.com/redesblock/dataserver/server/routers"
 	v1 "github.com/redesblock/dataserver/server/routers/api/v1"
+	"github.com/shopspring/decimal"
+	"github.com/smartwalle/alipay/v3"
 	"github.com/spf13/viper"
 	"io"
 	"net/http"
@@ -142,6 +146,84 @@ func Start(port string, db *gorm.DB) {
 				}
 
 				timer.Reset(duration)
+			}
+		}
+	}()
+
+	// upload order
+	go func() {
+		timer := time.NewTimer(10 * time.Minute)
+		for {
+			select {
+			case <-timer.C:
+				var items []*models.Order
+				if err := db.Where("status != ?", models.OrderSuccess).Where("created_at between ? and ?", time.Now().Add(-time.Hour*24), time.Now()).Find(&items).Error; err != nil {
+					log.Errorf("sync order status: %s", err)
+				}
+				for _, item := range items {
+					switch item.Payment {
+					case models.PaymentChannel_WeChat:
+						resp, err := pay.WXClient.V3TransactionQueryOrder(context.Background(), wechat.OutTradeNo, item.OrderID)
+						if err != nil {
+							log.Errorf("sync order status: %s", err)
+						}
+
+						if resp.Response.TradeState == wechat.TradeStateSuccess {
+							item.Status = models.OrderSuccess
+							item.PaymentID = resp.Response.TransactionId
+							item.PaymentAccount = resp.Response.Payer.Openid
+							item.ReceiveAccount = decimal.NewFromInt(int64(resp.Response.Amount.PayerTotal)).Div(decimal.NewFromInt(100)).String()
+							item.PaymentAmount = decimal.NewFromInt(int64(resp.Response.Amount.PayerTotal)).Div(decimal.NewFromInt(100)).String()
+							item.PaymentTime, _ = time.Parse(models.TIME_FORMAT, resp.Response.SuccessTime)
+							if err := db.Transaction(func(tx *gorm.DB) error {
+								var user models.User
+								if ret := tx.Model(&models.User{}).Where("id = ?", item.UserID).Find(&user); ret.Error != nil {
+									return ret.Error
+								} else if ret.RowsAffected == 0 {
+									return fmt.Errorf("not found user")
+								}
+								user.TotalStorage += item.Quantity
+								if err := tx.Save(&user).Error; err != nil {
+									return err
+								}
+								return tx.Save(&item).Error
+							}); err != nil {
+								log.Errorf("sync order status: %s", err)
+							}
+						}
+					case models.PaymentChannel_Alipay:
+						req := alipay.TradeQuery{}
+						req.OutTradeNo = item.OrderID
+						resp, err := pay.AlipayClient.TradeQuery(req)
+						if err != nil {
+							log.Errorf("sync order status: %s", err)
+						}
+						if resp.TradeStatus == alipay.TradeStatusSuccess {
+							item.Status = models.OrderSuccess
+							item.PaymentID = resp.TradeNo
+							item.PaymentAccount = resp.BuyerLogonId
+							item.ReceiveAccount = resp.StoreName
+							item.PaymentAmount = resp.TotalAmount
+							item.PaymentTime, _ = time.Parse(models.TIME_FORMAT, resp.SendPayDate)
+							if err := db.Transaction(func(tx *gorm.DB) error {
+								var user models.User
+								if ret := tx.Model(&models.User{}).Where("id = ?", item.UserID).Find(&user); ret.Error != nil {
+									return ret.Error
+								} else if ret.RowsAffected == 0 {
+									return fmt.Errorf("not found user")
+								}
+								user.TotalStorage += item.Quantity
+								if err := tx.Save(&user).Error; err != nil {
+									return err
+								}
+								return tx.Save(&item).Error
+							}); err != nil {
+								log.Errorf("sync order status: %s", err)
+							}
+						}
+					case models.PaymentChannel_Stripe:
+					}
+				}
 			}
 		}
 	}()

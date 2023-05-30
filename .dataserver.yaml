@@ -47,7 +47,7 @@ wxpay:
   serialNo: 6af7bdd3d5d8497f2427634e4f6dfc44f3ae773f
   privateKey: ./apiclient_key.pem
   apiV3Key: w330326196806282830w13906667680x
-  appid:
+  appid: gh_dda4add4d48c
   notifyUrl: https://www.weixin.qq.com/wxpay/pay.php
 stripe:
   key: sk_test_51NAZ08JpKKVWsVkkoohLJQgmjIj55CMpEEEXBMtQffLZCjKkOsCz0ULVsA3K19F20C9xVt9h5CTHb497Fw6rUmxP00zHXUYKam

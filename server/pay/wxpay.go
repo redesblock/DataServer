@@ -2,6 +2,7 @@ package pay
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/go-pay/gopay"
 	"github.com/go-pay/gopay/wechat/v3"
@@ -9,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 	"net/http"
 	"os"
+	"time"
 )
 
 var WXClient *wechat.ClientV3
@@ -41,12 +43,14 @@ func WXTrade(subject, orderID, amount string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	expire := time.Now().Add(10 * time.Minute).Format(time.RFC3339)
 
 	// 初始化 BodyMap
 	bm := make(gopay.BodyMap)
 	bm.Set("appid", viper.GetString("wxpay.appid")).
 		Set("description", subject).
 		Set("out_trade_no", orderID).
+		Set("time_expire", expire).
 		Set("notify_url", notifyURL).
 		SetBodyMap("amount", func(bm gopay.BodyMap) {
 			bm.Set("total", amt.Mul(decimal.NewFromInt(100)).BigInt().Uint64()).

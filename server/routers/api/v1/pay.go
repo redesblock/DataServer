@@ -93,7 +93,7 @@ func AlipayNotify(db *gorm.DB) func(c *gin.Context) {
 				order.PaymentAccount = noti.BuyerLogonId
 				order.ReceiveAccount = noti.SellerEmail
 				order.PaymentAmount = noti.TotalAmount
-				order.PaymentTime, _ = time.Parse(models.TIME_FORMAT, noti.NotifyTime)
+				order.PaymentTime, _ = time.Parse(models.TIME_FORMAT, noti.GmtPayment)
 				if err := db.Transaction(func(tx *gorm.DB) error {
 					var user models.User
 					if ret := tx.Model(&models.User{}).Where("id = ?", order.UserID).Find(&user); ret.Error != nil {

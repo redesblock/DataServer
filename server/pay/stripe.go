@@ -5,16 +5,23 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stripe/stripe-go/v74"
 	"github.com/stripe/stripe-go/v74/checkout/session"
+	"time"
 )
 
 func InitStripe() {
 	stripe.Key = viper.GetString("stripe.key")
 }
 func StripeTrade(subject, orderID, amount string) (string, error) {
+	amt, err := decimal.NewFromString(amount)
+	if err != nil {
+		return "", err
+	}
 	successURL := viper.GetString("stripe.successUrl")
-	amt, _ := decimal.NewFromString(amount)
+	expire := time.Now().Add(30 * time.Minute).Unix()
+
 	params := &stripe.CheckoutSessionParams{
-		Mode: stripe.String(string(stripe.CheckoutSessionModePayment)),
+		ExpiresAt: &expire,
+		Mode:      stripe.String(string(stripe.CheckoutSessionModePayment)),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			&stripe.CheckoutSessionLineItemParams{
 				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
