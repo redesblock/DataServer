@@ -15,6 +15,7 @@ const (
 	PaymentChannel_Crypto      PaymentChannel = 1 << 2
 	PaymentChannel_Alipay      PaymentChannel = 1 << 3
 	PaymentChannel_WeChat      PaymentChannel = 1 << 4
+	PaymentChannel_Stripe      PaymentChannel = 1 << 5
 )
 
 var PaymentChannelMsgs = map[PaymentChannel]string{
