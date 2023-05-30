@@ -217,16 +217,17 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 
 		userID, _ := c.Get("id")
 		item := &models.Order{
-			OrderID:    generateOrderID(),
-			PType:      models.ProductType_Storage,
-			Payment:    req.PaymentChannel,
-			Quantity:   quantity,
-			UserID:     userID.(uint),
-			Status:     models.OrderWait,
-			Hash:       req.Hash,
-			Price:      price,
-			Discount:   discount,
-			CurrencyID: req.Currency,
+			OrderID:     generateOrderID(),
+			PType:       models.ProductType_Storage,
+			Payment:     req.PaymentChannel,
+			Quantity:    quantity,
+			UserID:      userID.(uint),
+			Status:      models.OrderWait,
+			Hash:        req.Hash,
+			Price:       price,
+			Discount:    discount,
+			CurrencyID:  req.Currency,
+			PaymentTime: models.UnlimitedTime,
 		}
 
 		if req.PaymentChannel == models.PaymentChannel_Crypto {
@@ -354,14 +355,17 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 
 		userID, _ := c.Get("id")
 		item := &models.Order{
-			OrderID:  generateOrderID(),
-			PType:    models.ProductType_Traffic,
-			Quantity: quantity,
-			Price:    price,
-			Discount: discount,
-			UserID:   userID.(uint),
-			Status:   models.OrderWait,
-			Hash:     req.Hash,
+			OrderID:     generateOrderID(),
+			PType:       models.ProductType_Traffic,
+			Payment:     req.PaymentChannel,
+			Quantity:    quantity,
+			UserID:      userID.(uint),
+			Status:      models.OrderWait,
+			Hash:        req.Hash,
+			Price:       price,
+			Discount:    discount,
+			CurrencyID:  req.Currency,
+			PaymentTime: models.UnlimitedTime,
 		}
 
 		if req.PaymentChannel == models.PaymentChannel_Crypto {

@@ -1,7 +1,6 @@
 package models
 
 import (
-	"database/sql"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -45,7 +44,7 @@ type Order struct {
 	PaymentAccount string          `json:"payment_account"`
 	ReceiveAccount string          `json:"receive_account"`
 	PaymentAmount  string          `json:"payment_amount"`
-	PaymentTime    sql.NullTime    `json:"payment_time"`
+	PaymentTime    time.Time       `json:"payment_time"`
 	Status         OrderStatus     `json:"status"`
 	Hash           string          `json:"hash"`
 	Discount       decimal.Decimal `json:"discount"`
@@ -70,7 +69,9 @@ type Order struct {
 func (item *Order) AfterFind(tx *gorm.DB) (err error) {
 	item.Created = item.CreatedAt.Format(TIME_FORMAT)
 	item.Updated = item.UpdatedAt.Format(TIME_FORMAT)
-	item.PaymentTimeStr = item.PaymentTime.Format(TIME_FORMAT)
+	if item.PaymentTime.Unix() > 0 {
+		item.PaymentTimeStr = item.PaymentTime.Format(TIME_FORMAT)
+	}
 	item.QuantityStr = ByteSize(item.Quantity)
 	item.PTypeStr = ProductTypeMsgs[item.PType]
 	item.StatusStr = OrderStatusMsgs[item.Status]
