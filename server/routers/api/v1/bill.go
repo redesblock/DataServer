@@ -219,6 +219,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 		item := &models.Order{
 			OrderID:    generateOrderID(),
 			PType:      models.ProductType_Storage,
+			Payment:    req.PaymentChannel,
 			Quantity:   quantity,
 			UserID:     userID.(uint),
 			Status:     models.OrderWait,
