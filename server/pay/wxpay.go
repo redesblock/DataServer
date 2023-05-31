@@ -2,13 +2,11 @@ package pay
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/go-pay/gopay"
 	"github.com/go-pay/gopay/wechat/v3"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/viper"
-	"net/http"
 	"os"
 	"time"
 )
@@ -61,7 +59,8 @@ func WXTrade(subject, orderID, amount string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if wxRsp.Code != http.StatusOK {
+
+	if wxRsp.Code != wechat.Success {
 		return "", fmt.Errorf(wxRsp.Error)
 	}
 
