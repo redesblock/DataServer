@@ -137,20 +137,22 @@ func GetSignInSwitch(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 		signIn := false
-		for _, i := range items {
-			if models.SignInPeriod_Day == i.Period {
-				signIn = time.Now().Day()-item.SignedIn.Day() > 1
-			} else if models.SignInPeriod_Week == i.Period {
-				_, w := time.Now().ISOWeek()
-				_, w1 := item.SignedIn.ISOWeek()
-				signIn = w-w1 > 1
-			} else if models.SignInPeriod_Month == i.Period {
-				signIn = time.Now().Month()-item.SignedIn.Month() > 1
-			} else if models.SignInPeriod_Year == i.Period {
-				signIn = time.Now().Year()-item.SignedIn.Year() > 1
-			}
-			if signIn {
-				break
+		if !item.SignedIn.IsZero() {
+			for _, i := range items {
+				if models.SignInPeriod_Day == i.Period {
+					signIn = time.Now().Day()-item.SignedIn.Day() > 1
+				} else if models.SignInPeriod_Week == i.Period {
+					_, w := time.Now().ISOWeek()
+					_, w1 := item.SignedIn.ISOWeek()
+					signIn = w-w1 > 1
+				} else if models.SignInPeriod_Month == i.Period {
+					signIn = time.Now().Month()-item.SignedIn.Month() > 1
+				} else if models.SignInPeriod_Year == i.Period {
+					signIn = time.Now().Year()-item.SignedIn.Year() > 1
+				}
+				if signIn {
+					break
+				}
 			}
 		}
 		if len(items) == 0 {
