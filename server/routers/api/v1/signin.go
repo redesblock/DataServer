@@ -154,6 +154,8 @@ func GetSignInSwitch(db *gorm.DB) func(c *gin.Context) {
 					break
 				}
 			}
+		} else {
+			signIn = true
 		}
 		if len(items) == 0 {
 			c.JSON(OKCode, NewResponse(c, OKCode, 0))
