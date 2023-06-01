@@ -453,16 +453,20 @@ func GetSignedIn(db *gorm.DB) func(c *gin.Context) {
 		var traffic uint64
 		for _, signIn := range signIns {
 			enable := false
-			if models.SignInPeriod_Day == signIn.Period {
-				enable = time.Now().Day()-item.SignedIn.Day() > 1
-			} else if models.SignInPeriod_Week == signIn.Period {
-				_, w := time.Now().ISOWeek()
-				_, w1 := item.SignedIn.ISOWeek()
-				enable = w-w1 > 1
-			} else if models.SignInPeriod_Month == signIn.Period {
-				enable = time.Now().Month()-item.SignedIn.Month() > 1
-			} else if models.SignInPeriod_Year == signIn.Period {
-				enable = time.Now().Year()-item.SignedIn.Year() > 1
+			if item.SignedIn.IsZero() {
+				enable = true
+			} else {
+				if models.SignInPeriod_Day == signIn.Period {
+					enable = time.Now().Day()-item.SignedIn.Day() > 1
+				} else if models.SignInPeriod_Week == signIn.Period {
+					_, w := time.Now().ISOWeek()
+					_, w1 := item.SignedIn.ISOWeek()
+					enable = w-w1 > 1
+				} else if models.SignInPeriod_Month == signIn.Period {
+					enable = time.Now().Month()-item.SignedIn.Month() > 1
+				} else if models.SignInPeriod_Year == signIn.Period {
+					enable = time.Now().Year()-item.SignedIn.Year() > 1
+				}
 			}
 			if !enable {
 				continue

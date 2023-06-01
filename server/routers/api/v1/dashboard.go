@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"fmt"
 	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
 	"time"
@@ -37,7 +36,6 @@ func OverViewHandler(db *gorm.DB) func(c *gin.Context) {
 
 		userID, _ := c.Get("id")
 		userRole, _ := c.Get("role")
-		fmt.Println(userRole, userID)
 		if userRole.(models.UserRole) == models.UserRole_Oper || userRole.(models.UserRole) == models.UserRole_Admin {
 			if err := db.Model(&models.Bucket{}).Select("COUNT(id) AS count").Scan(&item.Buckets).Error; err != nil {
 				c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
