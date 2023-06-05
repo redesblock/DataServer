@@ -12,6 +12,7 @@ import (
 	"github.com/smartwalle/alipay/v3"
 	"github.com/spf13/viper"
 	"github.com/stripe/stripe-go/v74"
+	"github.com/stripe/stripe-go/v74/checkout/session"
 	"github.com/stripe/stripe-go/v74/webhook"
 	"gorm.io/gorm"
 	"io/ioutil"
@@ -199,8 +200,11 @@ func WxPayNotify(db *gorm.DB) func(c *gin.Context) {
 
 func StripeNotify(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		fulfillOrder := func(session stripe.CheckoutSession) {
-			b, _ := json.Marshal(session)
+		fulfillOrder := func(s stripe.CheckoutSession) {
+			params := &stripe.CheckoutSessionParams{}
+			params.AddExpand("line_items")
+			sessionWithLineItems, _ := session.Get(s.ID, params)
+			b, _ := json.Marshal(sessionWithLineItems)
 			fmt.Println("stripe notify", string(b))
 			// TODO: fill me in
 		}
@@ -217,7 +221,7 @@ func StripeNotify(db *gorm.DB) func(c *gin.Context) {
 
 		// Pass the request body and Stripe-Signature header to ConstructEvent, along with the webhook signing key
 		// You can find your endpoint's secret in your webhook settings
-		endpointSecret := viper.GetString("stripe.key")
+		endpointSecret := viper.GetString("stripe.secret")
 		event, err := webhook.ConstructEvent(body, c.Request.Header.Get("Stripe-Signature"), endpointSecret)
 
 		if err != nil {
