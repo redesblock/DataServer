@@ -24,6 +24,7 @@ var PaymentChannelMsgs = map[PaymentChannel]string{
 	PaymentChannel_Crypto:      "CryptoCurrency",
 	PaymentChannel_Alipay:      "Alipay",
 	PaymentChannel_WeChat:      "WeChat",
+	PaymentChannel_Stripe:      "Stripe",
 }
 
 type Currency struct {
