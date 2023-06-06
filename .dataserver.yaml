@@ -51,5 +51,5 @@ wxpay:
   notifyUrl: https://mopdstor.com/api/v1/wxpay/notify
 stripe:
   key: sk_test_51NAZ08JpKKVWsVkkoohLJQgmjIj55CMpEEEXBMtQffLZCjKkOsCz0ULVsA3K19F20C9xVt9h5CTHb497Fw6rUmxP00zHXUYKam
-  secret: whsec_C3wto2dvodkUa0YjRsGFgrNYJJVqGzYC
+  secret: whsec_1srEOXz1VMGlyupoS5Xs9Kv0ECwNbEYR
   successUrl: https://mopdstor.com/#/billing/index

@@ -200,13 +200,46 @@ func WxPayNotify(db *gorm.DB) func(c *gin.Context) {
 
 func StripeNotify(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		fulfillOrder := func(s stripe.CheckoutSession) {
+		fulfillOrder := func(s stripe.CheckoutSession) error {
 			params := &stripe.CheckoutSessionParams{}
 			params.AddExpand("line_items")
 			sessionWithLineItems, _ := session.Get(s.ID, params)
 			b, _ := json.Marshal(sessionWithLineItems)
 			fmt.Println("stripe notify", string(b))
-			// TODO: fill me in
+
+			for _, item := range sessionWithLineItems.LineItems.Data {
+				orderID := item.Description
+				var order models.Order
+				ret := db.Model(&models.Order{}).Where("order_id = ?", orderID).Find(&order)
+				if err := ret.Error; err != nil {
+					return err
+				}
+				order.Status = models.OrderSuccess
+				order.PaymentID = sessionWithLineItems.ID
+				if sessionWithLineItems.CustomerDetails != nil {
+					order.PaymentAccount = sessionWithLineItems.CustomerDetails.Email
+				}
+
+				order.ReceiveAccount = decimal.NewFromInt(int64(item.AmountTotal)).Div(decimal.NewFromInt(100)).String()
+				order.PaymentAmount = decimal.NewFromInt(int64(item.AmountTotal)).Div(decimal.NewFromInt(100)).String()
+				order.PaymentTime = time.Unix(sessionWithLineItems.Created, 0)
+				if err := db.Transaction(func(tx *gorm.DB) error {
+					var user models.User
+					if ret := tx.Model(&models.User{}).Where("id = ?", order.UserID).Find(&user); ret.Error != nil {
+						return ret.Error
+					} else if ret.RowsAffected == 0 {
+						return fmt.Errorf("not found user")
+					}
+					user.TotalStorage += order.Quantity
+					if err := tx.Save(&user).Error; err != nil {
+						return err
+					}
+					return tx.Save(&order).Error
+				}); err != nil {
+					return err
+				}
+			}
+			return nil
 		}
 
 		const MaxBodyBytes = int64(65536)
@@ -224,8 +257,6 @@ func StripeNotify(db *gorm.DB) func(c *gin.Context) {
 		endpointSecret := viper.GetString("stripe.secret")
 		signature := c.Request.Header.Get("HTTP_STRIPE_SIGNATURE")
 		event, err := webhook.ConstructEvent(body, signature, endpointSecret)
-		fmt.Println(endpointSecret, signature)
-
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error verifying webhook signature: %v\n", err)
 			c.JSON(http.StatusBadRequest, NewResponse(c, ExecuteCode, err))
