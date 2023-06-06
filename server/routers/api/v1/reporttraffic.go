@@ -103,7 +103,7 @@ func AddReportTraffic(db *gorm.DB) func(c *gin.Context) {
 					return item, nil
 				}
 				var item models.ReportTraffic
-				if result := db.Find(&item, "token = ? AND timestamp =? AND nat_addr = ?", key, timestamp, nat_addr); result.Error != nil {
+				if result := tx.Find(&item, "token = ? AND timestamp =? AND nat_addr = ?", key, timestamp, nat_addr); result.Error != nil {
 					return nil, result.Error
 				} else if result.RowsAffected == 0 {
 					item.Token = key

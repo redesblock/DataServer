@@ -333,7 +333,7 @@ func GetFileDownloadHandler(db *gorm.DB) func(c *gin.Context) {
 			db.Transaction(func(tx *gorm.DB) error {
 				time := time.Now().Format("2006-01-02")
 				var item2 *models.UsedTraffic
-				if ret := db.Model(&models.UsedTraffic{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
+				if ret := tx.Model(&models.UsedTraffic{}).Where("user_id = ?", userID).Where("time = ?", time).Find(&item2); ret.Error != nil {
 					return ret.Error
 				} else if ret.RowsAffected == 0 {
 					item2 = &models.UsedTraffic{

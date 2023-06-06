@@ -348,7 +348,7 @@ func GetClaim(db *gorm.DB) func(c *gin.Context) {
 		if err := db.Transaction(func(tx *gorm.DB) error {
 			if item.MaxClaim != 0 {
 				var count int64
-				if err := db.Model(&models.UserCoupon{}).Where("user_id = ? AND coupon_id = ?", userID, id).Count(&count).Error; err != nil {
+				if err := tx.Model(&models.UserCoupon{}).Where("user_id = ? AND coupon_id = ?", userID, id).Count(&count).Error; err != nil {
 					return err
 				}
 				if uint64(count) >= item.MaxClaim {

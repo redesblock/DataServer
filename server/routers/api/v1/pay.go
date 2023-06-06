@@ -222,7 +222,9 @@ func StripeNotify(db *gorm.DB) func(c *gin.Context) {
 		// Pass the request body and Stripe-Signature header to ConstructEvent, along with the webhook signing key
 		// You can find your endpoint's secret in your webhook settings
 		endpointSecret := viper.GetString("stripe.secret")
-		event, err := webhook.ConstructEvent(body, c.Request.Header.Get("Stripe-Signature"), endpointSecret)
+		signature := c.Request.Header.Get("HTTP_STRIPE_SIGNATURE")
+		event, err := webhook.ConstructEvent(body, signature, endpointSecret)
+		fmt.Println(endpointSecret, signature)
 
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error verifying webhook signature: %v\n", err)

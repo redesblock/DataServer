@@ -311,7 +311,7 @@ func (job *AsssetJob) Do() error {
 	}
 
 	var vouchers []*models.Node
-	if err := job.db.Model(&models.Node{}).Order("area desc").Where("voucher_id <> ''").Where("usable = true").Find(&vouchers).Error; err != nil {
+	if err := job.db.Model(&models.Node{}).Order("zone desc").Where("voucher_id <> ''").Where("usable = true").Find(&vouchers).Error; err != nil {
 		log.Errorf("upload file %s error %v", job.asset, err)
 		return err
 	}
