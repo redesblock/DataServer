@@ -98,7 +98,7 @@ func EditSignIn(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 		period := models.SignInPeriod(req.Period)
-		if period < models.SignInPeriod_End {
+		if period >= models.SignInPeriod_End {
 			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid period"))
 			return
 		}
