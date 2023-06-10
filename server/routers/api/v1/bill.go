@@ -424,6 +424,9 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				c.JSON(OKCode, NewResponse(c, OKCode, res))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
+			} else if req.PaymentChannel == models.PaymentChannel_Crypto {
+				c.JSON(OKCode, NewResponse(c, OKCode, req.Hash))
+				return nil
 			} else {
 				return fmt.Errorf("not support payment channel")
 			}
