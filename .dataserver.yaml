@@ -21,7 +21,7 @@ jwt:
 # price
 price:
   mop: 0xcc07B6277c7B4614884eEa59972AfEa17f40716F
-  usdt: 0x804c7762fbeab64ac554aec644e43ab934d23ff0
+  usdt: 0x55d398326f99059fF775485246999027B3197955
   receiptor: 0x5529E3F428f42C23DDaCbb80fd46247B775725b1
 
 # download base url
