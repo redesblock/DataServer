@@ -342,7 +342,7 @@ func GetFileDownloadHandler(db *gorm.DB) func(c *gin.Context) {
 					}
 				}
 				item2.Num += size
-				return db.Save(item2).Error
+				return tx.Save(item2).Error
 			})
 
 			return nil
