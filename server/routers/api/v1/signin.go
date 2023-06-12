@@ -103,7 +103,7 @@ func EditSignIn(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 
-		res := db.Model(&models.SignIn{}).Where("id = ?", id).Updates(&models.SignIn{Quantity: req.Quantity, Period: period})
+		res := db.Model(&models.SignIn{}).Where("id = ?", id).Updates(map[string]interface{}{"quantity": req.Quantity, "period": req.Period})
 		if err := res.Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return

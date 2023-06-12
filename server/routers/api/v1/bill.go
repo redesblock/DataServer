@@ -30,7 +30,7 @@ func GetBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 
 		var items []models.Order
 		tx := db.Model(&models.Order{}).Order("id desc").Where("user_id = ?", userID).Where("p_type = ?", models.ProductType_Storage)
-		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Preload("User").Preload("Currency").Find(&items).Error; err != nil {
+		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Preload("Coupon").Preload("User").Preload("Currency").Find(&items).Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
@@ -66,7 +66,7 @@ func GetBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 
 		var items []models.Order
 		tx := db.Model(&models.Order{}).Order("id desc").Where("user_id = ?", userID).Where("p_type = ?", models.ProductType_Traffic)
-		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Preload("User").Preload("Currency").Find(&items).Error; err != nil {
+		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Preload("Coupon").Preload("User").Preload("Currency").Find(&items).Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
@@ -192,8 +192,8 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 		//	return
 		//}
 
+		var uitem models.UserCoupon
 		if req.Coupon > 0 {
-			var uitem models.UserCoupon
 			ret := db.Where("status = ?", models.UserCouponStatus_Normal).Find(&uitem, req.Coupon)
 			if err := ret.Error; err != nil {
 				c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
@@ -217,17 +217,19 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 
 		userID, _ := c.Get("id")
 		item := &models.Order{
-			OrderID:     generateOrderID(),
-			PType:       models.ProductType_Storage,
-			Payment:     req.PaymentChannel,
-			Quantity:    quantity,
-			UserID:      userID.(uint),
-			Status:      models.OrderWait,
-			Hash:        req.Hash,
-			Price:       price,
-			Discount:    discount,
-			CurrencyID:  req.Currency,
-			PaymentTime: models.UnlimitedTime,
+			OrderID:      generateOrderID(),
+			PType:        models.ProductType_Storage,
+			Payment:      req.PaymentChannel,
+			Quantity:     quantity,
+			UserID:       userID.(uint),
+			Status:       models.OrderWait,
+			Hash:         req.Hash,
+			Price:        price,
+			Discount:     discount,
+			CurrencyID:   req.Currency,
+			PaymentTime:  models.UnlimitedTime,
+			UserCouponID: uitem.ID,
+			CouponID:     uitem.CouponID,
 		}
 
 		if req.PaymentChannel == models.PaymentChannel_Crypto {
@@ -333,8 +335,8 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		//	return
 		//}
 
+		var uitem models.UserCoupon
 		if req.Coupon > 0 {
-			var uitem models.UserCoupon
 			ret := db.Where("status = ?", models.UserCouponStatus_Normal).Find(&uitem, req.Coupon)
 			if err := ret.Error; err != nil {
 				c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
@@ -358,17 +360,19 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 
 		userID, _ := c.Get("id")
 		item := &models.Order{
-			OrderID:     generateOrderID(),
-			PType:       models.ProductType_Traffic,
-			Payment:     req.PaymentChannel,
-			Quantity:    quantity,
-			UserID:      userID.(uint),
-			Status:      models.OrderWait,
-			Hash:        req.Hash,
-			Price:       price,
-			Discount:    discount,
-			CurrencyID:  req.Currency,
-			PaymentTime: models.UnlimitedTime,
+			OrderID:      generateOrderID(),
+			PType:        models.ProductType_Traffic,
+			Payment:      req.PaymentChannel,
+			Quantity:     quantity,
+			UserID:       userID.(uint),
+			Status:       models.OrderWait,
+			Hash:         req.Hash,
+			Price:        price,
+			Discount:     discount,
+			CurrencyID:   req.Currency,
+			PaymentTime:  models.UnlimitedTime,
+			UserCouponID: uitem.ID,
+			CouponID:     uitem.CouponID,
 		}
 
 		if req.PaymentChannel == models.PaymentChannel_Crypto {

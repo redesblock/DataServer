@@ -92,7 +92,13 @@ func AlipayNotify(db *gorm.DB) func(c *gin.Context) {
 				order.Status = models.OrderSuccess
 				order.PaymentID = noti.TradeNo
 				order.PaymentAccount = noti.BuyerLogonId
+				if len(order.PaymentAmount) == 0 {
+					order.PaymentAmount = noti.BuyerId
+				}
 				order.ReceiveAccount = noti.SellerEmail
+				if len(order.ReceiveAccount) == 0 {
+					order.ReceiveAccount = noti.SellerId
+				}
 				order.PaymentAmount = noti.TotalAmount
 				order.PaymentTime, _ = time.Parse(models.TIME_FORMAT, noti.GmtPayment)
 				if err := db.Transaction(func(tx *gorm.DB) error {
@@ -106,6 +112,19 @@ func AlipayNotify(db *gorm.DB) func(c *gin.Context) {
 					if err := tx.Save(&user).Error; err != nil {
 						return err
 					}
+					if order.UserCouponID > 0 {
+						var userCoupon models.UserCoupon
+						if ret := tx.Model(&models.UserCoupon{}).Where("id = ?", order.UserCouponID).Find(&userCoupon); ret.Error != nil {
+							return ret.Error
+						} else if ret.RowsAffected == 0 {
+							return fmt.Errorf("not found user coupon")
+						}
+						userCoupon.Status = models.UserCouponStatus_Used
+						if err := tx.Save(&userCoupon).Error; err != nil {
+							return err
+						}
+					}
+
 					return tx.Save(&order).Error
 				}); err != nil {
 					c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
@@ -151,7 +170,7 @@ func WxPayNotify(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 
-		switch notifyReq.EventType {
+		switch noti.TradeState {
 		case wechat.TradeStateClosed:
 			if order.Status != models.OrderCancel {
 				order.Status = models.OrderCancel
@@ -186,6 +205,18 @@ func WxPayNotify(db *gorm.DB) func(c *gin.Context) {
 					user.TotalStorage += order.Quantity
 					if err := tx.Save(&user).Error; err != nil {
 						return err
+					}
+					if order.UserCouponID > 0 {
+						var userCoupon models.UserCoupon
+						if ret := tx.Model(&models.UserCoupon{}).Where("id = ?", order.UserCouponID).Find(&userCoupon); ret.Error != nil {
+							return ret.Error
+						} else if ret.RowsAffected == 0 {
+							return fmt.Errorf("not found user coupon")
+						}
+						userCoupon.Status = models.UserCouponStatus_Used
+						if err := tx.Save(&userCoupon).Error; err != nil {
+							return err
+						}
 					}
 					return tx.Save(&order).Error
 				}); err != nil {
@@ -233,6 +264,18 @@ func StripeNotify(db *gorm.DB) func(c *gin.Context) {
 					user.TotalStorage += order.Quantity
 					if err := tx.Save(&user).Error; err != nil {
 						return err
+					}
+					if order.UserCouponID > 0 {
+						var userCoupon models.UserCoupon
+						if ret := tx.Model(&models.UserCoupon{}).Where("id = ?", order.UserCouponID).Find(&userCoupon); ret.Error != nil {
+							return ret.Error
+						} else if ret.RowsAffected == 0 {
+							return fmt.Errorf("not found user coupon")
+						}
+						userCoupon.Status = models.UserCouponStatus_Used
+						if err := tx.Save(&userCoupon).Error; err != nil {
+							return err
+						}
 					}
 					return tx.Save(&order).Error
 				}); err != nil {

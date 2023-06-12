@@ -49,6 +49,11 @@ type Order struct {
 	Hash           string          `json:"hash"`
 	Discount       decimal.Decimal `json:"discount"`
 
+	UserCouponID uint `json:"-"`
+
+	CouponID uint `json:"-"`
+	Coupon   Coupon
+
 	UserID uint `json:"-"`
 	User   User
 

@@ -61,7 +61,7 @@ func Start(port string, db *gorm.DB) {
 					log.Errorf("sync tx status: %s", err)
 				}
 				for _, item := range items {
-					ret, err := txStatus(item.Hash)
+					ret, from, to, err := txStatus(item.Hash)
 					if err != nil {
 						log.Errorf("sync tx status: %s", err)
 						continue
@@ -78,7 +78,8 @@ func Start(port string, db *gorm.DB) {
 							if err := tx.Save(&user).Error; err != nil {
 								return err
 							}
-							if err := tx.Model(&models.Order{}).Where("hash = ?", item.Hash).Update("status", models.OrderSuccess).Error; err != nil {
+
+							if err := tx.Model(&models.Order{}).Where("hash = ?", item.Hash).Updates(map[string]interface{}{"payment_account": from, "receive_account": to, "status": models.OrderSuccess}).Error; err != nil {
 								return err
 							}
 							return nil
@@ -255,7 +256,7 @@ func voucherUsable(node string, voucher string) (bool, error) {
 	return ret["usable"].(bool), nil
 }
 
-func txStatus(hash string) (int, error) {
+func txStatus(hash string) (int, string, string, error) {
 	request := map[string]interface{}{
 		"jsonrpc": "2.0",
 		"method":  "eth_getTransactionReceipt",
@@ -265,29 +266,31 @@ func txStatus(hash string) (int, error) {
 	body, _ := json.Marshal(request)
 	resp, err := http.Post(viper.GetString("bsc.rpc"), "application/json", bytes.NewBuffer(body))
 	if err != nil {
-		return 0, err
+		return 0, "", "", err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return 0, fmt.Errorf(resp.Status)
+		return 0, "", "", fmt.Errorf(resp.Status)
 	}
 	defer resp.Body.Close()
 
 	bts, _ := io.ReadAll(resp.Body)
 	jsonParsed, err := gabs.ParseJSON(bts)
 	if err != nil {
-		return 0, err
+		return 0, "", "", err
 	}
 
 	if jsonParsed.Exists("result", "status") {
+		from := jsonParsed.Path("result.from").Data().(string)
+		to := jsonParsed.Path("result.to").Data().(string)
 		if blkHash := jsonParsed.Path("result.blockHash").Data().(string); len(blkHash) > 0 {
 			if status := jsonParsed.Path("result.status").Data().(string); status == "0x1" {
-				return 1, nil
+				return 1, from, to, nil
 			} else {
-				return 2, nil
+				return 2, from, to, nil
 			}
 		}
 	}
-	return 0, fmt.Errorf(jsonParsed.String())
+	return 0, "", "", fmt.Errorf(jsonParsed.String())
 }
 
 type AsssetJob struct {
