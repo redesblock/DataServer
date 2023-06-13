@@ -79,6 +79,18 @@ func Start(port string, db *gorm.DB) {
 							if err := tx.Save(&user).Error; err != nil {
 								return err
 							}
+							if item.UserCouponID > 0 {
+								var userCoupon models.UserCoupon
+								if ret := tx.Model(&models.UserCoupon{}).Where("id = ?", item.UserCouponID).Find(&userCoupon); ret.Error != nil {
+									return ret.Error
+								} else if ret.RowsAffected == 0 {
+									return fmt.Errorf("not found user coupon")
+								}
+								userCoupon.Status = models.UserCouponStatus_Used
+								if err := tx.Save(&userCoupon).Error; err != nil {
+									return err
+								}
+							}
 
 							if err := tx.Model(&models.Order{}).Where("hash = ?", item.Hash).Updates(map[string]interface{}{"payment_account": from, "receive_account": to, "status": models.OrderSuccess, "payment_amount": act}).Error; err != nil {
 								return err
@@ -187,6 +199,18 @@ func Start(port string, db *gorm.DB) {
 								if err := tx.Save(&user).Error; err != nil {
 									return err
 								}
+								if item.UserCouponID > 0 {
+									var userCoupon models.UserCoupon
+									if ret := tx.Model(&models.UserCoupon{}).Where("id = ?", item.UserCouponID).Find(&userCoupon); ret.Error != nil {
+										return ret.Error
+									} else if ret.RowsAffected == 0 {
+										return fmt.Errorf("not found user coupon")
+									}
+									userCoupon.Status = models.UserCouponStatus_Used
+									if err := tx.Save(&userCoupon).Error; err != nil {
+										return err
+									}
+								}
 								return tx.Save(&item).Error
 							}); err != nil {
 								log.Errorf("sync order status: %s", err)
@@ -216,6 +240,18 @@ func Start(port string, db *gorm.DB) {
 								user.TotalStorage += item.Quantity
 								if err := tx.Save(&user).Error; err != nil {
 									return err
+								}
+								if item.UserCouponID > 0 {
+									var userCoupon models.UserCoupon
+									if ret := tx.Model(&models.UserCoupon{}).Where("id = ?", item.UserCouponID).Find(&userCoupon); ret.Error != nil {
+										return ret.Error
+									} else if ret.RowsAffected == 0 {
+										return fmt.Errorf("not found user coupon")
+									}
+									userCoupon.Status = models.UserCouponStatus_Used
+									if err := tx.Save(&userCoupon).Error; err != nil {
+										return err
+									}
 								}
 								return tx.Save(&item).Error
 							}); err != nil {
