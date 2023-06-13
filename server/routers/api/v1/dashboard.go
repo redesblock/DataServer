@@ -145,17 +145,17 @@ func DailyStorageHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 		for i := 6; i >= 0; i-- {
 			d := date.Add(-time.Hour * 24 * time.Duration(i))
-			var item *models.UsedStorage
+			var item models.UsedStorage
 			if ret := db.Where("user_id = ?", userID).Where("time = ?", d.Format("2006-01-02")).Find(&item); ret.Error != nil {
 				c.JSON(OKCode, NewResponse(c, ExecuteCode, ret.Error))
 				return
 			} else if ret.RowsAffected == 0 {
-				item = &models.UsedStorage{
+				item = models.UsedStorage{
 					UserID: userID.(uint),
 					Time:   d.Format("2006-01-02"),
 				}
 			}
-			items = append(items, item)
+			items = append(items, &item)
 			c.JSON(OKCode, NewResponse(c, OKCode, items))
 			return
 		}
@@ -197,17 +197,17 @@ func DailyTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 		for i := 6; i >= 0; i-- {
 			d := date.Add(-time.Hour * 24 * time.Duration(i))
-			var item *models.UsedTraffic
+			var item models.UsedTraffic
 			if ret := db.Where("user_id = ?", userID).Where("time = ?", d.Format("2006-01-02")).Find(&item); ret.Error != nil {
 				c.JSON(OKCode, NewResponse(c, ExecuteCode, ret.Error))
 				return
 			} else if ret.RowsAffected == 0 {
-				item = &models.UsedTraffic{
+				item = models.UsedTraffic{
 					UserID: userID.(uint),
 					Time:   d.Format("2006-01-02"),
 				}
 			}
-			items = append(items, item)
+			items = append(items, &item)
 			c.JSON(OKCode, NewResponse(c, OKCode, items))
 			return
 		}
