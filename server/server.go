@@ -281,8 +281,7 @@ func txStatus(hash string) (int, string, string, error) {
 	if jsonParsed.Exists("result", "status") {
 		from := jsonParsed.Path("result.from").Data().(string)
 		to := jsonParsed.Path("result.to").Data().(string)
-		fmt.Println(jsonParsed.Path("result.logs.0.1").String())
-		fmt.Println(jsonParsed.Path("result.logs.0.2").String())
+		fmt.Println(jsonParsed.Path("result.logs").String())
 		if blkHash := jsonParsed.Path("result.blockHash").Data().(string); len(blkHash) > 0 {
 			if status := jsonParsed.Path("result.status").Data().(string); status == "0x1" {
 				return 1, from, to, nil
