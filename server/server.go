@@ -283,14 +283,19 @@ func txStatus(hash string) (int, string, string, string, error) {
 		from := jsonParsed.Path("result.from").Data().(string)
 		to := jsonParsed.Path("result.to").Data().(string)
 		token := jsonParsed.Path("result.logs.0.address").Data().(string)
-		num, _ := new(big.Int).SetString(jsonParsed.Path("result.logs.0.topics.2").Data().(string), 16)
 		div := decimal.New(1, 18)
 		switch token {
 		case viper.GetString("price.mop"):
 		case viper.GetString("price.usdt"):
 			div = decimal.New(1, 8)
 		}
-		act := decimal.NewFromBigInt(num, 0).Mul(div).String()
+		act := "0"
+		num, ok := new(big.Int).SetString(jsonParsed.Path("result.logs.0.topics.2").Data().(string), 16)
+		if !ok {
+			log.Error("logs", jsonParsed.Path("result.logs.0.topics.2").String(), err)
+		} else {
+			act = decimal.NewFromBigInt(num, 0).Mul(div).String()
+		}
 		if blkHash := jsonParsed.Path("result.blockHash").Data().(string); len(blkHash) > 0 {
 			if status := jsonParsed.Path("result.status").Data().(string); status == "0x1" {
 				return 1, from, to, act, nil
