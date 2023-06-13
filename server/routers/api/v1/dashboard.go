@@ -156,9 +156,9 @@ func DailyStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				}
 			}
 			items = append(items, &item)
-			c.JSON(OKCode, NewResponse(c, OKCode, items))
-			return
 		}
+		c.JSON(OKCode, NewResponse(c, OKCode, items))
+		return
 	}
 }
 
@@ -208,8 +208,8 @@ func DailyTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				}
 			}
 			items = append(items, &item)
-			c.JSON(OKCode, NewResponse(c, OKCode, items))
-			return
 		}
+		c.JSON(OKCode, NewResponse(c, OKCode, items))
+		return
 	}
 }
