@@ -30,7 +30,7 @@ func GetBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 
 		var items []models.Order
 		tx := db.Model(&models.Order{}).Order("id desc").Where("user_id = ?", userID).Where("p_type = ?", models.ProductType_Storage)
-		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Preload("Coupon").Preload("User").Preload("Currency").Find(&items).Error; err != nil {
+		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Preload("User").Preload("Currency").Find(&items).Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
@@ -66,7 +66,7 @@ func GetBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 
 		var items []models.Order
 		tx := db.Model(&models.Order{}).Order("id desc").Where("user_id = ?", userID).Where("p_type = ?", models.ProductType_Traffic)
-		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Preload("Coupon").Preload("User").Preload("Currency").Find(&items).Error; err != nil {
+		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Preload("User").Preload("Currency").Find(&items).Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
