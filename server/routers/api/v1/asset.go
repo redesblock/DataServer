@@ -38,6 +38,7 @@ import (
 // @Router /api/v1/asset/{id} [get]
 func GetAssetHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
+		userID, _ := c.Get("id")
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
 			c.JSON(OKCode, NewResponse(c, RequestCode, "invalid id"))
@@ -86,6 +87,7 @@ func GetAssetHandler(db *gorm.DB) func(c *gin.Context) {
 			BucketID: uint(id),
 			ParentID: uint(fid),
 			AssetID:  assetID,
+			UserID:   userID.(uint),
 			Status:   models.STATUS_WAIT,
 		}).Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
