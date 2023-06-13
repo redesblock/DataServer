@@ -192,8 +192,6 @@ func WxPayNotify(db *gorm.DB) func(c *gin.Context) {
 				order.Status = models.OrderSuccess
 				order.PaymentID = noti.TransactionId
 				order.PaymentAccount = noti.Payer.Openid
-				order.ReceiveAccount = decimal.NewFromInt(int64(noti.Amount.PayerTotal)).Div(decimal.NewFromInt(100)).String()
-				order.PaymentAmount = decimal.NewFromInt(int64(noti.Amount.PayerTotal)).Div(decimal.NewFromInt(100)).String()
 				order.PaymentTime, _ = time.Parse(models.TIME_FORMAT, noti.SuccessTime)
 				if err := db.Transaction(func(tx *gorm.DB) error {
 					var user models.User
@@ -251,7 +249,6 @@ func StripeNotify(db *gorm.DB) func(c *gin.Context) {
 					order.PaymentAccount = sessionWithLineItems.CustomerDetails.Email
 				}
 
-				order.ReceiveAccount = decimal.NewFromInt(int64(item.AmountTotal)).Div(decimal.NewFromInt(100)).String()
 				order.PaymentAmount = decimal.NewFromInt(int64(item.AmountTotal)).Div(decimal.NewFromInt(100)).String()
 				order.PaymentTime = time.Unix(sessionWithLineItems.Created, 0)
 				if err := db.Transaction(func(tx *gorm.DB) error {

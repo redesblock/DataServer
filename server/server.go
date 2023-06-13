@@ -173,7 +173,6 @@ func Start(port string, db *gorm.DB) {
 							item.Status = models.OrderSuccess
 							item.PaymentID = resp.Response.TransactionId
 							item.PaymentAccount = resp.Response.Payer.Openid
-							item.ReceiveAccount = decimal.NewFromInt(int64(resp.Response.Amount.PayerTotal)).Div(decimal.NewFromInt(100)).String()
 							item.PaymentAmount = decimal.NewFromInt(int64(resp.Response.Amount.PayerTotal)).Div(decimal.NewFromInt(100)).String()
 							item.PaymentTime, _ = time.Parse(models.TIME_FORMAT, resp.Response.SuccessTime)
 							if err := db.Transaction(func(tx *gorm.DB) error {
