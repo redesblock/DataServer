@@ -290,7 +290,7 @@ func txStatus(hash string) (int, string, string, string, error) {
 			div = decimal.New(1, 8)
 		}
 		act := "0"
-		num, ok := new(big.Int).SetString(jsonParsed.Path("result.logs.0.data").Data().(string), 16)
+		num, ok := new(big.Int).SetString(jsonParsed.Path("result.logs.0.data").Data().(string)[2:], 16)
 		if !ok {
 			log.Error("logs", jsonParsed.Path("result.logs.0.data").String(), err)
 		} else {
