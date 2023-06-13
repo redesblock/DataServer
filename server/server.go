@@ -16,6 +16,7 @@ import (
 	"github.com/smartwalle/alipay/v3"
 	"github.com/spf13/viper"
 	"io"
+	"math/big"
 	"net/http"
 	"time"
 
@@ -61,7 +62,7 @@ func Start(port string, db *gorm.DB) {
 					log.Errorf("sync tx status: %s", err)
 				}
 				for _, item := range items {
-					ret, from, to, err := txStatus(item.Hash)
+					ret, from, to, act, err := txStatus(item.Hash)
 					if err != nil {
 						log.Errorf("sync tx status: %s", err)
 						continue
@@ -79,7 +80,7 @@ func Start(port string, db *gorm.DB) {
 								return err
 							}
 
-							if err := tx.Model(&models.Order{}).Where("hash = ?", item.Hash).Updates(map[string]interface{}{"payment_account": from, "receive_account": to, "status": models.OrderSuccess}).Error; err != nil {
+							if err := tx.Model(&models.Order{}).Where("hash = ?", item.Hash).Updates(map[string]interface{}{"payment_account": from, "receive_account": to, "status": models.OrderSuccess, "payment_amount": act}).Error; err != nil {
 								return err
 							}
 							return nil
@@ -255,7 +256,7 @@ func voucherUsable(node string, voucher string) (bool, error) {
 	return ret["usable"].(bool), nil
 }
 
-func txStatus(hash string) (int, string, string, error) {
+func txStatus(hash string) (int, string, string, string, error) {
 	request := map[string]interface{}{
 		"jsonrpc": "2.0",
 		"method":  "eth_getTransactionReceipt",
@@ -265,34 +266,40 @@ func txStatus(hash string) (int, string, string, error) {
 	body, _ := json.Marshal(request)
 	resp, err := http.Post(viper.GetString("bsc.rpc"), "application/json", bytes.NewBuffer(body))
 	if err != nil {
-		return 0, "", "", err
+		return 0, "", "", "", err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return 0, "", "", fmt.Errorf(resp.Status)
+		return 0, "", "", "", fmt.Errorf(resp.Status)
 	}
 	defer resp.Body.Close()
 
 	bts, _ := io.ReadAll(resp.Body)
 	jsonParsed, err := gabs.ParseJSON(bts)
 	if err != nil {
-		return 0, "", "", err
+		return 0, "", "", "", err
 	}
 
 	if jsonParsed.Exists("result", "status") {
 		from := jsonParsed.Path("result.from").Data().(string)
 		to := jsonParsed.Path("result.to").Data().(string)
 		token := jsonParsed.Path("result.logs.0.address").Data().(string)
-		num := jsonParsed.Path("result.logs.0.topics.2").Data().(string)
-		fmt.Println(token, num)
+		num, _ := new(big.Int).SetString(jsonParsed.Path("result.logs.0.topics.2").Data().(string), 16)
+		div := decimal.New(1, 18)
+		switch token {
+		case viper.GetString("price.mop"):
+		case viper.GetString("price.usdt"):
+			div = decimal.New(1, 8)
+		}
+		act := decimal.NewFromBigInt(num, 0).Mul(div).String()
 		if blkHash := jsonParsed.Path("result.blockHash").Data().(string); len(blkHash) > 0 {
 			if status := jsonParsed.Path("result.status").Data().(string); status == "0x1" {
-				return 1, from, to, nil
+				return 1, from, to, act, nil
 			} else {
-				return 2, from, to, nil
+				return 2, from, to, act, nil
 			}
 		}
 	}
-	return 0, "", "", fmt.Errorf(jsonParsed.String())
+	return 0, "", "", "", fmt.Errorf(jsonParsed.String())
 }
 
 type AsssetJob struct {
