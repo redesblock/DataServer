@@ -294,7 +294,7 @@ func txStatus(hash string) (int, string, string, string, error) {
 		if !ok {
 			log.Error("logs", jsonParsed.Path("result.logs.0.data").String(), err)
 		} else {
-			act = decimal.NewFromBigInt(num, 0).Mul(div).String()
+			act = decimal.NewFromBigInt(num, 0).Div(div).String()
 		}
 		if blkHash := jsonParsed.Path("result.blockHash").Data().(string); len(blkHash) > 0 {
 			if status := jsonParsed.Path("result.status").Data().(string); status == "0x1" {
