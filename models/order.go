@@ -47,12 +47,13 @@ type Order struct {
 	PaymentTime    time.Time       `json:"payment_time"`
 	Status         OrderStatus     `json:"status"`
 	Hash           string          `json:"hash"`
-	Discount       decimal.Decimal `json:"discount"`
+	Discount       decimal.Decimal `json:"-"`
+	Discount1      decimal.Decimal `json:"discount"`
 
 	UserCouponID uint `json:"-"`
 
-	CouponID uint `json:"-"`
-	Coupon   Coupon
+	//CouponID uint `json:"-"`
+	//Coupon   Coupon
 
 	UserID uint `json:"-"`
 	User   User

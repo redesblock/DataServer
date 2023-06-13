@@ -92,8 +92,8 @@ func AlipayNotify(db *gorm.DB) func(c *gin.Context) {
 				order.Status = models.OrderSuccess
 				order.PaymentID = noti.TradeNo
 				order.PaymentAccount = noti.BuyerLogonId
-				if len(order.PaymentAmount) == 0 {
-					order.PaymentAmount = noti.BuyerId
+				if len(order.PaymentAccount) == 0 {
+					order.PaymentAccount = noti.BuyerId
 				}
 				order.ReceiveAccount = noti.SellerEmail
 				if len(order.ReceiveAccount) == 0 {
@@ -192,7 +192,7 @@ func WxPayNotify(db *gorm.DB) func(c *gin.Context) {
 				order.Status = models.OrderSuccess
 				order.PaymentID = noti.TransactionId
 				order.PaymentAccount = noti.Payer.Openid
-				order.PaymentTime, _ = time.Parse(models.TIME_FORMAT, noti.SuccessTime)
+				order.PaymentTime, _ = time.Parse(time.RFC3339, noti.SuccessTime)
 				if err := db.Transaction(func(tx *gorm.DB) error {
 					var user models.User
 					if ret := tx.Model(&models.User{}).Where("id = ?", order.UserID).Find(&user); ret.Error != nil {

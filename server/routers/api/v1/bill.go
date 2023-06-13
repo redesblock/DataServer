@@ -229,7 +229,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 			CurrencyID:   req.Currency,
 			PaymentTime:  models.UnlimitedTime,
 			UserCouponID: uitem.ID,
-			CouponID:     uitem.CouponID,
+			Discount1:    uitem.Coupon.Discount,
 		}
 
 		if req.PaymentChannel == models.PaymentChannel_Crypto {
@@ -372,7 +372,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 			CurrencyID:   req.Currency,
 			PaymentTime:  models.UnlimitedTime,
 			UserCouponID: uitem.ID,
-			CouponID:     uitem.CouponID,
+			Discount1:    uitem.Coupon.Discount,
 		}
 
 		if req.PaymentChannel == models.PaymentChannel_Crypto {
