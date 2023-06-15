@@ -269,7 +269,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				c.JSON(OKCode, NewResponse(c, OKCode, res))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
 				return nil
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 			} else if req.PaymentChannel == models.PaymentChannel_WeChat {
@@ -277,7 +277,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				c.JSON(OKCode, NewResponse(c, OKCode, res))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_Stripe {
@@ -285,11 +285,11 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				c.JSON(OKCode, NewResponse(c, OKCode, res))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_Crypto {
-				c.JSON(OKCode, NewResponse(c, OKCode, req.Hash))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": req.Hash}))
 				return nil
 			} else {
 				return fmt.Errorf("not support payment channel")
