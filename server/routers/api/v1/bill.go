@@ -6,6 +6,7 @@ import (
 	"github.com/redesblock/dataserver/models"
 	"github.com/redesblock/dataserver/server/pay"
 	"github.com/shopspring/decimal"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	"strings"
 )
@@ -289,7 +290,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_Crypto {
-				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": req.Hash}))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": viper.GetString("bsc.browser") + "tx/" + req.Hash}))
 				return nil
 			} else {
 				return fmt.Errorf("not support payment channel")
@@ -415,7 +416,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				c.JSON(OKCode, NewResponse(c, OKCode, res))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_WeChat {
@@ -423,7 +424,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				c.JSON(OKCode, NewResponse(c, OKCode, res))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_Stripe {
@@ -435,7 +436,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_Crypto {
-				c.JSON(OKCode, NewResponse(c, OKCode, req.Hash))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": viper.GetString("bsc.browser") + "tx/" + req.Hash}))
 				return nil
 			} else {
 				return fmt.Errorf("not support payment channel")
