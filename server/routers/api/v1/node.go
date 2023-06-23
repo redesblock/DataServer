@@ -220,7 +220,7 @@ func NodeStorageHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 		endTime := time.Now()
 		if t := c.Query("end"); len(t) > 0 {
-			end, err := time.Parse("2006-01-02", t)
+			end, err := time.ParseInLocation("2006-01-02", t, time.Local)
 			if err != nil {
 				c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid time %s", t)))
 				return
@@ -230,7 +230,7 @@ func NodeStorageHandler(db *gorm.DB) func(c *gin.Context) {
 
 		startTime := endTime.Add(-7 * 24 * time.Hour)
 		if t := c.Query("start"); len(t) > 0 {
-			start, err := time.Parse("2006-01-02", t)
+			start, err := time.ParseInLocation("2006-01-02", t, time.Local)
 			if err != nil {
 				c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid time %s", t)))
 				return
@@ -288,7 +288,7 @@ func NodeTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 		endTime := time.Now()
 		if t := c.Query("end"); len(t) > 0 {
-			end, err := time.Parse("2006-01-02", t)
+			end, err := time.ParseInLocation("2006-01-02", t, time.Local)
 			if err != nil {
 				c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid time %s", t)))
 				return
@@ -298,7 +298,7 @@ func NodeTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 
 		startTime := endTime.Add(-7 * 24 * time.Hour)
 		if t := c.Query("start"); len(t) > 0 {
-			start, err := time.Parse("2006-01-02", t)
+			start, err := time.ParseInLocation("2006-01-02", t, time.Local)
 			if err != nil {
 				c.JSON(OKCode, NewResponse(c, RequestCode, fmt.Errorf("invalid time %s", t)))
 				return
