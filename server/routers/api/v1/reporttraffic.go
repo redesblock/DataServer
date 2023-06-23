@@ -25,7 +25,7 @@ func GetReportTraffics(db *gorm.DB) func(c *gin.Context) {
 		var total int64
 		pageNum, pageSize := page(c)
 		offset := (pageNum - 1) * pageSize
-		tx := db.Model(&models.ReportTraffic{}).Order("timestamp DESC, nat_addr").Count(&total).Offset(int(offset)).Limit(int(pageSize))
+		tx := db.Model(&models.ReportTraffic{}).Order("timestamp DESC, nat_addr")
 
 		start := c.Query("start")
 		end := c.Query("end")
@@ -51,7 +51,7 @@ func GetReportTraffics(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		var items []*models.ReportTraffic
-		if err := tx.Find(&items).Error; err != nil {
+		if err := tx.Count(&total).Offset(int(offset)).Limit(int(pageSize)).Find(&items).Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
