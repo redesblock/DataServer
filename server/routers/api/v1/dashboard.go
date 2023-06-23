@@ -3,6 +3,7 @@ package v1
 import (
 	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -182,19 +183,30 @@ func DailyTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		var items []*models.UsedTraffic
 		date := time.Now()
 		if userRole.(models.UserRole) == models.UserRole_Oper || userRole.(models.UserRole) == models.UserRole_Admin {
-			for i := 6; i >= 0; i-- {
-				d := date.Add(-time.Hour * 24 * time.Duration(i))
-				var item models.UsedTraffic
-				item.Time = d.Format("2006-01-02")
-				if ret := db.Where("time = ?", item.Time).Select("COALESCE(SUM(num),0) AS num").Find(&item); ret.Error != nil {
-					c.JSON(OKCode, NewResponse(c, ExecuteCode, ret.Error))
-					return
-				}
-				items = append(items, &item)
+			type result struct {
+				Timestamp int64
+				Total     uint64
 			}
-			c.JSON(OKCode, NewResponse(c, OKCode, items))
+			var rets []*result
+			if err := db.Model(&models.ReportTraffic{}).Order("timestamp desc").Select("timestamp, sum(downloaded) as total").Group("timestamp").Limit(24).Find(&rets).Error; err != nil {
+				c.JSON(http.StatusOK, NewResponse(c, ExecuteCode, err))
+				return
+			}
+			c.JSON(http.StatusOK, NewResponse(c, OKCode, func() []*models.UsedTraffic {
+				cnt := len(rets)
+				for ; cnt > 0; cnt-- {
+					ret := rets[cnt-1]
+					items = append(items, &models.UsedTraffic{
+						Num:    ret.Total,
+						NumStr: ret.Total / 1024,
+						Time:   time.Unix(ret.Timestamp, 0).Format(models.TIME_FORMAT),
+					})
+				}
+				return items
+			}()))
 			return
 		}
+
 		for i := 6; i >= 0; i-- {
 			d := date.Add(-time.Hour * 24 * time.Duration(i))
 			var item models.UsedTraffic

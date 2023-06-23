@@ -87,13 +87,13 @@ func Init(db *gorm.DB) error {
 			Base:    true,
 			Payment: PaymentChannel_Crypto,
 		},
-		{
-			ID:      2,
-			Symbol:  "MOP",
-			Rate:    decimal.NewFromFloat(1000),
-			Base:    false,
-			Payment: PaymentChannel_Crypto,
-		},
+		//{
+		//	ID:      2,
+		//	Symbol:  "MOP",
+		//	Rate:    decimal.NewFromFloat(1000),
+		//	Base:    false,
+		//	Payment: PaymentChannel_Crypto,
+		//},
 		{
 			ID:      3,
 			Symbol:  "CNY",
