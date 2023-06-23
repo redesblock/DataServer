@@ -44,7 +44,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiv1.GET("/stripe", v1.StripeTest(db))
 
 		apiv1.POST("/traffic", v1.AddReportTraffic(db))
-		apiv1.GET("/traffics", v1.GetReportTraffics(db))
+		apiv1.GET("/traffics", v1.NodeTrafficHandler(db))
 		apiv1.POST("/login", v1.Login(db))
 		apiv1.POST("/login2", v1.Login2(db))
 		apiv1.POST("/forgot", v1.Forgot(db))

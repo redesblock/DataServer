@@ -43,7 +43,7 @@ func GetReportTraffics(db *gorm.DB) func(c *gin.Context) {
 			if startTime.After(endTime) {
 				tx = tx.Where("timestamp >= ? AND timestamp < ?", endTime.Unix(), startTime.Unix())
 			} else {
-				tx = tx.Where("timestamp >= ? AND timestamp < ?", startTime, endTime.Unix())
+				tx = tx.Where("timestamp >= ? AND timestamp < ?", startTime.Unix(), endTime.Unix())
 			}
 		}
 		if ip := c.Query("ip"); len(ip) > 0 {
