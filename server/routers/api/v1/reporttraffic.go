@@ -50,7 +50,7 @@ func GetReportTraffics(db *gorm.DB) func(c *gin.Context) {
 			tx = tx.Where("nat_addr LIKE ?", fmt.Sprintf("%s%%", ip))
 		}
 
-		var items []models.ReportTraffic
+		var items []*models.ReportTraffic
 		if err := tx.Find(&items).Error; err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
