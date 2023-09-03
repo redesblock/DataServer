@@ -3,15 +3,15 @@ package pay
 import (
 	"github.com/shopspring/decimal"
 	"github.com/spf13/viper"
-	"github.com/stripe/stripe-go/v74"
-	"github.com/stripe/stripe-go/v74/checkout/session"
+	"github.com/stripe/stripe-go/v75"
+	"github.com/stripe/stripe-go/v75/checkout/session"
 	"time"
 )
 
 func InitStripe() {
 	stripe.Key = viper.GetString("stripe.key")
 }
-func StripeTrade(subject, orderID, amount string) (string, error) {
+func StripeTrade(subject, orderID, amount, currency string) (string, error) {
 	amt, err := decimal.NewFromString(amount)
 	if err != nil {
 		return "", err
@@ -25,7 +25,7 @@ func StripeTrade(subject, orderID, amount string) (string, error) {
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			&stripe.CheckoutSessionLineItemParams{
 				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
-					Currency: stripe.String("usd"),
+					Currency: stripe.String(currency),
 					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
 						Name:        stripe.String(orderID),
 						Description: stripe.String(subject),

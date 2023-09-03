@@ -2777,6 +2777,9 @@ var doc = `{
                 "payment_channel": {
                     "type": "integer"
                 },
+                "price": {
+                    "type": "number"
+                },
                 "quantity": {
                     "type": "number"
                 },

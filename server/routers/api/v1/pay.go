@@ -11,9 +11,9 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/smartwalle/alipay/v3"
 	"github.com/spf13/viper"
-	"github.com/stripe/stripe-go/v74"
-	"github.com/stripe/stripe-go/v74/checkout/session"
-	"github.com/stripe/stripe-go/v74/webhook"
+	"github.com/stripe/stripe-go/v75"
+	"github.com/stripe/stripe-go/v75/checkout/session"
+	"github.com/stripe/stripe-go/v75/webhook"
 	"gorm.io/gorm"
 	"io/ioutil"
 	"net/http"
@@ -45,7 +45,7 @@ func WxpayTest(db *gorm.DB) func(c *gin.Context) {
 
 func StripeTest(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		res, err := pay.StripeTrade("test", generateOrderID(), "1.01")
+		res, err := pay.StripeTrade("test", generateOrderID(), "1.01", "usd")
 		if err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 		}

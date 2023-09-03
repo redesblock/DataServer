@@ -86,6 +86,7 @@ func GetBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 
 type BillReq struct {
 	Size           decimal.Decimal       `json:"quantity"`
+	Price          decimal.Decimal       `json:"price"`
 	SpecialProduct uint                  `json:"special_product"`
 	PaymentChannel models.PaymentChannel `json:"payment_channel"`
 	Currency       uint                  `json:"currency"`
@@ -129,30 +130,49 @@ func (r *BillReq) convertToOrder(db *gorm.DB, p_type models.ProductType) (quanti
 		discount = item2.Discount.Mul(price).Div(decimal.NewFromInt(10))
 	} else {
 		quantity = r.Size.BigInt().Uint64()
-		price = decimal.NewFromInt(int64(quantity)).Div(decimal.NewFromInt(int64(item.Quantity))).Mul(item.Price)
-		discount = price
-		if r.Coupon > 0 {
-			var item2 models.UserCoupon
-			ret := db.Where("status = ?", models.UserCouponStatus_Normal).Preload("Coupon").Find(&item2, r.Coupon)
-			if err = ret.Error; err != nil {
-				return
+		if quantity == 0 {
+			discount = r.Price
+			if r.Coupon > 0 {
+				var item2 models.UserCoupon
+				ret := db.Where("status = ?", models.UserCouponStatus_Normal).Preload("Coupon").Find(&item2, r.Coupon)
+				if err = ret.Error; err != nil {
+					return
+				}
+				if ret.RowsAffected == 0 {
+					err = fmt.Errorf("invalid coupon")
+					return
+				}
+				price = discount.Mul(decimal.NewFromInt(10)).Div(item2.Coupon.Discount)
 			}
-			if ret.RowsAffected == 0 {
-				err = fmt.Errorf("invalid coupon")
-				return
+			if strings.ToUpper(citem.Symbol) != "MOP" && strings.ToUpper(citem.Symbol) != "USDT" {
+				price, _ = decimal.NewFromString(price.StringFixed(2))
+				discount, _ = decimal.NewFromString(discount.StringFixed(2))
 			}
-			// TODO
-			discount = item2.Coupon.Discount.Mul(price).Div(decimal.NewFromInt(10))
+			quantity = price.Div(item.Price).Mul(decimal.NewFromInt(int64(item.Quantity))).BigInt().Uint64()
+		} else {
+			price = decimal.NewFromInt(int64(quantity)).Div(decimal.NewFromInt(int64(item.Quantity))).Mul(item.Price)
+			discount = price
+			if r.Coupon > 0 {
+				var item2 models.UserCoupon
+				ret := db.Where("status = ?", models.UserCouponStatus_Normal).Preload("Coupon").Find(&item2, r.Coupon)
+				if err = ret.Error; err != nil {
+					return
+				}
+				if ret.RowsAffected == 0 {
+					err = fmt.Errorf("invalid coupon")
+					return
+				}
+				discount = item2.Coupon.Discount.Mul(price).Div(decimal.NewFromInt(10))
+			}
+			price = price.Mul(citem.Rate)
+			discount = discount.Mul(citem.Rate)
+			if strings.ToUpper(citem.Symbol) != "MOP" && strings.ToUpper(citem.Symbol) != "USDT" {
+				price, _ = decimal.NewFromString(price.StringFixed(2))
+				discount, _ = decimal.NewFromString(discount.StringFixed(2))
+			}
 		}
 	}
 
-	price = price.Mul(citem.Rate)
-	discount = discount.Mul(citem.Rate)
-
-	if strings.ToUpper(citem.Symbol) != "MOP" && strings.ToUpper(citem.Symbol) != "USDT" {
-		price, _ = decimal.NewFromString(price.StringFixed(2))
-		discount, _ = decimal.NewFromString(discount.StringFixed(2))
-	}
 	return
 }
 
@@ -282,11 +302,16 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_Stripe {
-				res, err := pay.StripeTrade(req.Description, item.OrderID, item.Discount.String())
+				currency := "usd"
+				if req.Currency == 3 {
+					currency = "cny"
+				}
+				res, err := pay.StripeTrade(req.Description, item.OrderID, item.Discount.String(), currency)
 				if err != nil {
 					return err
 				}
-				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
+				//c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
+				c.JSON(OKCode, NewResponse(c, OKCode, res))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_Crypto {
@@ -428,7 +453,11 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_Stripe {
-				res, err := pay.StripeTrade(req.Description, item.OrderID, item.Discount.String())
+				currency := "usd"
+				if req.Currency == 3 {
+					currency = "cny"
+				}
+				res, err := pay.StripeTrade(req.Description, item.OrderID, item.Discount.String(), currency)
 				if err != nil {
 					return err
 				}

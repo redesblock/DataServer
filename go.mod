@@ -15,7 +15,7 @@ require (
 	github.com/smartwalle/alipay/v3 v3.2.4
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
-	github.com/stripe/stripe-go/v74 v74.20.0
+	github.com/stripe/stripe-go/v75 v75.3.0
 	github.com/swaggo/files v1.0.0
 	github.com/swaggo/gin-swagger v1.5.3
 	github.com/swaggo/swag v1.8.9
