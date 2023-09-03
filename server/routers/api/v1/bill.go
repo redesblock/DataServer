@@ -132,6 +132,7 @@ func (r *BillReq) convertToOrder(db *gorm.DB, p_type models.ProductType) (quanti
 		quantity = r.Size.BigInt().Uint64()
 		if quantity == 0 {
 			discount = r.Price
+			price = r.Price
 			if r.Coupon > 0 {
 				var item2 models.UserCoupon
 				ret := db.Where("status = ?", models.UserCouponStatus_Normal).Preload("Coupon").Find(&item2, r.Coupon)
