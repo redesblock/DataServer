@@ -531,7 +531,7 @@ func BuyStorageHandler(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(OKCode, NewResponse(c, RequestCode, err))
 			return
 		}
-		fmt.Print(quantity, price, discount, req.Currency)
+		fmt.Print(quantity, price, discount, req.Size, req.Price, req.Currency)
 		c.JSON(OKCode, NewResponse(c, OKCode, &map[string]interface{}{
 			"quantity": quantity,
 			"price":    price,
