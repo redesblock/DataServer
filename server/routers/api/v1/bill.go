@@ -148,7 +148,7 @@ func (r *BillReq) convertToOrder(db *gorm.DB, p_type models.ProductType) (quanti
 				price, _ = decimal.NewFromString(price.StringFixed(2))
 				discount, _ = decimal.NewFromString(discount.StringFixed(2))
 			}
-			quantity = price.Div(item.Price).Mul(decimal.NewFromInt(int64(item.Quantity))).BigInt().Uint64()
+			quantity = price.Div(citem.Rate).Div(item.Price).Mul(decimal.NewFromInt(int64(item.Quantity))).BigInt().Uint64()
 		} else {
 			price = decimal.NewFromInt(int64(quantity)).Div(decimal.NewFromInt(int64(item.Quantity))).Mul(item.Price)
 			discount = price
@@ -500,7 +500,7 @@ func BuyTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(OKCode, NewResponse(c, RequestCode, err))
 			return
 		}
-
+		fmt.Print(quantity, price, discount, req.Currency)
 		c.JSON(OKCode, NewResponse(c, OKCode, &map[string]interface{}{
 			"quantity": quantity,
 			"price":    price,
@@ -531,7 +531,7 @@ func BuyStorageHandler(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(OKCode, NewResponse(c, RequestCode, err))
 			return
 		}
-
+		fmt.Print(quantity, price, discount, req.Currency)
 		c.JSON(OKCode, NewResponse(c, OKCode, &map[string]interface{}{
 			"quantity": quantity,
 			"price":    price,
