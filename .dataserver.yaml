@@ -49,6 +49,11 @@ wxpay:
   apiV3Key: w330326196806282830w13906667680x
   appid: wxc13e3f158074c237
   notifyUrl: https://mopdstor.com/api/v1/wxpay/notify
+nihaopay:
+  key: f432bd12b52339667f24bcac1ad323a8b378755fd4ec48b75b5c4a4b08df1b76
+  notifyUrl: https://mopdstor.com/api/v1/nihaopay/notify
+  returnUrl: https://mopdstor.com/#/billing/index
+  isProd: false
 stripe:
   key: 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
   secret: whsec_SkoCUAeRxYAoFMecptXfdYlktCVoa26C

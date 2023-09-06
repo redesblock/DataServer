@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -15,9 +16,11 @@ import (
 	"github.com/stripe/stripe-go/v75/checkout/session"
 	"github.com/stripe/stripe-go/v75/webhook"
 	"gorm.io/gorm"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sort"
 	"time"
 )
 
@@ -193,6 +196,152 @@ func WxPayNotify(db *gorm.DB) func(c *gin.Context) {
 				order.PaymentID = noti.TransactionId
 				order.PaymentAccount = noti.Payer.Openid
 				order.PaymentTime, _ = time.Parse(time.RFC3339, noti.SuccessTime)
+				if err := db.Transaction(func(tx *gorm.DB) error {
+					var user models.User
+					if ret := tx.Model(&models.User{}).Where("id = ?", order.UserID).Find(&user); ret.Error != nil {
+						return ret.Error
+					} else if ret.RowsAffected == 0 {
+						return fmt.Errorf("not found user")
+					}
+					user.TotalStorage += order.Quantity
+					if err := tx.Save(&user).Error; err != nil {
+						return err
+					}
+					if order.UserCouponID > 0 {
+						var userCoupon models.UserCoupon
+						if ret := tx.Model(&models.UserCoupon{}).Where("id = ?", order.UserCouponID).Find(&userCoupon); ret.Error != nil {
+							return ret.Error
+						} else if ret.RowsAffected == 0 {
+							return fmt.Errorf("not found user coupon")
+						}
+						userCoupon.Status = models.UserCouponStatus_Used
+						if err := tx.Save(&userCoupon).Error; err != nil {
+							return err
+						}
+					}
+					return tx.Save(&order).Error
+				}); err != nil {
+					c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
+					return
+				}
+			}
+		}
+		c.JSON(http.StatusOK, &wechat.V3NotifyRsp{Code: gopay.SUCCESS, Message: "成功"})
+	}
+}
+
+func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			fmt.Println("Error reading request body:", err)
+			c.JSON(OKCode, NewResponse(c, RequestCode, err))
+			return
+		}
+		defer c.Request.Body.Close()
+
+		var req map[string]interface{}
+		json.Unmarshal(body, &req)
+		if err != nil {
+			fmt.Println("Error reading request body:", err, string(body))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err))
+			return
+		}
+
+		keys := make([]string, 0, len(req))
+		for key := range req {
+			if key == "verify_sign" {
+				continue
+			}
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+		var concatenatedString string
+		for _, key := range keys {
+			value := req[key]
+			stringValue, ok := value.(string)
+			if !ok {
+				stringValue = fmt.Sprintf("%v", value)
+			}
+			concatenatedString += key + "=" + stringValue + "&"
+		}
+		concatenatedString += fmt.Sprintf("%x", md5.Sum([]byte(viper.GetString("nihaopay.key"))))
+		verifySign := req["verify_sign"].(string)
+		sign := fmt.Sprintf("%x", md5.Sum([]byte(concatenatedString)))
+		fmt.Println("verify_sign", verifySign, sign, verifySign == sign)
+
+		id, ok := req["id"].(string)
+		if !ok {
+			fmt.Println("Error reading request body:", err, string(body))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err))
+			return
+		}
+		orderID, ok := req["reference"].(string)
+		if !ok {
+			fmt.Println("Error reading request body:", err, string(body))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err))
+			return
+		}
+		status, ok := req["status"].(string)
+		if !ok {
+			fmt.Println("Error reading request body:", err, string(body))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err))
+			return
+		}
+		success, ok := req["time"].(string)
+		if !ok {
+			fmt.Println("Error reading request body:", err, string(body))
+			c.JSON(OKCode, NewResponse(c, RequestCode, err))
+			return
+		}
+		amount, ok := req["rmb_amount"].(float64)
+		if !ok {
+			amount, ok = req["amount"].(float64)
+			if !ok {
+				fmt.Println("Error reading request body:", err)
+				c.JSON(OKCode, NewResponse(c, RequestCode, err))
+				return
+			}
+		}
+
+		var order models.Order
+		ret := db.Model(&models.Order{}).Where("order_id = ?", orderID).Find(&order)
+		if err := ret.Error; err != nil {
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
+			return
+		}
+
+		switch status {
+		case "closed":
+			if order.Status != models.OrderCancel {
+				order.Status = models.OrderCancel
+				if err := db.Save(&order).Error; err != nil {
+					c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
+					return
+				}
+			}
+		case "failure":
+			if order.Status != models.OrderFailed {
+				order.Status = models.OrderFailed
+				if err := db.Save(&order).Error; err != nil {
+					c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
+					return
+				}
+			}
+		case "pending":
+			if order.Status != models.OrderPending {
+				order.Status = models.OrderPending
+				if err := db.Save(&order).Error; err != nil {
+					c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
+					return
+				}
+			}
+		case "success":
+			if order.Status != models.OrderSuccess {
+				order.Status = models.OrderSuccess
+				order.PaymentID = id
+				order.PaymentAccount = decimal.NewFromFloat(amount).Div(decimal.NewFromInt(100)).String()
+				order.PaymentTime, _ = time.Parse(time.RFC3339, success)
 				if err := db.Transaction(func(tx *gorm.DB) error {
 					var user models.User
 					if ret := tx.Model(&models.User{}).Where("id = ?", order.UserID).Find(&user); ret.Error != nil {

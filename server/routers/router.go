@@ -53,6 +53,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiv1.POST("/alipay/notify", v1.AlipayNotify(db))
 		apiv1.POST("/wxpay/notify", v1.WxPayNotify(db))
 		apiv1.POST("/stripe/notify", v1.StripeNotify(db))
+		apiv1.POST("/nihaopay/notify", v1.NihaoPayNotify(db))
 
 		apiv1.Use(v1.JWTAuthMiddleware())
 		apiv1.GET("/user", v1.GetUserHandler(db))

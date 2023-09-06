@@ -315,6 +315,18 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				c.JSON(OKCode, NewResponse(c, OKCode, res))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
+			} else if req.PaymentChannel == models.PaymentChannel_NihaoPay {
+				currency := "usd"
+				if req.Currency == 3 {
+					currency = "cny"
+				}
+				res, err := pay.StripeTrade(req.Description, item.OrderID, item.Discount.String(), currency)
+				if err != nil {
+					return err
+				}
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
+				//c.Redirect(http.StatusTemporaryRedirect, res)
+				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_Crypto {
 				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": viper.GetString("bsc.browser") + "tx/" + req.Hash}))
 				return nil
@@ -463,6 +475,18 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 					return err
 				}
 				c.JSON(OKCode, NewResponse(c, OKCode, res))
+				//c.Redirect(http.StatusTemporaryRedirect, res)
+				return nil
+			} else if req.PaymentChannel == models.PaymentChannel_NihaoPay {
+				currency := "usd"
+				if req.Currency == 3 {
+					currency = "cny"
+				}
+				res, err := pay.StripeTrade(req.Description, item.OrderID, item.Discount.String(), currency)
+				if err != nil {
+					return err
+				}
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_Crypto {

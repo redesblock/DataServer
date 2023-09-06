@@ -16,6 +16,7 @@ const (
 	PaymentChannel_Alipay      PaymentChannel = 1 << 3
 	PaymentChannel_WeChat      PaymentChannel = 1 << 4
 	PaymentChannel_Stripe      PaymentChannel = 1 << 5
+	PaymentChannel_NihaoPay    PaymentChannel = 1 << 6
 )
 
 var PaymentChannelMsgs = map[PaymentChannel]string{
@@ -25,6 +26,7 @@ var PaymentChannelMsgs = map[PaymentChannel]string{
 	PaymentChannel_Alipay:      "Alipay",
 	PaymentChannel_WeChat:      "WeChat",
 	PaymentChannel_Stripe:      "Stripe",
+	PaymentChannel_NihaoPay:    "NihaoPay",
 }
 
 type Currency struct {
