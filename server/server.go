@@ -259,6 +259,61 @@ func Start(port string, db *gorm.DB) {
 							}
 						}
 					case models.PaymentChannel_Stripe:
+					case models.PaymentChannel_NihaoPay_UnionPay, models.PaymentChannel_NihaoPay_WeChat, models.PaymentChannel_NihaoPay_Alipay:
+						ret, err := pay.NihaoPayQuery(item.OrderID)
+						if err != nil {
+							log.Errorf("sync order status: %s", err)
+						}
+						updated := false
+						status := ret["status"]
+						switch status {
+						case "success":
+							item.PaymentID = ret["id"].(string)
+							amount := ret["amount"].(float64)
+							item.PaymentAccount = decimal.NewFromFloat(amount).Div(decimal.NewFromInt(100)).String()
+							item.PaymentTime, _ = time.Parse(time.RFC3339, ret["time"].(string))
+							item.Status = models.OrderSuccess
+							updated = true
+						case "failure":
+							if item.Status != models.OrderFailed {
+								item.Status = models.OrderFailed
+								updated = true
+							}
+						case "pending":
+							if item.Status != models.OrderPending {
+								item.Status = models.OrderPending
+								updated = true
+							}
+						}
+						if updated {
+							if err := db.Transaction(func(tx *gorm.DB) error {
+								var user models.User
+								if ret := tx.Model(&models.User{}).Where("id = ?", item.UserID).Find(&user); ret.Error != nil {
+									return ret.Error
+								} else if ret.RowsAffected == 0 {
+									return fmt.Errorf("not found user")
+								}
+								user.TotalStorage += item.Quantity
+								if err := tx.Save(&user).Error; err != nil {
+									return err
+								}
+								if item.UserCouponID > 0 {
+									var userCoupon models.UserCoupon
+									if ret := tx.Model(&models.UserCoupon{}).Where("id = ?", item.UserCouponID).Find(&userCoupon); ret.Error != nil {
+										return ret.Error
+									} else if ret.RowsAffected == 0 {
+										return fmt.Errorf("not found user coupon")
+									}
+									userCoupon.Status = models.UserCouponStatus_Used
+									if err := tx.Save(&userCoupon).Error; err != nil {
+										return err
+									}
+								}
+								return tx.Save(&item).Error
+							}); err != nil {
+								log.Errorf("sync order status: %s", err)
+							}
+						}
 					}
 				}
 			}

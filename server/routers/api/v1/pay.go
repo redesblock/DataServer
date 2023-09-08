@@ -259,10 +259,10 @@ func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 		var concatenatedString string
 		for _, key := range keys {
 			value := req[key]
-			stringValue, ok := value.(string)
-			if !ok {
-				stringValue = fmt.Sprintf("%v", value)
-			}
+			//stringValue, ok := value.(string)
+			//if !ok {
+			stringValue := fmt.Sprintf("%v", value)
+			//}
 			concatenatedString += key + "=" + stringValue + "&"
 		}
 		concatenatedString += fmt.Sprintf("%x", md5.Sum([]byte(viper.GetString("nihaopay.key"))))

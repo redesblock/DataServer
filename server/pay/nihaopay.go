@@ -2,6 +2,7 @@ package pay
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/viper"
@@ -24,10 +25,9 @@ func NihaoPayTrade(subject, orderID, currency, amount, vendor string) (string, e
 	if isProd := viper.GetBool("nihaopay.isProd"); isProd {
 		apiUrl = "https://api.nihaopay.com/v1.2/transactions/securepay"
 	}
-	fmt.Println(apiUrl)
 	requestData := []byte(fmt.Sprintf(`{
 		"%s": %d,
-        "currency": "USD",
+        "currency": "EUR",
 		"vendor": "%s",
 		"ipn_url":"%s",
 		"callback_url":"%s",
@@ -60,4 +60,38 @@ func NihaoPayTrade(subject, orderID, currency, amount, vendor string) (string, e
 	}
 
 	return string(bts), nil
+}
+
+func NihaoPayQuery(orderID string) (map[string]interface{}, error) {
+	apiUrl := "https://apitest.nihaopay.com/v1.2/transactions/securepay"
+	if isProd := viper.GetBool("nihaopay.isProd"); isProd {
+		apiUrl = "https://api.nihaopay.com/v1.2/transactions/securepay"
+	}
+
+	req, err := http.NewRequest("GET", apiUrl+"/"+orderID, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", viper.GetString("nihaopay.key")))
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	bts, _ := io.ReadAll(resp.Body)
+
+	// 处理响应
+	if resp.StatusCode == http.StatusOK {
+		// 处理成功支付的响应
+	} else {
+		fmt.Println("Payment Query failed. Status code:", resp.StatusCode)
+		// 处理支付失败的响应
+		return nil, fmt.Errorf("%s %s", resp.Status, string(bts))
+	}
+
+	var ret map[string]interface{}
+	json.Unmarshal(bts, &ret)
+
+	return ret, nil
 }
