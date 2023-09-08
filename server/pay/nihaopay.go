@@ -63,12 +63,13 @@ func NihaoPayTrade(subject, orderID, currency, amount, vendor string) (string, e
 }
 
 func NihaoPayQuery(orderID string) (map[string]interface{}, error) {
-	apiUrl := "https://apitest.nihaopay.com/v1.2/transactions/securepay"
+	apiUrl := "https://apitest.nihaopay.com/v1.2/transactions/merchant/"
 	if isProd := viper.GetBool("nihaopay.isProd"); isProd {
-		apiUrl = "https://api.nihaopay.com/v1.2/transactions/securepay"
+		apiUrl = "https://api.nihaopay.com/v1.2/transactions/merchant/"
 	}
+	fmt.Println(apiUrl+"/transactions/merchant/"+orderID)
 
-	req, err := http.NewRequest("GET", apiUrl+"/"+orderID, nil)
+	req, err := http.NewRequest("GET", apiUrl+orderID, nil)
 	if err != nil {
 		return nil, err
 	}
