@@ -99,14 +99,14 @@ func Init(db *gorm.DB) error {
 			Symbol:  "CNY",
 			Rate:    decimal.NewFromFloat(7),
 			Base:    false,
-			Payment: PaymentChannel_Alipay | PaymentChannel_WeChat | PaymentChannel_Stripe | PaymentChannel_NihaoPay,
+			Payment: PaymentChannel_Alipay | PaymentChannel_WeChat | PaymentChannel_Stripe,
 		},
 		{
 			ID:      4,
 			Symbol:  "USD",
 			Rate:    decimal.NewFromFloat(1),
 			Base:    false,
-			Payment: PaymentChannel_Alipay | PaymentChannel_WeChat | PaymentChannel_Stripe | PaymentChannel_NihaoPay,
+			Payment: PaymentChannel_Alipay | PaymentChannel_WeChat | PaymentChannel_Stripe,
 		},
 	}
 	products := []*Product{

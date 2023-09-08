@@ -315,12 +315,21 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				c.JSON(OKCode, NewResponse(c, OKCode, res))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
-			} else if req.PaymentChannel == models.PaymentChannel_NihaoPay {
+			} else if req.PaymentChannel == models.PaymentChannel_NihaoPay_Alipay ||
+				req.PaymentChannel == models.PaymentChannel_NihaoPay_WeChat ||
+				req.PaymentChannel == models.PaymentChannel_NihaoPay_UnionPay {
+				vendor := "unionpay"
+				switch req.PaymentChannel {
+				case models.PaymentChannel_NihaoPay_Alipay:
+					vendor = "alipay"
+				case models.PaymentChannel_NihaoPay_WeChat:
+					vendor = "wechatpay"
+				}
 				currency := "usd"
 				if req.Currency == 3 {
 					currency = "cny"
 				}
-				res, err := pay.StripeTrade(req.Description, item.OrderID, item.Discount.String(), currency)
+				res, err := pay.NihaoPayTrade(req.Description, item.OrderID, currency, item.Discount.String(), vendor)
 				if err != nil {
 					return err
 				}
@@ -477,12 +486,21 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				c.JSON(OKCode, NewResponse(c, OKCode, res))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
-			} else if req.PaymentChannel == models.PaymentChannel_NihaoPay {
+			} else if req.PaymentChannel == models.PaymentChannel_NihaoPay_Alipay ||
+				req.PaymentChannel == models.PaymentChannel_NihaoPay_WeChat ||
+				req.PaymentChannel == models.PaymentChannel_NihaoPay_UnionPay {
+				vendor := "unionpay"
+				switch req.PaymentChannel {
+				case models.PaymentChannel_NihaoPay_Alipay:
+					vendor = "alipay"
+				case models.PaymentChannel_NihaoPay_WeChat:
+					vendor = "wechatpay"
+				}
 				currency := "usd"
 				if req.Currency == 3 {
 					currency = "cny"
 				}
-				res, err := pay.StripeTrade(req.Description, item.OrderID, item.Discount.String(), currency)
+				res, err := pay.NihaoPayTrade(req.Description, item.OrderID, currency, item.Discount.String(), vendor)
 				if err != nil {
 					return err
 				}

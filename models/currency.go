@@ -10,23 +10,27 @@ import (
 type PaymentChannel uint
 
 const (
-	PaymentChannel_SignIn      PaymentChannel = 1
-	PaymentChannel_Counon_Free PaymentChannel = 1 << 1
-	PaymentChannel_Crypto      PaymentChannel = 1 << 2
-	PaymentChannel_Alipay      PaymentChannel = 1 << 3
-	PaymentChannel_WeChat      PaymentChannel = 1 << 4
-	PaymentChannel_Stripe      PaymentChannel = 1 << 5
-	PaymentChannel_NihaoPay    PaymentChannel = 1 << 6
+	PaymentChannel_SignIn            PaymentChannel = 1
+	PaymentChannel_Counon_Free       PaymentChannel = 1 << 1
+	PaymentChannel_Crypto            PaymentChannel = 1 << 2
+	PaymentChannel_Alipay            PaymentChannel = 1 << 3
+	PaymentChannel_WeChat            PaymentChannel = 1 << 4
+	PaymentChannel_Stripe            PaymentChannel = 1 << 5
+	PaymentChannel_NihaoPay_Alipay   PaymentChannel = 1 << 6
+	PaymentChannel_NihaoPay_WeChat   PaymentChannel = 1 << 7
+	PaymentChannel_NihaoPay_UnionPay PaymentChannel = 1 << 8
 )
 
 var PaymentChannelMsgs = map[PaymentChannel]string{
-	PaymentChannel_SignIn:      "SignIn",
-	PaymentChannel_Counon_Free: "Free",
-	PaymentChannel_Crypto:      "CryptoCurrency",
-	PaymentChannel_Alipay:      "Alipay",
-	PaymentChannel_WeChat:      "WeChat",
-	PaymentChannel_Stripe:      "Stripe",
-	PaymentChannel_NihaoPay:    "NihaoPay",
+	PaymentChannel_SignIn:            "SignIn",
+	PaymentChannel_Counon_Free:       "Free",
+	PaymentChannel_Crypto:            "CryptoCurrency",
+	PaymentChannel_Alipay:            "Alipay",
+	PaymentChannel_WeChat:            "WeChat",
+	PaymentChannel_Stripe:            "Stripe",
+	PaymentChannel_NihaoPay_Alipay:   "NihaoPay-Alipay",
+	PaymentChannel_NihaoPay_WeChat:   "NihaoPay-WeChat",
+	PaymentChannel_NihaoPay_UnionPay: "NihaoPay-UnionPay",
 }
 
 type Currency struct {
