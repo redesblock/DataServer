@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -18,6 +20,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"reflect"
+	"sort"
+	"strings"
 	"time"
 )
 
@@ -243,6 +248,18 @@ type SysReserve struct {
 	VendorID string `json:"vendor_id"`
 }
 
+func getFieldValue(data RequestData, key string) string {
+	keys := strings.Split(key, ".")
+	value := reflect.ValueOf(data)
+	for _, k := range keys {
+		if value.Kind() == reflect.Ptr {
+			value = value.Elem()
+		}
+		value = value.FieldByName(k)
+	}
+	return fmt.Sprintf("%v", value)
+}
+
 func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var requestData RequestData
@@ -253,6 +270,30 @@ func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 		}
 		b, _ := json.Marshal(requestData)
 		fmt.Println("nihaopay notify", string(b))
+
+		// 将请求体字段按键名升序排序
+		keys := make([]string, 0, 8)
+		keys = append(keys, "amount", "currency", "id", "note", "reference", "rmb_amount", "status", "sys_reserve.vendor_id")
+		sort.Strings(keys)
+
+		// 构建拼接后的字符串
+		var sb strings.Builder
+		for _, key := range keys {
+			val := getFieldValue(requestData, key)
+			sb.WriteString(fmt.Sprintf("%s=%s&", key, val))
+		}
+
+		token := viper.GetString("nihaopay.key")
+		tokenMD5 := md5.Sum([]byte(token))
+		tokenStr := hex.EncodeToString(tokenMD5[:])
+		sb.WriteString(fmt.Sprintf("MD5(Token)=%s", tokenStr))
+
+		// 对整个字符串进行MD5哈希并转换为小写字符
+		dataStr := sb.String()
+		dataMD5 := md5.Sum([]byte(dataStr))
+		dataMD5Str := hex.EncodeToString(dataMD5[:])
+
+		fmt.Println("nihaopay verify", requestData.VerifySign, dataMD5Str, requestData.VerifySign == dataMD5Str)
 
 		id := requestData.ID
 		orderID := requestData.Reference
