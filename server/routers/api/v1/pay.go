@@ -257,6 +257,9 @@ func getFieldValue(data RequestData, key string) string {
 		}
 		value = value.FieldByName(k)
 	}
+	if !value.IsValid() {
+		return ""
+	}
 	return fmt.Sprintf("%v", value)
 }
 
@@ -280,6 +283,9 @@ func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 		var sb strings.Builder
 		for _, key := range keys {
 			val := getFieldValue(requestData, key)
+			if val == "" {
+				continue
+			}
 			sb.WriteString(fmt.Sprintf("%s=%s&", key, val))
 		}
 
