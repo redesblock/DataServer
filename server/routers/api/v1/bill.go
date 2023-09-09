@@ -291,7 +291,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "order": item.OrderID, "url": res}))
 				return nil
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 			} else if req.PaymentChannel == models.PaymentChannel_WeChat {
@@ -299,7 +299,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "order": item.OrderID, "url": res}))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_Stripe {
@@ -311,7 +311,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				//c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
+				//c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "order": item.OrderID, "url": res}))
 				c.JSON(OKCode, NewResponse(c, OKCode, res))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
@@ -333,11 +333,11 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "order": item.OrderID, "url": res}))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_Crypto {
-				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": viper.GetString("bsc.browser") + "tx/" + req.Hash}))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "order": item.OrderID, "url": viper.GetString("bsc.browser") + "tx/" + req.Hash}))
 				return nil
 			} else {
 				return fmt.Errorf("not support payment channel")
@@ -463,7 +463,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "order": item.OrderID, "url": res}))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_WeChat {
@@ -471,7 +471,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "order": item.OrderID, "url": res}))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_Stripe {
@@ -504,11 +504,11 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				if err != nil {
 					return err
 				}
-				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": res}))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "order": item.OrderID, "url": res}))
 				//c.Redirect(http.StatusTemporaryRedirect, res)
 				return nil
 			} else if req.PaymentChannel == models.PaymentChannel_Crypto {
-				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "url": viper.GetString("bsc.browser") + "tx/" + req.Hash}))
+				c.JSON(OKCode, NewResponse(c, OKCode, map[string]interface{}{"order_id": item.ID, "order": item.OrderID, "url": viper.GetString("bsc.browser") + "tx/" + req.Hash}))
 				return nil
 			} else {
 				return fmt.Errorf("not support payment channel")

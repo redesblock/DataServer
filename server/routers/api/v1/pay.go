@@ -305,7 +305,7 @@ func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 		dataMD5 := md5.Sum([]byte(dataStr))
 		dataMD5Str := hex.EncodeToString(dataMD5[:])
 
-		fmt.Println("nihaopay verify", requestData.VerifySign, dataMD5Str, requestData.VerifySign == dataMD5Str)
+		fmt.Println("nihaopay verify", requestData.VerifySign, dataMD5Str, dataStr)
 
 		id := requestData.ID
 		orderID := requestData.Reference
