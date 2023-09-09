@@ -158,9 +158,8 @@ func Start(port string, db *gorm.DB) {
 						db:    db,
 					}
 				}
-
-				timer.Reset(duration)
 			}
+			timer.Reset(duration)
 		}
 	}()
 
