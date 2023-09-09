@@ -252,13 +252,10 @@ func getFieldValue(data RequestData, key string) string {
 	keys := strings.Split(key, ".")
 	value := reflect.ValueOf(data)
 	for _, k := range keys {
-		if value.Kind() == reflect.Ptr {
+		if value.Kind() == reflect.Ptr || value.Kind() == reflect.Interface {
 			value = value.Elem()
 		}
 		value = value.FieldByName(k)
-	}
-	if !value.IsValid() {
-		return ""
 	}
 	return fmt.Sprintf("%v", value)
 }
@@ -283,10 +280,9 @@ func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 		var sb strings.Builder
 		for _, key := range keys {
 			val := getFieldValue(requestData, key)
-			if val == "" {
-				continue
+			if val != "" {
+				sb.WriteString(fmt.Sprintf("%s=%s&", key, val))
 			}
-			sb.WriteString(fmt.Sprintf("%s=%s&", key, val))
 		}
 
 		token := viper.GetString("nihaopay.key")
