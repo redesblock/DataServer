@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -16,11 +15,9 @@ import (
 	"github.com/stripe/stripe-go/v75/checkout/session"
 	"github.com/stripe/stripe-go/v75/webhook"
 	"gorm.io/gorm"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"sort"
 	"time"
 )
 
@@ -230,79 +227,39 @@ func WxPayNotify(db *gorm.DB) func(c *gin.Context) {
 	}
 }
 
+type RequestData struct {
+	Amount     int64      `form:"amount"`
+	Currency   string     `form:"currency"`
+	ID         string     `form:"id"`
+	Note       string     `form:"note"`
+	Reference  string     `form:"reference"`
+	RmbAmount  int64      `form:"rmb_amount"`
+	Status     string     `form:"status"`
+	SysReserve SysReserve `form:"sys_reserve"`
+	Time       string     `form:"time"`
+	VerifySign string     `form:"verify_sign"`
+}
+type SysReserve struct {
+	VendorID string `json:"vendor_id"`
+}
+
 func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		body, err := io.ReadAll(c.Request.Body)
-		if err != nil {
-			fmt.Println("Error reading request body:", err)
-			c.JSON(OKCode, NewResponse(c, RequestCode, err))
+		var requestData RequestData
+		if err := c.ShouldBind(&requestData); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		fmt.Println("nihaopay notify", string(body))
-		defer c.Request.Body.Close()
+		b, _ := json.Marshal(requestData)
+		fmt.Println("nihaopay notify", string(b))
 
-		var req map[string]interface{}
-		json.Unmarshal(body, &req)
-		if err != nil {
-			fmt.Println("Error reading request body:", err, string(body))
-			c.JSON(OKCode, NewResponse(c, RequestCode, err))
-			return
-		}
-
-		keys := make([]string, 0, len(req))
-		for key := range req {
-			if key == "verify_sign" {
-				continue
-			}
-			keys = append(keys, key)
-		}
-		sort.Strings(keys)
-		var concatenatedString string
-		for _, key := range keys {
-			value := req[key]
-			//stringValue, ok := value.(string)
-			//if !ok {
-			stringValue := fmt.Sprintf("%v", value)
-			//}
-			concatenatedString += key + "=" + stringValue + "&"
-		}
-		concatenatedString += fmt.Sprintf("%x", md5.Sum([]byte(viper.GetString("nihaopay.key"))))
-		//verifySign := req["verify_sign"].(string)
-		sign := fmt.Sprintf("%x", md5.Sum([]byte(concatenatedString)))
-		fmt.Println(sign == sign)
-
-		id, ok := req["id"].(string)
-		if !ok {
-			fmt.Println("Error reading request body:", err, string(body))
-			c.JSON(OKCode, NewResponse(c, RequestCode, err))
-			return
-		}
-		orderID, ok := req["reference"].(string)
-		if !ok {
-			fmt.Println("Error reading request body:", err, string(body))
-			c.JSON(OKCode, NewResponse(c, RequestCode, err))
-			return
-		}
-		status, ok := req["status"].(string)
-		if !ok {
-			fmt.Println("Error reading request body:", err, string(body))
-			c.JSON(OKCode, NewResponse(c, RequestCode, err))
-			return
-		}
-		success, ok := req["time"].(string)
-		if !ok {
-			fmt.Println("Error reading request body:", err, string(body))
-			c.JSON(OKCode, NewResponse(c, RequestCode, err))
-			return
-		}
-		amount, ok := req["rmb_amount"].(float64)
-		if !ok {
-			amount, ok = req["amount"].(float64)
-			if !ok {
-				fmt.Println("Error reading request body:", err)
-				c.JSON(OKCode, NewResponse(c, RequestCode, err))
-				return
-			}
+		id := requestData.ID
+		orderID := requestData.Reference
+		status := requestData.Status
+		success := requestData.Time
+		amount := requestData.RmbAmount
+		if amount == 0 {
+			amount = requestData.Amount
 		}
 
 		var order models.Order
@@ -341,7 +298,7 @@ func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 			if order.Status != models.OrderSuccess {
 				order.Status = models.OrderSuccess
 				order.PaymentID = id
-				order.PaymentAccount = decimal.NewFromFloat(amount).Div(decimal.NewFromInt(100)).String()
+				order.PaymentAccount = decimal.NewFromInt(amount).Div(decimal.NewFromInt(100)).String()
 				order.PaymentTime, _ = time.Parse(time.RFC3339, success)
 				if err := db.Transaction(func(tx *gorm.DB) error {
 					var user models.User
