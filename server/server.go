@@ -320,6 +320,7 @@ func Start(port string, db *gorm.DB) {
 					}
 				}
 			}
+			timer.Reset(10 * time.Minute)
 		}
 	}()
 
