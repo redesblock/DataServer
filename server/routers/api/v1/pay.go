@@ -238,6 +238,7 @@ func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(OKCode, NewResponse(c, RequestCode, err))
 			return
 		}
+		fmt.Println("nihaopay notify", string(body))
 		defer c.Request.Body.Close()
 
 		var req map[string]interface{}
@@ -266,9 +267,9 @@ func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 			concatenatedString += key + "=" + stringValue + "&"
 		}
 		concatenatedString += fmt.Sprintf("%x", md5.Sum([]byte(viper.GetString("nihaopay.key"))))
-		verifySign := req["verify_sign"].(string)
+		//verifySign := req["verify_sign"].(string)
 		sign := fmt.Sprintf("%x", md5.Sum([]byte(concatenatedString)))
-		fmt.Println("verify_sign", verifySign, sign, verifySign == sign)
+		fmt.Println(sign == sign)
 
 		id, ok := req["id"].(string)
 		if !ok {
