@@ -247,6 +247,7 @@ func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var requestData RequestData
 		if err := c.ShouldBind(&requestData); err != nil {
+			fmt.Println("NihaoPayNotify", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
