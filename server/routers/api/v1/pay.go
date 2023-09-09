@@ -248,16 +248,26 @@ type SysReserve struct {
 	VendorID string `json:"vendor_id"`
 }
 
-func getFieldValue(data RequestData, key string) string {
-	keys := strings.Split(key, ".")
-	value := reflect.ValueOf(data)
-	for _, k := range keys {
-		if value.Kind() == reflect.Ptr || value.Kind() == reflect.Interface {
-			value = value.Elem()
+func getRequestDataMap(data interface{}) map[string]string {
+	result := make(map[string]string)
+	v := reflect.ValueOf(data)
+	t := v.Type()
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		fieldValue := v.Field(i)
+
+		if fieldValue.Kind() == reflect.Struct {
+			// 如果字段是结构体类型，递归处理
+			subData := getRequestDataMap(fieldValue.Interface())
+			for k, v := range subData {
+				result[field.Name+"."+k] = v
+			}
+		} else {
+			// 否则，直接将字段的名称和值存入 map
+			result[field.Name] = fmt.Sprintf("%v", fieldValue.Interface())
 		}
-		value = value.FieldByName(k)
 	}
-	return fmt.Sprintf("%v", value)
+	return result
 }
 
 func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
@@ -279,7 +289,7 @@ func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 		// 构建拼接后的字符串
 		var sb strings.Builder
 		for _, key := range keys {
-			val := getFieldValue(requestData, key)
+			val := getRequestDataMap(requestData)[key]
 			if val != "" {
 				sb.WriteString(fmt.Sprintf("%s=%s&", key, val))
 			}
