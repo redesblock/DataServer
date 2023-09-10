@@ -92,6 +92,7 @@ type BillReq struct {
 	Currency       uint                  `json:"currency"`
 	Coupon         uint                  `json:"coupon"`
 	Description    string                `json:"desc"`
+	Note           string                `json:"note"`
 	Hash           string                `json:"hash"`
 }
 
@@ -238,6 +239,8 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		userID, _ := c.Get("id")
+		userEmail, _ := c.Get("mail")
+		_ = userEmail.(string)
 		item := &models.Order{
 			OrderID:      generateOrderID(),
 			PType:        models.ProductType_Storage,
@@ -329,7 +332,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				if req.Currency == 3 {
 					currency = "cny"
 				}
-				res, err := pay.NihaoPayTrade(req.Description, item.OrderID, currency, item.Discount.String(), vendor)
+				res, err := pay.NihaoPayTrade(req.Description, item.OrderID, currency, item.Discount.String(), vendor, req.Note)
 				if err != nil {
 					return err
 				}
@@ -410,6 +413,8 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		userID, _ := c.Get("id")
+		userEmail, _ := c.Get("mail")
+		_ = userEmail.(string)
 		item := &models.Order{
 			OrderID:      generateOrderID(),
 			PType:        models.ProductType_Traffic,
@@ -500,7 +505,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				if req.Currency == 3 {
 					currency = "cny"
 				}
-				res, err := pay.NihaoPayTrade(req.Description, item.OrderID, currency, item.Discount.String(), vendor)
+				res, err := pay.NihaoPayTrade(req.Description, item.OrderID, currency, item.Discount.String(), vendor, req.Note)
 				if err != nil {
 					return err
 				}

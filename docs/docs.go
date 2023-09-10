@@ -2774,6 +2774,9 @@ var doc = `{
                 "hash": {
                     "type": "string"
                 },
+                "note": {
+                    "type": "string"
+                },
                 "payment_channel": {
                     "type": "integer"
                 },

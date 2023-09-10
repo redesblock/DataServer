@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func NihaoPayTrade(subject, orderID, currency, amount, vendor string) (string, error) {
+func NihaoPayTrade(subject, orderID, currency, amount, vendor, note string) (string, error) {
 	amt, err := decimal.NewFromString(amount)
 	if err != nil {
 		return "", err
@@ -32,9 +32,10 @@ func NihaoPayTrade(subject, orderID, currency, amount, vendor string) (string, e
 		"ipn_url":"%s",
 		"callback_url":"%s",
 		"reference": "%s",
+		"note": "%s",
 		"description": "%s",
 		"timeout": 10
-    }`, amountStr, amt.Mul(decimal.NewFromInt(100)).BigInt().Int64(), vendor, viper.GetString("nihaopay.notifyUrl"), viper.GetString("nihaopay.returnUrl"), orderID, subject))
+    }`, amountStr, amt.Mul(decimal.NewFromInt(100)).BigInt().Int64(), vendor, viper.GetString("nihaopay.notifyUrl"), viper.GetString("nihaopay.returnUrl"), orderID, note, subject))
 
 	req, err := http.NewRequest("POST", apiUrl, bytes.NewBuffer(requestData))
 	if err != nil {

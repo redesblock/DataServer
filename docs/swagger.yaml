@@ -90,6 +90,8 @@ definitions:
         type: string
       hash:
         type: string
+      note:
+        type: string
       payment_channel:
         type: integer
       price:
