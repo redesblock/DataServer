@@ -112,6 +112,27 @@ func Start(port string, db *gorm.DB) {
 		}
 	}()
 
+	go func() {
+		timer := time.NewTicker(24 * time.Hour)
+		for {
+			select {
+			case <-timer.C:
+				oneMonthAgo := time.Now().AddDate(0, -1, 0)
+
+				// 执行删除操作
+				if err := db.Where("created_at < ?", oneMonthAgo).Delete(&models.UserAction{}); err != nil {
+					log.Errorf("clear one month ago: %s", err)
+				}
+
+				// 执行删除操作
+				sixMonthAgo := time.Now().AddDate(0, -6, 0)
+				if err := db.Where("created_at < ?", sixMonthAgo).Delete(&models.ReportTraffic{}).Error; err != nil {
+					log.Errorf("clear six month ago: %s", err)
+				}
+			}
+		}
+	}()
+
 	// update voucher status
 	go func() {
 		duration := time.Minute * 10

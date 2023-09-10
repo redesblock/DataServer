@@ -240,7 +240,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 
 		userID, _ := c.Get("id")
 		userEmail, _ := c.Get("mail")
-		_ = userEmail.(string)
+		_ = userEmail
 		item := &models.Order{
 			OrderID:      generateOrderID(),
 			PType:        models.ProductType_Storage,
@@ -414,7 +414,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 
 		userID, _ := c.Get("id")
 		userEmail, _ := c.Get("mail")
-		_ = userEmail.(string)
+		_ = userEmail
 		item := &models.Order{
 			OrderID:      generateOrderID(),
 			PType:        models.ProductType_Traffic,

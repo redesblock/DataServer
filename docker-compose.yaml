@@ -5,6 +5,7 @@ services:
     container_name: mysql
     restart: always
     environment:
+      TZ: Asia/Shanghai
       MYSQL_ROOT_PASSWORD: dataserver
       MYSQL_DATABASE: dataserver
     ports:
