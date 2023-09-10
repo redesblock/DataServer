@@ -165,12 +165,12 @@ func Start(port string, db *gorm.DB) {
 
 	// upload order
 	go func() {
-		timer := time.NewTimer(10 * time.Minute)
+		timer := time.NewTimer(5 * time.Minute)
 		for {
 			select {
 			case <-timer.C:
 				var items []*models.Order
-				if err := db.Where("status != ?", models.OrderSuccess).Where("created_at between ? and ?", time.Now().Add(-time.Hour*24), time.Now()).Find(&items).Error; err != nil {
+				if err := db.Where("status = ? OR status = ?", models.OrderWait, models.OrderPending).Where("created_at between ? and ?", time.Now().Add(-time.Hour*24), time.Now()).Find(&items).Error; err != nil {
 					log.Errorf("sync order status: %s", err)
 				}
 				for _, item := range items {
@@ -319,7 +319,7 @@ func Start(port string, db *gorm.DB) {
 					}
 				}
 			}
-			timer.Reset(10 * time.Minute)
+			timer.Reset(5 * time.Minute)
 		}
 	}()
 

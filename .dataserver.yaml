@@ -3,8 +3,8 @@ port: ":8080"
 
 # database
 db:
-  mode: "sqlite" # sqlite、 mysql、 postgres
-  dsn: "dataserver.db" # Data Source Name
+  mode: "mysql" # sqlite、 mysql、 postgres
+  dsn: "root:dataserver@tcp(127.0.0.1:3306)/dataserver?charset=utf8mb4&parseTime=True&loc=Local" # Data Source Name
 
 email:
   host: mail.mopdstor.com

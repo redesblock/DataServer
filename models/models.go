@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 const TIME_FORMAT = "2006-01-02 15:04:05"
@@ -142,6 +143,7 @@ func Init(db *gorm.DB) error {
 			Email:    "admin@redeslab.io",
 			Password: "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
 			Role:     UserRole_Admin,
+			SignedIn: time.Now(),
 		},
 	}
 
