@@ -70,6 +70,9 @@ type Order struct {
 
 	StatusStr string `json:"status_str" gorm:"-"`
 	URL       string `json:"url" gorm:"-"`
+
+	Note   string `json:"note"`
+	UserIP string `json:"user_ip"`
 }
 
 func (item *Order) AfterFind(tx *gorm.DB) (err error) {

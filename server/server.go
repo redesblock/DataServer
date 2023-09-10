@@ -300,11 +300,18 @@ func Start(port string, db *gorm.DB) {
 						case "failure":
 							if item.Status != models.OrderFailed {
 								item.Status = models.OrderFailed
+								item.PaymentTime, _ = time.Parse(time.RFC3339, ret["time"].(string))
 								updated = true
 							}
 						case "pending":
 							if item.Status != models.OrderPending {
 								item.Status = models.OrderPending
+								updated = true
+							}
+						case "closed":
+							if item.Status != models.OrderCancel {
+								item.Status = models.OrderCancel
+								item.PaymentTime, _ = time.Parse(time.RFC3339, ret["time"].(string))
 								updated = true
 							}
 						}

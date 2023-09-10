@@ -68,7 +68,6 @@ func NihaoPayQuery(orderID string) (map[string]interface{}, error) {
 	if isProd := viper.GetBool("nihaopay.isProd"); isProd {
 		apiUrl = "https://api.nihaopay.com/v1.2/transactions/merchant/"
 	}
-	fmt.Println(apiUrl + "/transactions/merchant/" + orderID)
 
 	req, err := http.NewRequest("GET", apiUrl+orderID, nil)
 	if err != nil {

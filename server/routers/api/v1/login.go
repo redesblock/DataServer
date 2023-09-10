@@ -58,6 +58,7 @@ func Login(db *gorm.DB) func(c *gin.Context) {
 				Email:    req.Email,
 				Password: req.Password,
 				Role:     models.UserRole_User,
+				SignedIn: time.Now(),
 			}
 			if err := db.Save(&item).Error; err != nil {
 				c.JSON(OKCode, NewResponse(c, ExecuteCode, err))

@@ -93,6 +93,7 @@ type BillReq struct {
 	Coupon         uint                  `json:"coupon"`
 	Description    string                `json:"desc"`
 	Note           string                `json:"note"`
+	UserIP         string                `json:"user_ip"`
 	Hash           string                `json:"hash"`
 }
 
@@ -255,6 +256,8 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 			PaymentTime:  models.UnlimitedTime,
 			UserCouponID: uitem.ID,
 			Discount1:    uitem.Coupon.Discount,
+			Note:         req.Note,
+			UserIP:       req.UserIP,
 		}
 		if req.Coupon == 0 {
 			item.Discount1 = decimal.NewFromInt(10)
@@ -429,6 +432,8 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 			PaymentTime:  models.UnlimitedTime,
 			UserCouponID: uitem.ID,
 			Discount1:    uitem.Coupon.Discount,
+			Note:         req.Note,
+			UserIP:       req.UserIP,
 		}
 		if req.Coupon == 0 {
 			item.Discount1 = decimal.NewFromInt(10)

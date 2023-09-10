@@ -36,11 +36,72 @@ const EmailContentTemplate_RESET = `
 </html>
 `
 
+const EmailContentTemplate_ORDER = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Payment Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #555;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Thank You for Your Successful Payment!</h1>
+        <p>Dear %s,</p>
+        <p>Thank you for your successful payment. Here are the details of your order:</p>
+        <ul>
+            <li><strong>Order Number:</strong> %s</li>
+            <li><strong>Payment Amount:</strong> %s</li>
+            <li><strong>Payment method:</strong> %s</li>
+			<li><strong>Payment Date and Time:</strong> %s</li>
+        </ul>
+        <p>Your order has been successfully paid, and we will process it and arrange for delivery as soon as possible. If you have any questions or need further assistance, please feel free to contact our customer support team.</p>
+        <p>Thank you for shopping with us, and we look forward to providing you with more quality products and services in the future!</p>
+        <p>Wishing you a great day!</p>
+        <div class="footer">
+            <p>Warmest regards,</p>
+
+            <p>Website: https://mopdstor.com</p>
+            <p>Email: respond@monopro.io</p>
+        </div>
+    </div>
+</body>
+</html>
+
+`
+
 func SendGoMail(mailAddress []string, subject string, body string) error {
 	m := gomail.NewMessage()
 	// 这种方式可以添加别名，即 nickname， 也可以直接用<code>m.SetHeader("From", MAIL_USER)</code>
-	nickname := `mopdstor | support`
-	m.SetHeader("From", nickname+"<"+MAIL_USER+">")
+	nickname := `mopdstor`
+	m.SetHeader("From", nickname+"<no-reply@mopdstor.com>")
 	// 发送给多个用户
 	m.SetHeader("To", mailAddress...)
 	// 设置邮件主题

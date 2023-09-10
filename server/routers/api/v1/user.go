@@ -123,7 +123,8 @@ func AddUser(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 		item := &models.User{
-			Email: req.Email,
+			Email:    req.Email,
+			SignedIn: time.Now(),
 		}
 		if res := db.Model(&models.User{}).Where("email = ?", req.Email).Find(item); res.Error != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, res.Error))

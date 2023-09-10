@@ -163,11 +163,13 @@ func AddBucketObjectHandler(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 
+		userID, _ := c.Get("id")
 		var item = &models.BucketObject{
 			Name:     name,
 			CID:      cid,
 			ParentID: uint(fid),
 			BucketID: uint(id),
+			UserID:   userID.(uint),
 		}
 		if len(item.CID) > 0 {
 			item.Status = models.STATUS_PINED
