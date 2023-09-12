@@ -56,7 +56,7 @@ func StripeTest(db *gorm.DB) func(c *gin.Context) {
 
 func AlipayNotify(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		var noti, err = pay.AlipayClient.DecodeNotification(c.Request)
+		var noti, err = pay.AlipayClient.DecodeNotification(c.Request.URL.Query())
 		if err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return

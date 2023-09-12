@@ -1,5 +1,5 @@
-ARG GO_VER=1.18
-ARG ALPINE_VER=3.15
+ARG GO_VER=1.20
+ARG ALPINE_VER=3.17
 
 FROM alpine:${ALPINE_VER} as base
 RUN apk add --no-cache tzdata \

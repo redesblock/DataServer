@@ -2788,6 +2788,9 @@ var doc = `{
                 },
                 "special_product": {
                     "type": "integer"
+                },
+                "user_ip": {
+                    "type": "string"
                 }
             }
         },
