@@ -280,6 +280,8 @@ func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 		case "closed":
 			if order.Status != models.OrderCancel {
 				order.Status = models.OrderCancel
+				order.PaymentID = id
+				order.PaymentAmount = decimal.NewFromInt(amount).Div(decimal.NewFromInt(100)).String()
 				order.PaymentTime, _ = time.Parse(time.RFC3339, success)
 				if err := db.Save(&order).Error; err != nil {
 					c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
@@ -289,6 +291,8 @@ func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 		case "failure":
 			if order.Status != models.OrderFailed {
 				order.Status = models.OrderFailed
+				order.PaymentID = id
+				order.PaymentAmount = decimal.NewFromInt(amount).Div(decimal.NewFromInt(100)).String()
 				order.PaymentTime, _ = time.Parse(time.RFC3339, success)
 				if err := db.Save(&order).Error; err != nil {
 					c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
