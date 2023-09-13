@@ -293,7 +293,7 @@ func Start(port string, db *gorm.DB) {
 							if !ok {
 								amount, _ = ret["rmb_amount"].(float64)
 							}
-							item.PaymentAccount = decimal.NewFromFloat(amount).Div(decimal.NewFromInt(100)).String()
+							item.PaymentAmount = decimal.NewFromFloat(amount).Div(decimal.NewFromInt(100)).String()
 							item.PaymentTime, _ = time.Parse(time.RFC3339, ret["time"].(string))
 							item.Status = models.OrderSuccess
 							updated = true

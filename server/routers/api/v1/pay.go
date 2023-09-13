@@ -307,7 +307,7 @@ func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 			if order.Status != models.OrderSuccess {
 				order.Status = models.OrderSuccess
 				order.PaymentID = id
-				order.PaymentAccount = decimal.NewFromInt(amount).Div(decimal.NewFromInt(100)).String()
+				order.PaymentAmount = decimal.NewFromInt(amount).Div(decimal.NewFromInt(100)).String()
 				order.PaymentTime, _ = time.Parse(time.RFC3339, success)
 				if err := db.Transaction(func(tx *gorm.DB) error {
 					var user models.User

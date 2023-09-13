@@ -84,6 +84,9 @@ func (item *Order) AfterFind(tx *gorm.DB) (err error) {
 	item.QuantityStr = ByteSize(item.Quantity)
 	item.PTypeStr = ProductTypeMsgs[item.PType]
 	item.StatusStr = OrderStatusMsgs[item.Status]
+	if item.Status == OrderSuccess && len(item.PaymentAmount) == 0 {
+		item.PaymentAmount = item.PaymentAccount
+	}
 	if len(item.Hash) > 0 {
 		item.URL = viper.GetString("bsc.browser") + "tx/" + item.Hash
 	}

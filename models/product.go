@@ -17,7 +17,7 @@ const (
 var ProductTypeMsgs = map[ProductType]string{
 	ProductType_ALL:     "All",
 	ProductType_Storage: "Storage",
-	ProductType_Traffic: "Traffic",
+	ProductType_Traffic: "CDN",
 }
 
 type Product struct {
