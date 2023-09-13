@@ -289,10 +289,10 @@ func Start(port string, db *gorm.DB) {
 						switch status {
 						case "success":
 							item.PaymentID = ret["id"].(string)
-							amount, ok := ret["amount"].(float64)
-							if !ok {
-								amount, _ = ret["rmb_amount"].(float64)
-							}
+							amount, _ := ret["amount"].(float64)
+							//if !ok {
+							//	amount, _ = ret["rmb_amount"].(float64)
+							//}
 							item.PaymentAmount = decimal.NewFromFloat(amount).Div(decimal.NewFromInt(100)).String()
 							item.PaymentTime, _ = time.Parse(time.RFC3339, ret["time"].(string))
 							item.Status = models.OrderSuccess

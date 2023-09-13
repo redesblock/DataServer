@@ -264,10 +264,10 @@ func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 		orderID := requestData.Reference
 		status := requestData.Status
 		success := requestData.Time
-		amount := requestData.RmbAmount
-		if amount == 0 {
-			amount = requestData.Amount
-		}
+		//amount := requestData.RmbAmount
+		//if amount == 0 {
+		amount := requestData.Amount
+		//}
 
 		var order models.Order
 		ret := db.Model(&models.Order{}).Where("order_id = ?", orderID).Find(&order)
