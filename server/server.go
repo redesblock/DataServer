@@ -120,13 +120,13 @@ func Start(port string, db *gorm.DB) {
 				oneMonthAgo := time.Now().AddDate(0, -1, 0)
 
 				// 执行删除操作
-				if err := db.Where("created_at < ?", oneMonthAgo).Delete(&models.UserAction{}); err != nil {
+				if err := db.Where("created_at < ?", oneMonthAgo.Format("2006-01-02")).Delete(&models.UserAction{}); err != nil {
 					log.Errorf("clear one month ago: %s", err)
 				}
 
 				// 执行删除操作
 				sixMonthAgo := time.Now().AddDate(0, -6, 0)
-				if err := db.Where("created_at < ?", sixMonthAgo).Delete(&models.ReportTraffic{}).Error; err != nil {
+				if err := db.Where("created_at < ?", sixMonthAgo.Format("2006-01-02")).Delete(&models.ReportTraffic{}).Error; err != nil {
 					log.Errorf("clear six month ago: %s", err)
 				}
 			}
@@ -191,7 +191,7 @@ func Start(port string, db *gorm.DB) {
 			select {
 			case <-timer.C:
 				var items []*models.Order
-				if err := db.Where("status = ? OR status = ?", models.OrderWait, models.OrderPending).Where("created_at between ? and ?", time.Now().Add(-time.Hour*24), time.Now()).Find(&items).Error; err != nil {
+				if err := db.Where("status = ? OR status = ?", models.OrderWait, models.OrderPending).Where("created_at between ? and ?", time.Now().Add(-time.Hour*24).Format("2006-01-02"), time.Now()).Find(&items).Error; err != nil {
 					log.Errorf("sync order status: %s", err)
 				}
 				for _, item := range items {

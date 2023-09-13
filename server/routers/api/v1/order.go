@@ -76,9 +76,9 @@ func GetOrders(db *gorm.DB) func(c *gin.Context) {
 				return
 			}
 			if startTime.After(endTime) {
-				tx = tx.Where("created_at BETWEEN ? AND ?", endTime, startTime)
+				tx = tx.Where("created_at BETWEEN ? AND ?", endTime.Format("2006-01-02"), startTime.Format("2006-01-02"))
 			} else {
-				tx = tx.Where("created_at BETWEEN ? AND ?", startTime, endTime)
+				tx = tx.Where("created_at BETWEEN ? AND ?", startTime.Format("2006-01-02"), endTime.Format("2006-01-02"))
 			}
 		}
 		if order := c.Query("order_id"); len(order) > 0 {
