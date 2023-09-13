@@ -173,10 +173,11 @@ func GetBillReport(db *gorm.DB) func(c *gin.Context) {
 
 		tx := db.Model(&models.Order{}).Order("created_at DESC").Where("status=?", models.OrderSuccess).Where("note=?", "xb")
 
+		loc, _ := time.LoadLocation("Asia/Shanghai")
 		if startTime.After(endTime) {
-			tx = tx.Where("created_at >= ? AND created_at < ?", endTime, startTime)
+			tx = tx.Where("created_at >= ? AND created_at < ?", endTime.In(loc), startTime.In(loc))
 		} else {
-			tx = tx.Where("created_at >= ? AND created_at < ?", startTime, endTime)
+			tx = tx.Where("created_at >= ? AND created_at < ?", startTime.In(loc), endTime.In(loc))
 		}
 
 		type Result struct {
