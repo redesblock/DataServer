@@ -174,9 +174,9 @@ func GetBillReport(db *gorm.DB) func(c *gin.Context) {
 		tx := db.Model(&models.Order{}).Order("created_at DESC").Where("status=?", models.OrderSuccess).Where("note=?", "xb")
 
 		if startTime.After(endTime) {
-			tx = tx.Where("created_at >= ? AND created_at < ?", endTime.Unix(), startTime.Unix())
+			tx = tx.Where("created_at >= ? AND created_at < ?", endTime, startTime)
 		} else {
-			tx = tx.Where("created_at >= ? AND created_at < ?", startTime.Unix(), endTime.Unix())
+			tx = tx.Where("created_at >= ? AND created_at < ?", startTime, endTime)
 		}
 
 		type Result struct {
