@@ -49,6 +49,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiv1.POST("/login2", v1.Login2(db))
 		apiv1.POST("/forgot", v1.Forgot(db))
 		apiv1.POST("/reset", v1.Reset(db))
+		apiv1.GET("/bill/report", v1.GetBillReport(db))
 
 		apiv1.POST("/alipay/notify", v1.AlipayNotify(db))
 		apiv1.POST("/wxpay/notify", v1.WxPayNotify(db))

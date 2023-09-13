@@ -149,3 +149,54 @@ func AddReportTraffic(db *gorm.DB) func(c *gin.Context) {
 		c.JSON(OKCode, NewResponse(c, OKCode, "ok"))
 	}
 }
+
+func GetBillReport(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		startTime, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
+		if start := c.Query("start"); len(start) > 0 {
+			t, err := time.Parse("2006-01-02", start)
+			if err != nil {
+				c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
+				return
+			}
+			startTime = t
+		}
+		endTime := startTime.Add(time.Hour * 24)
+		if end := c.Query("end"); len(end) > 0 {
+			t, err := time.Parse("2006-01-02", end)
+			if err != nil {
+				c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
+				return
+			}
+			endTime = t
+		}
+
+		tx := db.Model(&models.Order{}).Order("created_at DESC").Where("status=?", models.OrderSuccess).Where("note=?", "xb")
+
+		if startTime.After(endTime) {
+			tx = tx.Where("created_at >= ? AND created_at < ?", endTime.Unix(), startTime.Unix())
+		} else {
+			tx = tx.Where("created_at >= ? AND created_at < ?", startTime.Unix(), endTime.Unix())
+		}
+
+		type Result struct {
+			StartTime string  `json:"start_time"`
+			EndTime   string  `json:"end_time"`
+			RowCount  int64   `json:"row_count"`
+			Amount    float64 `json:"amount"`
+			RMBAmount float64 `json:"rmb_amount"`
+		}
+
+		result := &Result{
+			StartTime: startTime.Format("2006-01-02"),
+			EndTime:   endTime.Format("2006-01-02"),
+		}
+		err := tx.Select("SUM(CONVERT(price, DECIMAL(10,2))) AS rmb_amount, SUM(payment_amount) as amount, COUNT(*) as row_count").
+			Scan(result).Error
+		if err != nil {
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err.Error()))
+			return
+		}
+		c.JSON(OKCode, NewResponse(c, OKCode, result))
+	}
+}
