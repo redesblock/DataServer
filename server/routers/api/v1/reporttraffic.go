@@ -152,7 +152,7 @@ func AddReportTraffic(db *gorm.DB) func(c *gin.Context) {
 
 func GetBillReport(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		startTime, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
+		startTime := time.Now().Truncate(24 * time.Hour)
 		if start := c.Query("start_time"); len(start) > 0 {
 			t, err := time.Parse("2006-01-02", start)
 			if err != nil {
@@ -173,11 +173,10 @@ func GetBillReport(db *gorm.DB) func(c *gin.Context) {
 
 		tx := db.Model(&models.Order{}).Order("created_at DESC").Where("status=?", models.OrderSuccess).Where("note=?", "xb")
 
-		loc, _ := time.LoadLocation("Asia/Shanghai")
 		if startTime.After(endTime) {
-			tx = tx.Where("created_at >= ? AND created_at < ?", endTime.In(loc), startTime.In(loc))
+			tx = tx.Where("created_at >= ? AND created_at < ?", endTime.Format("2006-01-02"), startTime.Format("2006-01-02"))
 		} else {
-			tx = tx.Where("created_at >= ? AND created_at < ?", startTime.In(loc), endTime.In(loc))
+			tx = tx.Where("created_at >= ? AND created_at < ?", startTime.Format("2006-01-02"), endTime.Format("2006-01-02"))
 		}
 
 		type Result struct {
@@ -192,7 +191,7 @@ func GetBillReport(db *gorm.DB) func(c *gin.Context) {
 			StartTime: startTime.Format("2006-01-02"),
 			EndTime:   endTime.Format("2006-01-02"),
 		}
-		err := tx.Debug().Select("SUM(CONVERT(price, DECIMAL(10,2))) AS rmb_amount, SUM(payment_amount) as amount, COUNT(*) as row_count").
+		err := tx.Select("SUM(CONVERT(price, DECIMAL(10,2))) AS rmb_amount, SUM(payment_amount) as amount, COUNT(*) as row_count").
 			Scan(result).Error
 		if err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err.Error()))
