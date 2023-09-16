@@ -34,7 +34,8 @@ func NihaoPayTrade(subject, orderID, currency, amount, vendor, note string) (str
 		"reference": "%s",
 		"note": "%s",
 		"description": "%s",
-		"timeout": 10
+		"timeout": 10,
+		"terminal": WAP
     }`, amountStr, amt.Mul(decimal.NewFromInt(100)).BigInt().Int64(), vendor, viper.GetString("nihaopay.notifyUrl"), viper.GetString("nihaopay.returnUrl"), orderID, note, subject))
 
 	req, err := http.NewRequest("POST", apiUrl, bytes.NewBuffer(requestData))
