@@ -27,7 +27,7 @@ func NihaoPayTrade(subject, orderID, currency, amount, vendor, note string) (str
 	}
 	requestData := []byte(fmt.Sprintf(`{
 		"%s": %d,
-        "currency": "EUR",
+        "currency": %s,
 		"vendor": "%s",
 		"ipn_url":"%s",
 		"callback_url":"%s",
@@ -36,7 +36,7 @@ func NihaoPayTrade(subject, orderID, currency, amount, vendor, note string) (str
 		"description": "%s",
 		"timeout": 10,
 		"terminal": WAP
-    }`, amountStr, amt.Mul(decimal.NewFromInt(100)).BigInt().Int64(), vendor, viper.GetString("nihaopay.notifyUrl"), viper.GetString("nihaopay.returnUrl"), orderID, note, subject))
+    }`, amountStr, amt.Mul(decimal.NewFromInt(100)).BigInt().Int64(), vendor, viper.GetString("nihaopay.currency"), viper.GetString("nihaopay.notifyUrl"), viper.GetString("nihaopay.returnUrl"), orderID, note, subject))
 
 	req, err := http.NewRequest("POST", apiUrl, bytes.NewBuffer(requestData))
 	if err != nil {

@@ -115,14 +115,14 @@ func Init(db *gorm.DB) error {
 			ID:         1,
 			PType:      ProductType_Storage,
 			Quantity:   1024 * 1024,
-			Price:      decimal.NewFromFloat(1),
+			Price:      decimal.NewFromFloat(0.000085),
 			CurrencyID: 1,
 		},
 		{
 			ID:         2,
 			PType:      ProductType_Traffic,
 			Quantity:   1024 * 1024,
-			Price:      decimal.NewFromFloat(1),
+			Price:      decimal.NewFromFloat(0.000117),
 			CurrencyID: 1,
 		},
 	}
