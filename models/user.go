@@ -44,6 +44,7 @@ type User struct {
 	Status       UserStatus     `json:"status" gorm:"default:0"`
 	TotalStorage uint64         `json:"total_storage"`
 	TotalTraffic uint64         `json:"total_traffic"`
+	Reserve      int            `json:"-" gorm:"default:0"`
 	SignedIn     time.Time      `json:"-"`
 
 	RoleStr         string `json:"role_str" gorm:"-"`

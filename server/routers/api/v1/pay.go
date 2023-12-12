@@ -9,6 +9,7 @@ import (
 	"github.com/redesblock/dataserver/models"
 	"github.com/redesblock/dataserver/server/pay"
 	"github.com/shopspring/decimal"
+	log "github.com/sirupsen/logrus"
 	"github.com/smartwalle/alipay/v3"
 	"github.com/spf13/viper"
 	"github.com/stripe/stripe-go/v75"
@@ -124,6 +125,9 @@ func AlipayNotify(db *gorm.DB) func(c *gin.Context) {
 							return err
 						}
 					}
+					if err := SendGoMail([]string{user.Email}, "Payment Confirmation", fmt.Sprintf(EmailContentTemplate_ORDER, user.Email, order.OrderID, order.PaymentAmount, order.PaymentStr, order.PaymentTime.Format(models.TIME_FORMAT), viper.GetString("website"))); err != nil {
+						log.Errorf("SendGoMail: %s, %s", user.Email, err)
+					}
 
 					return tx.Save(&order).Error
 				}); err != nil {
@@ -215,6 +219,9 @@ func WxPayNotify(db *gorm.DB) func(c *gin.Context) {
 						if err := tx.Save(&userCoupon).Error; err != nil {
 							return err
 						}
+					}
+					if err := SendGoMail([]string{user.Email}, "Payment Confirmation", fmt.Sprintf(EmailContentTemplate_ORDER, user.Email, order.OrderID, order.PaymentAmount, order.PaymentStr, order.PaymentTime.Format(models.TIME_FORMAT), viper.GetString("website"))); err != nil {
+						log.Errorf("SendGoMail: %s, %s", user.Email, err)
 					}
 					return tx.Save(&order).Error
 				}); err != nil {
@@ -336,6 +343,9 @@ func NihaoPayNotify(db *gorm.DB) func(c *gin.Context) {
 							return err
 						}
 					}
+					if err := SendGoMail([]string{user.Email}, "Payment Confirmation", fmt.Sprintf(EmailContentTemplate_ORDER, user.Email, order.OrderID, order.PaymentAmount, order.PaymentStr, order.PaymentTime.Format(models.TIME_FORMAT), viper.GetString("website"))); err != nil {
+						log.Errorf("SendGoMail: %s, %s", user.Email, err)
+					}
 					return tx.Save(&order).Error
 				}); err != nil {
 					c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
@@ -393,6 +403,9 @@ func StripeNotify(db *gorm.DB) func(c *gin.Context) {
 						if err := tx.Save(&userCoupon).Error; err != nil {
 							return err
 						}
+					}
+					if err := SendGoMail([]string{user.Email}, "Payment Confirmation", fmt.Sprintf(EmailContentTemplate_ORDER, user.Email, order.OrderID, order.PaymentAmount, order.PaymentStr, order.PaymentTime.Format(models.TIME_FORMAT), viper.GetString("website"))); err != nil {
+						log.Errorf("SendGoMail: %s, %s", user.Email, err)
 					}
 					return tx.Save(&order).Error
 				}); err != nil {

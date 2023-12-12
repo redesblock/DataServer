@@ -7,6 +7,7 @@ import (
 	"github.com/dchest/captcha"
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/models"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	"net"
 	"net/http"
@@ -206,7 +207,7 @@ func Forgot(db *gorm.DB) func(c *gin.Context) {
 			code += strconv.Itoa(int(num))
 		}
 
-		if err := SendGoMail([]string{req.Email}, "Reset password", fmt.Sprintf(EmailContentTemplate_RESET, code)); err != nil {
+		if err := SendGoMail([]string{req.Email}, "Reset password", fmt.Sprintf(EmailContentTemplate_RESET, code, viper.GetString("website"))); err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err))
 			return
 		}
