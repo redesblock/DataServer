@@ -231,6 +231,9 @@ func Start(port string, db *gorm.DB) {
 										return err
 									}
 								}
+								if err := v1.SendGoMail([]string{user.Email}, "Payment Confirmation", fmt.Sprintf(v1.EmailContentTemplate_ORDER, user.Email, item.OrderID, item.PaymentAmount, item.PaymentStr, item.PaymentTime.Format(models.TIME_FORMAT), viper.GetString("website"))); err != nil {
+									log.Errorf("SendGoMail: %s, %s", user.Email, err)
+								}
 								return tx.Save(&item).Error
 							}); err != nil {
 								log.Errorf("sync order status: %s", err)
@@ -272,6 +275,9 @@ func Start(port string, db *gorm.DB) {
 									if err := tx.Save(&userCoupon).Error; err != nil {
 										return err
 									}
+								}
+								if err := v1.SendGoMail([]string{user.Email}, "Payment Confirmation", fmt.Sprintf(v1.EmailContentTemplate_ORDER, user.Email, item.OrderID, item.PaymentAmount, item.PaymentStr, item.PaymentTime.Format(models.TIME_FORMAT), viper.GetString("website"))); err != nil {
+									log.Errorf("SendGoMail: %s, %s", user.Email, err)
 								}
 								return tx.Save(&item).Error
 							}); err != nil {
@@ -349,6 +355,11 @@ func Start(port string, db *gorm.DB) {
 									userCoupon.Status = models.UserCouponStatus_Used
 									if err := tx.Save(&userCoupon).Error; err != nil {
 										return err
+									}
+								}
+								if item.Status == models.OrderSuccess {
+									if err := v1.SendGoMail([]string{user.Email}, "Payment Confirmation", fmt.Sprintf(v1.EmailContentTemplate_ORDER, user.Email, item.OrderID, item.PaymentAmount, item.PaymentStr, item.PaymentTime.Format(models.TIME_FORMAT), viper.GetString("website"))); err != nil {
+										log.Errorf("SendGoMail: %s, %s", user.Email, err)
 									}
 								}
 								return tx.Save(&item).Error

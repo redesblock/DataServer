@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/dataserver/models"
 	"gorm.io/gorm"
+	"strconv"
 	"time"
 )
 
@@ -198,5 +199,22 @@ func GetBillReport(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 		c.JSON(OKCode, NewResponse(c, OKCode, result))
+	}
+}
+
+func GetBillEmail(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		n, err := strconv.ParseInt(c.DefaultQuery("num", "1"), 10, 64)
+		if err != nil {
+			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
+			return
+		}
+		var data []string
+		err = db.Model(&models.User{}).Select("email").Where("reserve=?", 1).Order("RAND()").Limit(int(n)).Find(&data).Error
+		if err != nil {
+			c.JSON(OKCode, NewResponse(c, ExecuteCode, err.Error()))
+			return
+		}
+		c.JSON(OKCode, NewResponse(c, OKCode, data))
 	}
 }

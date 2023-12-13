@@ -30,7 +30,7 @@ const EmailContentTemplate_RESET = `
 
     <p>If you didn't request this action, please ignore this email.</p>
 
-    <p>https://mopdstor.com</p>
+    <p>%s</p>
 
 </body>
 </html>
@@ -88,7 +88,7 @@ const EmailContentTemplate_ORDER = `
         <div class="footer">
             <p>Warmest regards,</p>
 
-            <p>Website: https://mopdstor.com</p>
+            <p>Website: %s</p>
             <p>Email: respond@monopro.io</p>
         </div>
     </div>
