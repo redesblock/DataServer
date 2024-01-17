@@ -209,12 +209,24 @@ func GetBillEmail(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(OKCode, NewResponse(c, RequestCode, err.Error()))
 			return
 		}
-		var data []string
-		err = db.Model(&models.User{}).Select("email").Where("reserve=?", 1).Order("RAND()").Limit(int(n)).Find(&data).Error
+		var items []*models.User
+		err = db.Model(&models.User{}).Where("reserve=?", 1).Order("RAND()").Limit(int(n)).Find(&items).Error
 		if err != nil {
 			c.JSON(OKCode, NewResponse(c, ExecuteCode, err.Error()))
 			return
 		}
-		c.JSON(OKCode, NewResponse(c, OKCode, data))
+		var ret []map[string]string
+		for _, item := range items {
+			token, _ := GenToken(UserInfo{
+				ID:    item.ID,
+				Email: item.Email,
+				Role:  item.Role,
+			})
+			ret = append(ret, map[string]string{
+				"email": item.Email,
+				"token": token,
+			})
+		}
+		c.JSON(OKCode, NewResponse(c, OKCode, ret))
 	}
 }
