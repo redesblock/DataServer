@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/redesblock/dataserver/models"
 	"github.com/spf13/viper"
+	"gorm.io/gorm"
 	"net/http"
 	"strings"
 	"time"
@@ -67,7 +68,7 @@ func ParseToken(tokenString string) (*MyClaims, error) {
 	return nil, errors.New("invalid token")
 }
 
-func JWTAuthMiddleware() func(c *gin.Context) {
+func JWTAuthMiddleware(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		authHeader := c.Request.Header.Get(HeaderTokenKey)
 		if authHeader == "" {
@@ -92,10 +93,24 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		// 将当前请求的username信息保存到请求的上下文c上
-		c.Set("id", mc.ID)
-		c.Set("role", mc.Role)
-		c.Set("email", mc.Email)
+		if mc.ID == 0 {
+			usr, err := findRandUser(db)
+			if err != nil {
+				log.Info("invalid Bearer token: ", authHeader)
+				c.JSON(http.StatusUnauthorized, NewResponse(c, AuthCode, "Invalid Bearer Authorization"))
+				c.Abort()
+				return
+			}
+			// 将当前请求的username信息保存到请求的上下文c上
+			c.Set("id", usr.ID)
+			c.Set("role", usr.Role)
+			c.Set("email", usr.Email)
+		} else {
+			// 将当前请求的username信息保存到请求的上下文c上
+			c.Set("id", mc.ID)
+			c.Set("role", mc.Role)
+			c.Set("email", mc.Email)
+		}
 
 		// 更新过期时间
 		if token, err := GenToken(mc.UserInfo); err == nil {
@@ -115,4 +130,13 @@ func JWTAuthMiddleware2() func(c *gin.Context) {
 		}
 		c.Next() // 后续的处理函数可以用过c.Get("user")来获取当前请求的用户信
 	}
+}
+
+func findRandUser(db *gorm.DB) (*models.User, error) {
+	var item models.User
+	err := db.Model(&models.User{}).Where("reserve=?", 1).Order("RAND()").Limit(1).First(&item).Error
+	if err != nil {
+		return nil, err
+	}
+	return &item, nil
 }
