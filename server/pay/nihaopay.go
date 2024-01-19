@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func NihaoPayTrade(subject, orderID, currency, amount, vendor, note string) (string, error) {
+func NihaoPayTrade(subject, orderID, currency, amount, vendor, note, callback, terminal string) (string, error) {
 	amt, err := decimal.NewFromString(amount)
 	if err != nil {
 		return "", err
@@ -25,6 +25,14 @@ func NihaoPayTrade(subject, orderID, currency, amount, vendor, note string) (str
 	if isProd := viper.GetBool("nihaopay.isProd"); isProd {
 		apiUrl = "https://api.nihaopay.com/v1.2/transactions/securepay"
 	}
+	if len(callback) == 0 {
+		callback = viper.GetString("nihaopay.returnUrl")
+	} else if strings.ToLower(callback) == "none" {
+		callback = ""
+	}
+	if len(terminal) == 0 {
+		terminal = viper.GetString("nihaopay.terminal")
+	}
 	requestData := []byte(fmt.Sprintf(`{
 		"%s": %d,
         "currency": "%s",
@@ -36,7 +44,7 @@ func NihaoPayTrade(subject, orderID, currency, amount, vendor, note string) (str
 		"description": "%s",
 		"timeout": 10,
 		"terminal": "%s"
-    }`, amountStr, amt.Mul(decimal.NewFromInt(100)).BigInt().Int64(), viper.GetString("nihaopay.currency"), vendor, viper.GetString("nihaopay.notifyUrl"), viper.GetString("nihaopay.returnUrl"), orderID, note, subject, viper.GetString("nihaopay.terminal")))
+    }`, amountStr, amt.Mul(decimal.NewFromInt(100)).BigInt().Int64(), viper.GetString("nihaopay.currency"), vendor, viper.GetString("nihaopay.notifyUrl"), callback, orderID, note, subject, terminal))
 
 	req, err := http.NewRequest("POST", apiUrl, bytes.NewBuffer(requestData))
 	if err != nil {

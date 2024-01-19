@@ -95,6 +95,8 @@ type BillReq struct {
 	Note           string                `json:"note"`
 	UserIP         string                `json:"user_ip"`
 	Hash           string                `json:"hash"`
+	CallBack       string                `json:"call_back"`
+	Terminal       string                `json:"call_back"`
 }
 
 func (r *BillReq) convertToOrder(db *gorm.DB, p_type models.ProductType) (quantity uint64, price decimal.Decimal, discount decimal.Decimal, err error) {
@@ -335,7 +337,7 @@ func AddBillsStorageHandler(db *gorm.DB) func(c *gin.Context) {
 				if req.Currency == 3 {
 					currency = "cny"
 				}
-				res, err := pay.NihaoPayTrade(req.Description, item.OrderID, currency, item.Discount.String(), vendor, req.Note)
+				res, err := pay.NihaoPayTrade(req.Description, item.OrderID, currency, item.Discount.String(), vendor, req.Note, req.CallBack, req.Terminal)
 				if err != nil {
 					return err
 				}
@@ -510,7 +512,7 @@ func AddBillsTrafficHandler(db *gorm.DB) func(c *gin.Context) {
 				if req.Currency == 3 {
 					currency = "cny"
 				}
-				res, err := pay.NihaoPayTrade(req.Description, item.OrderID, currency, item.Discount.String(), vendor, req.Note)
+				res, err := pay.NihaoPayTrade(req.Description, item.OrderID, currency, item.Discount.String(), vendor, req.Note, req.CallBack, req.Terminal)
 				if err != nil {
 					return err
 				}
